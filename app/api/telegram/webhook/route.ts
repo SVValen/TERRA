@@ -103,7 +103,7 @@ async function iniciarCargaConFoto(
   const nombreArchivo = `productos/${Date.now()}_${chatId}.jpg`
 
   const { error: uploadError } = await supabase.storage
-    .from('fotos')
+    .from('Fotos')
     .upload(nombreArchivo, buffer, { contentType: 'image/jpeg', upsert: false })
 
   if (uploadError) {
@@ -112,7 +112,7 @@ async function iniciarCargaConFoto(
     return
   }
 
-  const { data: urlData } = supabase.storage.from('fotos').getPublicUrl(nombreArchivo)
+  const { data: urlData } = supabase.storage.from('Fotos').getPublicUrl(nombreArchivo)
 
   // Crear sesión
   await supabase.from('bot_sesiones').upsert({
