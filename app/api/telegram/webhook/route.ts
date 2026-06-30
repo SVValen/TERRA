@@ -93,14 +93,21 @@ async function iniciarCargaConFoto(
 
   // Descargar y subir a Supabase Storage
   const response = await fetch(fileUrl)
-  const buffer = await response.arrayBuffer()
+  if (!response.ok) {
+    console.error('[foto] fetch falló:', response.status, fileUrl)
+    await sendMessage(chatId, 'No pude descargar la foto. Intentá de nuevo.')
+    return
+  }
+  const arrayBuffer = await response.arrayBuffer()
+  const buffer = Buffer.from(arrayBuffer)
   const nombreArchivo = `productos/${Date.now()}_${chatId}.jpg`
 
   const { error: uploadError } = await supabase.storage
     .from('fotos')
-    .upload(nombreArchivo, buffer, { contentType: 'image/jpeg' })
+    .upload(nombreArchivo, buffer, { contentType: 'image/jpeg', upsert: false })
 
   if (uploadError) {
+    console.error('[foto] upload error:', JSON.stringify(uploadError))
     await sendMessage(chatId, 'Error al guardar la foto. Intentá de nuevo.')
     return
   }
