@@ -56,6 +56,33 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
+  if (texto.startsWith('/eliminar')) {
+    const termino = texto.replace('/eliminar', '').trim()
+    if (!termino) {
+      await sendMessage(chatId, '¿Qué producto querés eliminar?\nUsá: /eliminar <nombre>\n\nEj: /eliminar campera azul')
+      return NextResponse.json({ ok: true })
+    }
+    const { data: encontrados } = await supabase
+      .from('productos')
+      .select('id, nombre, estado, precio_venta')
+      .ilike('nombre', `%${termino}%`)
+      .limit(5)
+
+    if (!encontrados?.length) {
+      await sendMessage(chatId, `No encontré productos con "${termino}".`)
+      return NextResponse.json({ ok: true })
+    }
+
+    const keyboard = {
+      inline_keyboard: encontrados.map(p => ([{
+        text: `🗑 ${p.nombre} · $${p.precio_venta.toLocaleString('es-AR')} · ${p.estado}`,
+        callback_data: `eliminar:${p.id}`,
+      }])),
+    }
+    await sendMessage(chatId, `Encontré ${encontrados.length} resultado(s). ¿Cuál querés eliminar?`, keyboard)
+    return NextResponse.json({ ok: true })
+  }
+
   if (texto === '/cargar') {
     if (sesion) {
       await sendMessage(chatId, 'Ya tenés una carga en curso. Usá /cancelar para empezar de nuevo.')
@@ -113,6 +140,41 @@ async function handleCallbackQuery(
 
   const paso = sesion.paso as BotPaso
   const datos = sesion.datos_parciales as Partial<DatosParciales>
+
+  // Eliminar producto
+  if (data.startsWith('eliminar:')) {
+    const productoId = data.replace('eliminar:', '')
+    const { data: prod } = await supabase.from('productos').select('nombre').eq('id', productoId).single()
+    if (!prod) {
+      await sendMessage(chatId, 'No encontré ese producto. Puede que ya haya sido eliminado.')
+      return
+    }
+    const kb = {
+      inline_keyboard: [[
+        { text: '✅ Sí, eliminar', callback_data: `confirmar_eliminar:${productoId}` },
+        { text: '❌ Cancelar',     callback_data: 'cancelar_eliminar' },
+      ]],
+    }
+    await sendMessage(chatId, `¿Seguro que querés eliminar <b>${prod.nombre}</b>? Esta acción no se puede deshacer.`, kb)
+    return
+  }
+
+  if (data.startsWith('confirmar_eliminar:')) {
+    const productoId = data.replace('confirmar_eliminar:', '')
+    const { data: prod } = await supabase.from('productos').select('nombre').eq('id', productoId).single()
+    const { error } = await supabase.from('productos').delete().eq('id', productoId)
+    if (error) {
+      await sendMessage(chatId, '❌ Error al eliminar. Intentá de nuevo.')
+      return
+    }
+    await sendMessage(chatId, `✅ <b>${prod?.nombre ?? 'Producto'}</b> eliminado del stock.`)
+    return
+  }
+
+  if (data === 'cancelar_eliminar') {
+    await sendMessage(chatId, 'Cancelado.')
+    return
+  }
 
   // Selección de categoría
   if (data.startsWith('cat:') && paso === 'esperando_categoria') {
@@ -322,6 +384,7 @@ function resumenProducto(datos: Partial<DatosParciales>): string {
 const MENSAJE_AYUDA = `<b>Comandos disponibles:</b>
 
 /cargar — Agregar un producto nuevo al stock
+/eliminar &lt;nombre&gt; — Eliminar un producto del stock
 /cancelar — Cancelar la carga actual
 /ayuda — Mostrar este mensaje
 

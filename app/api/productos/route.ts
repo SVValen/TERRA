@@ -13,6 +13,9 @@ export async function GET(request: NextRequest) {
   const categoria = searchParams.get('categoria')
   if (categoria) query = query.eq('categoria', categoria)
 
+  const subcategoria = searchParams.get('subcategoria')
+  if (subcategoria) query = query.eq('subcategoria', subcategoria)
+
   const busqueda = searchParams.get('q')
   if (busqueda) query = query.ilike('nombre', `%${busqueda}%`)
 

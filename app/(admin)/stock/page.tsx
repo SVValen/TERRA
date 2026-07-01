@@ -2,25 +2,37 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import type { Producto } from '@/lib/types'
+import type { Producto, Categoria } from '@/lib/types'
 
 export default function StockPage() {
   const [productos, setProductos] = useState<Producto[]>([])
+  const [categorias, setCategorias] = useState<Categoria[]>([])
   const [loading, setLoading] = useState(true)
   const [filtroEstado, setFiltroEstado] = useState('')
+  const [filtroCategoria, setFiltroCategoria] = useState('')
+  const [filtroSubcategoria, setFiltroSubcategoria] = useState('')
   const [busqueda, setBusqueda] = useState('')
+
+  useEffect(() => {
+    fetch('/api/categorias').then(r => r.json()).then(setCategorias)
+  }, [])
 
   const cargar = async () => {
     setLoading(true)
     const params = new URLSearchParams()
     if (filtroEstado) params.set('estado', filtroEstado)
+    if (filtroCategoria) params.set('categoria', filtroCategoria)
+    if (filtroSubcategoria) params.set('subcategoria', filtroSubcategoria)
     if (busqueda) params.set('q', busqueda)
     const res = await fetch(`/api/productos?${params}`)
     setProductos(await res.json())
     setLoading(false)
   }
 
-  useEffect(() => { cargar() }, [filtroEstado, busqueda])
+  useEffect(() => { cargar() }, [filtroEstado, filtroCategoria, filtroSubcategoria, busqueda])
+
+  const catActual = categorias.find(c => c.nombre === filtroCategoria)
+  const subcategorias = catActual?.subcategorias ?? []
 
   const disponibles = productos.filter(p => p.estado === 'disponible').length
   const vendidos = productos.filter(p => p.estado === 'vendido').length
@@ -38,8 +50,9 @@ export default function StockPage() {
       </div>
 
       {/* Filtros */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
-        <div className="relative flex-1 max-w-xs">
+      <div className="flex flex-wrap gap-2 mb-6">
+        {/* Búsqueda */}
+        <div className="relative flex-1 min-w-[180px] max-w-xs">
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
@@ -51,6 +64,8 @@ export default function StockPage() {
             className="w-full pl-9 pr-3 py-2 bg-white border border-gray-200 rounded-lg text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
           />
         </div>
+
+        {/* Estado */}
         <select
           value={filtroEstado}
           onChange={(e) => setFiltroEstado(e.target.value)}
@@ -61,6 +76,38 @@ export default function StockPage() {
           <option value="vendido">Vendido</option>
           <option value="reservado">Reservado</option>
         </select>
+
+        {/* Categoría */}
+        <select
+          value={filtroCategoria}
+          onChange={(e) => { setFiltroCategoria(e.target.value); setFiltroSubcategoria('') }}
+          className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+        >
+          <option value="">Todas las categorías</option>
+          {categorias.map(c => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}
+        </select>
+
+        {/* Subcategoría (solo si hay categoría seleccionada con subs) */}
+        {filtroCategoria && subcategorias.length > 0 && (
+          <select
+            value={filtroSubcategoria}
+            onChange={(e) => setFiltroSubcategoria(e.target.value)}
+            className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+          >
+            <option value="">Todas las subcategorías</option>
+            {subcategorias.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        )}
+
+        {/* Limpiar filtros */}
+        {(filtroEstado || filtroCategoria || filtroSubcategoria || busqueda) && (
+          <button
+            onClick={() => { setFiltroEstado(''); setFiltroCategoria(''); setFiltroSubcategoria(''); setBusqueda('') }}
+            className="px-3 py-2 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors"
+          >
+            Limpiar filtros ×
+          </button>
+        )}
       </div>
 
       {/* Grid de tarjetas */}
@@ -74,7 +121,9 @@ export default function StockPage() {
       {!loading && productos.length === 0 && (
         <div className="text-center py-20 text-gray-400">
           <p className="text-4xl mb-3">📦</p>
-          <p className="text-sm font-medium">Sin productos{busqueda ? ` con "${busqueda}"` : ''}</p>
+          <p className="text-sm font-medium">
+            Sin productos{busqueda ? ` con "${busqueda}"` : filtroCategoria ? ` en "${filtroCategoria}"` : ''}
+          </p>
           <p className="text-xs mt-1">Usá el bot con /cargar para agregar productos</p>
         </div>
       )}
