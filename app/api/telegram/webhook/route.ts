@@ -35,6 +35,8 @@ export async function POST(request: NextRequest) {
   if (!message) return NextResponse.json({ ok: true })
 
   const chatId = String(message.chat.id)
+  const texto = message.text?.trim() ?? ''
+  const foto = message.photo
 
   // Comando público: devuelve el chat_id sin verificar acceso
   if (texto === '/id') {
@@ -53,9 +55,6 @@ export async function POST(request: NextRequest) {
     await sendMessage(chatId, '⛔ No tenés acceso a este bot.\n\nUsá /id para obtener tu ID y pedile acceso al administrador.')
     return NextResponse.json({ ok: true })
   }
-
-  const texto = message.text?.trim() ?? ''
-  const foto = message.photo
 
   const { data: sesion } = await supabase
     .from('bot_sesiones')
