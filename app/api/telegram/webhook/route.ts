@@ -36,6 +36,12 @@ export async function POST(request: NextRequest) {
 
   const chatId = String(message.chat.id)
 
+  // Comando público: devuelve el chat_id sin verificar acceso
+  if (texto === '/id') {
+    await sendMessage(chatId, `Tu ID de Telegram es: <code>${chatId}</code>\n\nCompartilo con el administrador para que te dé acceso.`)
+    return NextResponse.json({ ok: true })
+  }
+
   // Verificar que el chat_id esté autorizado
   const { data: usuarioAutorizado } = await supabase
     .from('usuarios')
@@ -44,7 +50,7 @@ export async function POST(request: NextRequest) {
     .single()
 
   if (!usuarioAutorizado) {
-    await sendMessage(chatId, '⛔ No tenés acceso a este bot.')
+    await sendMessage(chatId, '⛔ No tenés acceso a este bot.\n\nUsá /id para obtener tu ID y pedile acceso al administrador.')
     return NextResponse.json({ ok: true })
   }
 
