@@ -1,8 +1,10 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function NegocioPage() {
+  const router = useRouter()
   const [nombre, setNombre] = useState('')
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
@@ -42,6 +44,7 @@ export default function NegocioPage() {
       setPreview(null)
       setArchivo(null)
       setMsg({ tipo: 'ok', texto: 'Cambios guardados correctamente' })
+      router.refresh() // re-fetch del layout server para actualizar sidebar
     } else {
       setMsg({ tipo: 'error', texto: data.error ?? 'Error al guardar' })
     }
