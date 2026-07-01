@@ -1,24 +1,24 @@
-export const CATEGORIAS: Record<string, string[]> = {
-  'Ropa':       ['Tops', 'Pantalones', 'Vestidos', 'Faldas', 'Camperas', 'Sweaters', 'Deportivo', 'Otro'],
-  'Calzado':    ['Zapatillas', 'Sandalias', 'Botas', 'Zapatos', 'Otro'],
-  'Accesorios': ['Bolsos', 'Bijouterie', 'Cinturones', 'Gorros', 'Otro'],
-  'Otros':      ['General'],
-}
+import type { Categoria } from '@/lib/types'
 
-export function keyboardCategorias() {
-  const cats = Object.keys(CATEGORIAS)
+export function buildKeyboardCategorias(categorias: Categoria[]) {
   const rows: Array<Array<{ text: string; callback_data: string }>> = []
-  for (let i = 0; i < cats.length; i += 2) {
-    rows.push(cats.slice(i, i + 2).map((c) => ({ text: c, callback_data: `cat:${c}` })))
+  for (let i = 0; i < categorias.length; i += 2) {
+    rows.push(
+      categorias.slice(i, i + 2).map(c => ({ text: c.nombre, callback_data: `cat:${c.nombre}` }))
+    )
+  }
+  if (rows.length === 0) {
+    rows.push([{ text: 'Sin categoría', callback_data: 'cat:skip' }])
   }
   return { inline_keyboard: rows }
 }
 
-export function keyboardSubcategorias(categoria: string) {
-  const subs = CATEGORIAS[categoria] ?? ['Otro']
+export function buildKeyboardSubcategorias(subcategorias: string[]) {
   const rows: Array<Array<{ text: string; callback_data: string }>> = []
-  for (let i = 0; i < subs.length; i += 3) {
-    rows.push(subs.slice(i, i + 3).map((s) => ({ text: s, callback_data: `subcat:${s}` })))
+  for (let i = 0; i < subcategorias.length; i += 3) {
+    rows.push(
+      subcategorias.slice(i, i + 3).map(s => ({ text: s, callback_data: `subcat:${s}` }))
+    )
   }
   rows.push([{ text: 'Omitir subcategoría', callback_data: 'subcat:skip' }])
   return { inline_keyboard: rows }

@@ -6,10 +6,11 @@ import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
 
 const nav = [
-  { href: '/stock',    label: 'Stock',    icon: '📦' },
-  { href: '/caja',     label: 'Caja',     icon: '💰' },
-  { href: '/retiros',  label: 'Retiros',  icon: '💸' },
-  { href: '/metricas', label: 'Métricas', icon: '📊' },
+  { href: '/stock',      label: 'Stock',      icon: '📦' },
+  { href: '/caja',       label: 'Caja',       icon: '💰' },
+  { href: '/retiros',    label: 'Retiros',    icon: '💸' },
+  { href: '/metricas',   label: 'Métricas',   icon: '📊' },
+  { href: '/categorias', label: 'Categorías', icon: '🏷️' },
 ]
 
 export default function AdminLayout({ children }: { children: ReactNode }) {

@@ -26,6 +26,13 @@ export interface Venta {
   fecha: string
 }
 
+export interface Categoria {
+  id: string
+  nombre: string
+  subcategorias: string[]
+  creado_en: string
+}
+
 export interface Retiro {
   id: string
   monto: number

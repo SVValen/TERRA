@@ -3,14 +3,19 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { sendMessage, answerCallbackQuery, getFile } from '@/lib/telegram/bot'
 import { parseNumero } from '@/lib/telegram/parser'
 import {
-  keyboardCategorias,
-  keyboardSubcategorias,
+  buildKeyboardCategorias,
+  buildKeyboardSubcategorias,
   KB_LISTO_FOTOS,
   KB_CONFIRMAR,
 } from '@/lib/telegram/categorias'
-import type { BotPaso, DatosParciales } from '@/lib/types'
+import type { BotPaso, DatosParciales, Categoria } from '@/lib/types'
 
 type Supabase = ReturnType<typeof createServiceClient>
+
+async function getCategorias(supabase: Supabase): Promise<Categoria[]> {
+  const { data } = await supabase.from('categorias').select('*').order('nombre')
+  return data ?? []
+}
 
 export async function POST(request: NextRequest) {
   const secret = request.headers.get('x-telegram-bot-api-secret-token')
@@ -112,12 +117,20 @@ async function handleCallbackQuery(
   // Selección de categoría
   if (data.startsWith('cat:') && paso === 'esperando_categoria') {
     const categoria = data.replace('cat:', '')
+    if (categoria === 'skip') {
+      // Sin categorías cargadas, saltear directo a costo
+      await actualizarSesion(supabase, chatId, 'esperando_costo', { ...datos, categoria: '' })
+      await sendMessage(chatId, '💰 ¿Cuál es el precio de costo? (ej: 8000)')
+      return
+    }
     await actualizarSesion(supabase, chatId, 'esperando_subcategoria', { ...datos, categoria })
-    await sendMessage(
-      chatId,
-      `Categoría: <b>${categoria}</b>\n\n¿Subcategoría?`,
-      keyboardSubcategorias(categoria)
-    )
+    const cats = await getCategorias(supabase)
+    const catData = cats.find(c => c.nombre === categoria)
+    const subs = catData?.subcategorias ?? []
+    const kbSub = subs.length > 0
+      ? buildKeyboardSubcategorias(subs)
+      : { inline_keyboard: [[{ text: 'Omitir subcategoría', callback_data: 'subcat:skip' }]] }
+    await sendMessage(chatId, `Categoría: <b>${categoria}</b>\n\n¿Subcategoría?`, kbSub)
     return
   }
 
@@ -181,7 +194,11 @@ async function manejarPaso(
     case 'esperando_nombre': {
       if (!texto) { await sendMessage(chatId, 'Escribí el nombre del producto.'); return }
       await actualizarSesion(supabase, chatId, 'esperando_categoria', { ...datos, nombre: texto })
-      await sendMessage(chatId, `Nombre: <b>${texto}</b>\n\n¿Cuál es la categoría?`, keyboardCategorias())
+      const cats = await getCategorias(supabase)
+      const kbCats = cats.length > 0
+        ? buildKeyboardCategorias(cats)
+        : { inline_keyboard: [[{ text: 'Sin categorías — cargá desde el panel', callback_data: 'cat:skip' }]] }
+      await sendMessage(chatId, `Nombre: <b>${texto}</b>\n\n¿Cuál es la categoría?`, kbCats)
       break
     }
 

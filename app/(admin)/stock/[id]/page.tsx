@@ -3,16 +3,14 @@
 import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import type { Producto } from '@/lib/types'
-import { CATEGORIAS } from '@/lib/telegram/categorias'
-
-const LISTA_CATEGORIAS = Object.keys(CATEGORIAS)
+import type { Producto, Categoria } from '@/lib/types'
 
 export default function ProductoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
 
   const [producto, setProducto] = useState<Producto | null>(null)
+  const [categorias, setCategorias] = useState<Categoria[]>([])
   const [loading, setLoading] = useState(true)
   const [guardando, setGuardando] = useState(false)
   const [fotoActiva, setFotoActiva] = useState(0)
@@ -27,19 +25,21 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
   const [stock, setStock] = useState('')
 
   useEffect(() => {
-    fetch(`/api/productos/${id}`)
-      .then(r => r.json())
-      .then((p: Producto) => {
-        setProducto(p)
-        setNombre(p.nombre)
-        setCategoria(p.categoria ?? '')
-        setSubcategoria(p.subcategoria ?? '')
-        setCosto(String(p.costo))
-        setPrecioVenta(String(p.precio_venta))
-        setEstado(p.estado)
-        setStock(String(p.stock))
-        setLoading(false)
-      })
+    Promise.all([
+      fetch(`/api/productos/${id}`).then(r => r.json()),
+      fetch('/api/categorias').then(r => r.json()),
+    ]).then(([p, cats]: [Producto, Categoria[]]) => {
+      setCategorias(cats)
+      setProducto(p)
+      setNombre(p.nombre)
+      setCategoria(p.categoria ?? '')
+      setSubcategoria(p.subcategoria ?? '')
+      setCosto(String(p.costo))
+      setPrecioVenta(String(p.precio_venta))
+      setEstado(p.estado)
+      setStock(String(p.stock))
+      setLoading(false)
+    })
   }, [id])
 
   const guardar = async () => {
@@ -106,7 +106,8 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
   const margen = producto.costo > 0
     ? Math.round((producto.precio_venta - producto.costo) / producto.precio_venta * 100)
     : null
-  const subcategorias = categoria ? (CATEGORIAS[categoria] ?? []) : []
+  const catData = categorias.find(c => c.nombre === categoria)
+  const subcategorias = catData?.subcategorias ?? []
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
@@ -201,7 +202,7 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
                 className="input"
               >
                 <option value="">Sin categoría</option>
-                {LISTA_CATEGORIAS.map(c => <option key={c} value={c}>{c}</option>)}
+                {categorias.map(c => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}
               </select>
             </FormField>
 
