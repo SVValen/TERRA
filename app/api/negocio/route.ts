@@ -24,6 +24,9 @@ export async function PATCH(request: NextRequest) {
   const whatsapp = formData.get('whatsapp')
   if (whatsapp !== null) updates.whatsapp = String(whatsapp).trim()
 
+  const margen = formData.get('margen_objetivo')
+  if (margen !== null && margen !== '') updates.margen_objetivo = String(parseInt(String(margen), 10))
+
   const logo = formData.get('logo') as File | null
   if (logo && logo.size > 0) {
     if (!ALLOWED_IMAGE_TYPES.includes(logo.type)) {

@@ -63,7 +63,7 @@ export default function Sidebar({ children, nombre, logoUrl }: Props) {
       >
         {/* Logo / nombre negocio */}
         <Link
-          href="/admin/negocio"
+          href="/admin/stock"
           onClick={() => setOpen(false)}
           className="flex items-center gap-3 px-5 py-5 border-b border-slate-800 hover:bg-slate-800 transition-colors"
         >

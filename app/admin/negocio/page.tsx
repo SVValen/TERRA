@@ -7,6 +7,7 @@ export default function NegocioPage() {
   const router = useRouter()
   const [nombre, setNombre] = useState('')
   const [whatsapp, setWhatsapp] = useState('')
+  const [margen, setMargen] = useState('30')
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [archivo, setArchivo] = useState<File | null>(null)
@@ -18,6 +19,7 @@ export default function NegocioPage() {
     fetch('/api/negocio').then(r => r.json()).then(d => {
       setNombre(d.nombre ?? '')
       setWhatsapp(d.whatsapp ?? '')
+      setMargen(String(d.margen_objetivo ?? 30))
       setLogoUrl(d.logo_url ?? null)
     })
   }, [])
@@ -36,6 +38,7 @@ export default function NegocioPage() {
     const fd = new FormData()
     fd.append('nombre', nombre)
     fd.append('whatsapp', whatsapp)
+    fd.append('margen_objetivo', margen)
     if (archivo) fd.append('logo', archivo)
     const res = await fetch('/api/negocio', { method: 'PATCH', body: fd })
     const data = await res.json()
@@ -117,6 +120,33 @@ export default function NegocioPage() {
             />
           </div>
           <p className="text-xs text-gray-400 dark:text-slate-500 mt-1.5">Incluí el código de país sin el +. Ej: 5491112345678</p>
+        </div>
+
+        {/* Margen objetivo */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5">
+          <label className="block text-sm font-semibold text-gray-700 dark:text-slate-200 mb-1">Margen objetivo</label>
+          <p className="text-xs text-gray-400 dark:text-slate-500 mb-3">Se usa para sugerir el precio de venta al editar un producto</p>
+          <div className="flex items-center gap-3">
+            <div className="relative w-28">
+              <input
+                type="number"
+                value={margen}
+                onChange={e => setMargen(e.target.value)}
+                min="1"
+                max="99"
+                className="input pr-8 text-right"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 text-sm">%</span>
+            </div>
+            {margen && Number(margen) > 0 && Number(margen) < 100 && (
+              <p className="text-xs text-gray-500 dark:text-slate-400">
+                Costo $1.000 → venta sugerida{' '}
+                <span className="font-semibold text-gray-700 dark:text-slate-200">
+                  ${Math.round(1000 / (1 - Number(margen) / 100)).toLocaleString('es-AR')}
+                </span>
+              </p>
+            )}
+          </div>
         </div>
 
         {msg && (

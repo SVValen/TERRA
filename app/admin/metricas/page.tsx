@@ -12,6 +12,14 @@ interface Metricas {
   total_ventas: number
   total_productos: number
   productos_disponibles: number
+  tienda: {
+    visitas_hoy: number
+    visitas_semana: number
+    visitas_mes: number
+    clicks_wa_hoy: number
+    clicks_wa_semana: number
+    clicks_wa_mes: number
+  }
 }
 
 export default function MetricasPage() {
@@ -78,6 +86,26 @@ export default function MetricasPage() {
           />
         </div>
       </Section>
+
+      {metricas.tienda && (
+        <Section title="Tienda online (últimos 30 días)">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <MetricCard label="Visitas hoy" value={metricas.tienda.visitas_hoy.toString()} />
+            <MetricCard label="Visitas última semana" value={metricas.tienda.visitas_semana.toString()} />
+            <MetricCard label="Visitas último mes" value={metricas.tienda.visitas_mes.toString()} />
+            <MetricCard label="Consultas WA hoy" value={metricas.tienda.clicks_wa_hoy.toString()} green={metricas.tienda.clicks_wa_hoy > 0} />
+            <MetricCard label="Consultas WA semana" value={metricas.tienda.clicks_wa_semana.toString()} green={metricas.tienda.clicks_wa_semana > 0} />
+            <MetricCard
+              label="Conversión WA (mes)"
+              value={metricas.tienda.visitas_mes > 0
+                ? `${Math.round(metricas.tienda.clicks_wa_mes / metricas.tienda.visitas_mes * 100)}%`
+                : '—'}
+              sub="consultas / visitas"
+              green={metricas.tienda.visitas_mes > 0 && metricas.tienda.clicks_wa_mes / metricas.tienda.visitas_mes >= 0.05}
+            />
+          </div>
+        </Section>
+      )}
     </div>
   )
 }

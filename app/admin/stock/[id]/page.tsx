@@ -22,6 +22,7 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
   const [talle, setTalle] = useState('')
   const [costo, setCosto] = useState('')
   const [precioVenta, setPrecioVenta] = useState('')
+  const [margenObjetivo, setMargenObjetivo] = useState<number | null>(null)
   const [estado, setEstado] = useState('')
   const [stock, setStock] = useState('')
 
@@ -39,8 +40,10 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
     Promise.all([
       fetch(`/api/productos/${id}`).then(r => r.json()),
       fetch('/api/categorias').then(r => r.json()),
-    ]).then(([p, cats]: [Producto, Categoria[]]) => {
+      fetch('/api/negocio').then(r => r.json()),
+    ]).then(([p, cats, neg]: [Producto, Categoria[], { margen_objetivo?: number }]) => {
       setCategorias(cats)
+      setMargenObjetivo(neg.margen_objetivo ?? null)
       setProducto(p)
       setNombre(p.nombre)
       setCategoria(p.categoria ?? '')
@@ -325,11 +328,26 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
                 <input type="number" value={costo} onChange={e => setCosto(e.target.value)} className="input pl-7" />
               </div>
             </FormField>
-            <FormField label="Precio de venta">
+            <FormField label={`Precio de venta${margenObjetivo ? ` (margen obj. ${margenObjetivo}%)` : ''}`}>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 text-sm">$</span>
                 <input type="number" value={precioVenta} onChange={e => setPrecioVenta(e.target.value)} className="input pl-7" />
               </div>
+              {(() => {
+                const costoNum = parseFloat(costo)
+                if (!margenObjetivo || !costoNum || costoNum <= 0) return null
+                const sugerido = Math.round(costoNum / (1 - margenObjetivo / 100))
+                if (sugerido === parseInt(precioVenta)) return null
+                return (
+                  <button
+                    type="button"
+                    onClick={() => setPrecioVenta(String(sugerido))}
+                    className="mt-1 text-xs text-amber-700 dark:text-amber-400 hover:underline text-left"
+                  >
+                    Sugerido: ${sugerido.toLocaleString('es-AR')} →
+                  </button>
+                )
+              })()}
             </FormField>
           </div>
 

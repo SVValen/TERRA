@@ -33,6 +33,7 @@ export default function TiendaPage() {
 
   useEffect(() => {
     fetch('/api/tienda/categorias').then(r => r.json()).then(setCategorias)
+    fetch('/api/tienda/visita', { method: 'POST' })
   }, [])
 
   const cargar = useCallback(async () => {
@@ -242,6 +243,7 @@ function ProductCard({ producto: p, whatsapp, nombreTienda }: { producto: Produc
               href={waUrl}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => fetch('/api/tienda/click-wa', { method: 'POST' })}
               className="text-xs font-semibold px-3 py-1.5 rounded-full text-white transition-colors"
               style={{ background: '#25D366' }}
             >
