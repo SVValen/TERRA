@@ -17,7 +17,10 @@ export async function GET(request: NextRequest) {
   if (hasta) query = query.lte('fecha', hasta)
 
   const { data, error } = await query
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('[api/ventas GET]', error)
+    return NextResponse.json({ error: 'Error al obtener ventas' }, { status: 500 })
+  }
   return NextResponse.json(data)
 }
 
@@ -31,7 +34,13 @@ export async function POST(request: NextRequest) {
     .eq('id', producto_id)
     .single()
 
-  if (errorProducto) return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 })
+  if (errorProducto || !producto) {
+    return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 })
+  }
+
+  if (cantidad > producto.stock) {
+    return NextResponse.json({ error: 'Stock insuficiente' }, { status: 422 })
+  }
 
   const { data: venta, error: errorVenta } = await supabase
     .from('ventas')
@@ -39,14 +48,18 @@ export async function POST(request: NextRequest) {
       producto_id,
       precio_vendido,
       costo_al_momento: producto.costo,
+      ganancia: (precio_vendido - producto.costo) * cantidad,
       cantidad,
     })
     .select()
     .single()
 
-  if (errorVenta) return NextResponse.json({ error: errorVenta.message }, { status: 500 })
+  if (errorVenta) {
+    console.error('[api/ventas POST]', errorVenta)
+    return NextResponse.json({ error: 'Error al registrar la venta' }, { status: 500 })
+  }
 
-  const nuevoStock = Math.max(0, producto.stock - cantidad)
+  const nuevoStock = producto.stock - cantidad
   await supabase
     .from('productos')
     .update({

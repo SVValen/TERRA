@@ -3,6 +3,7 @@
 import { use, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import type { Producto, Categoria } from '@/lib/types'
 
 export default function ProductoPage({ params }: { params: Promise<{ id: string }> }) {
@@ -181,7 +182,7 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
           {/* Foto principal */}
           <div className="aspect-square bg-gray-100 dark:bg-slate-800 rounded-2xl overflow-hidden relative">
             {fotoMostrada ? (
-              <img src={fotoMostrada} alt={producto.nombre} className="w-full h-full object-cover" />
+              <Image src={fotoMostrada} alt={producto.nombre} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 50vw" />
             ) : (
               <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 dark:text-slate-600 gap-2">
                 <span className="text-6xl">📷</span>
@@ -203,11 +204,11 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
                 <div key={url} className="relative group">
                   <button
                     onClick={() => setFotoActiva(i)}
-                    className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                    className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-all relative ${
                       i === fotoActiva ? 'border-amber-400' : 'border-transparent'
                     }`}
                   >
-                    <img src={url} alt="" className="w-full h-full object-cover" />
+                    <Image src={url} alt="" fill className="object-cover" sizes="64px" />
                   </button>
                   {/* Eliminar */}
                   <button

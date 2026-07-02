@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import type { Producto, Categoria } from '@/lib/types'
 
 export default function StockPage() {
@@ -131,7 +132,7 @@ function ProductCard({ producto: p }: { producto: Producto }) {
       <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden hover:shadow-lg hover:border-gray-300 dark:hover:border-slate-600 transition-all duration-200">
         <div className="aspect-square bg-gray-50 dark:bg-slate-700 relative overflow-hidden">
           {p.foto_url ? (
-            <img src={p.foto_url} alt={p.nombre} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+            <Image src={p.foto_url} alt={p.nombre} fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw" />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-4xl text-gray-200 dark:text-slate-600">📷</div>
           )}

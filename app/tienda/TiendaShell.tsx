@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { createContext, useContext, type ReactNode } from 'react'
 
 interface TiendaCtx {
@@ -27,7 +28,7 @@ export default function TiendaShell({ children, nombre, logoUrl, whatsapp }: Pro
           <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
             <Link href="/tienda" className="flex items-center gap-3">
               {logoUrl ? (
-                <img src={logoUrl} alt={nombre} className="w-9 h-9 rounded-xl object-cover shadow-sm" />
+                <Image src={logoUrl} alt={nombre} width={36} height={36} className="rounded-xl object-cover shadow-sm" />
               ) : (
                 <div
                   className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold text-slate-900 shadow-sm"
@@ -66,7 +67,7 @@ export default function TiendaShell({ children, nombre, logoUrl, whatsapp }: Pro
           <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2.5">
               {logoUrl ? (
-                <img src={logoUrl} alt={nombre} className="w-7 h-7 rounded-lg object-cover" />
+                <Image src={logoUrl} alt={nombre} width={28} height={28} className="rounded-lg object-cover" />
               ) : (
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold text-slate-900" style={{ background: 'var(--accent)' }}>
                   {nombre.slice(0, 2).toUpperCase()}

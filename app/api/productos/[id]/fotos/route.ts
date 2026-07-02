@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 
+const MAX_SIZE = 10 * 1024 * 1024 // 10MB
+const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
+
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = createServiceClient()
@@ -8,6 +11,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const fd = await request.formData()
   const file = fd.get('foto') as File | null
   if (!file) return NextResponse.json({ error: 'Sin archivo' }, { status: 400 })
+
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    return NextResponse.json({ error: 'Tipo de archivo no permitido' }, { status: 400 })
+  }
+  if (file.size > MAX_SIZE) {
+    return NextResponse.json({ error: 'La imagen no puede superar 10MB' }, { status: 400 })
+  }
 
   const buffer = Buffer.from(await file.arrayBuffer())
   const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg'
@@ -17,7 +27,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     .from('Fotos')
     .upload(path, buffer, { contentType: file.type })
 
-  if (uploadError) return NextResponse.json({ error: uploadError.message }, { status: 500 })
+  if (uploadError) {
+    console.error('[api/fotos POST] upload error:', uploadError)
+    return NextResponse.json({ error: 'Error al subir la imagen' }, { status: 500 })
+  }
 
   const { data: urlData } = supabase.storage.from('Fotos').getPublicUrl(path)
   const url = urlData.publicUrl
@@ -70,11 +83,12 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     })
     .eq('id', id)
 
-  // Intentar borrar del storage
   try {
     const match = new URL(url).pathname.match(/\/object\/public\/Fotos\/(.+)/)
     if (match) await supabase.storage.from('Fotos').remove([match[1]])
-  } catch { /* ignorar errores de storage */ }
+  } catch {
+    // Error de storage no es crítico — la foto ya fue removida del producto
+  }
 
   return NextResponse.json({ fotos_urls: nuevasFotos, foto_url: nuevaFotoPrincipal })
 }

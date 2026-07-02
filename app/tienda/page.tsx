@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useTienda } from './TiendaShell'
 
 interface Producto {
@@ -31,7 +32,7 @@ export default function TiendaPage() {
   const [subcategoriaActiva, setSubcategoriaActiva] = useState('')
 
   useEffect(() => {
-    fetch('/api/categorias').then(r => r.json()).then(setCategorias)
+    fetch('/api/tienda/categorias').then(r => r.json()).then(setCategorias)
   }, [])
 
   const cargar = useCallback(async () => {
@@ -107,7 +108,6 @@ export default function TiendaPage() {
             ))}
           </div>
 
-          {/* Subcategorías */}
           {categoriaActiva && subcategorias.length > 0 && (
             <div className="flex gap-2 overflow-x-auto pb-1 mt-2 scrollbar-none">
               {subcategorias.map(s => (
@@ -137,7 +137,6 @@ export default function TiendaPage() {
         </p>
       )}
 
-      {/* Loading */}
       {loading && (
         <div className="flex items-center justify-center gap-3 py-24 text-stone-400">
           <div className="w-5 h-5 border-2 border-stone-200 border-t-amber-400 rounded-full animate-spin" />
@@ -145,7 +144,6 @@ export default function TiendaPage() {
         </div>
       )}
 
-      {/* Sin resultados */}
       {!loading && productos.length === 0 && (
         <div className="text-center py-24">
           <p className="text-4xl mb-4">🛍️</p>
@@ -163,7 +161,6 @@ export default function TiendaPage() {
         </div>
       )}
 
-      {/* Grid */}
       {!loading && productos.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
           {productos.map(p => (
@@ -199,10 +196,12 @@ function ProductCard({ producto: p, whatsapp, nombreTienda }: { producto: Produc
       <Link href={`/tienda/${p.id}`} className="block">
         <div className="aspect-square bg-stone-50 relative overflow-hidden">
           {p.foto_url ? (
-            <img
+            <Image
               src={p.foto_url}
               alt={p.nombre}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-5xl text-stone-200">📷</div>

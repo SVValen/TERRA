@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 
+const MAX_LOGO_SIZE = 5 * 1024 * 1024 // 5MB
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+
 export async function GET() {
   const supabase = createServiceClient()
   const { data } = await supabase.from('negocio').select('*').eq('id', 1).single()
@@ -23,22 +26,30 @@ export async function PATCH(request: NextRequest) {
 
   const logo = formData.get('logo') as File | null
   if (logo && logo.size > 0) {
+    if (!ALLOWED_IMAGE_TYPES.includes(logo.type)) {
+      return NextResponse.json({ error: 'Tipo de archivo no permitido' }, { status: 400 })
+    }
+    if (logo.size > MAX_LOGO_SIZE) {
+      return NextResponse.json({ error: 'El logo no puede superar 5MB' }, { status: 400 })
+    }
+
     const arrayBuffer = await logo.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
     const ext = logo.name.split('.').pop() ?? 'jpg'
     const path = `negocio/logo.${ext}`
 
-    // Eliminar logo anterior si existe
     await supabase.storage.from('Fotos').remove([path])
 
     const { error } = await supabase.storage
       .from('Fotos')
       .upload(path, buffer, { contentType: logo.type, upsert: true })
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) {
+      console.error('[api/negocio PATCH] storage error:', error)
+      return NextResponse.json({ error: 'Error al subir el logo' }, { status: 500 })
+    }
 
     const { data: urlData } = supabase.storage.from('Fotos').getPublicUrl(path)
-    // Cache-bust para que el browser no use la imagen anterior
     updates.logo_url = `${urlData.publicUrl}?t=${Date.now()}`
   }
 
@@ -48,6 +59,9 @@ export async function PATCH(request: NextRequest) {
     .select()
     .single()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('[api/negocio PATCH]', error)
+    return NextResponse.json({ error: 'Error al guardar configuración' }, { status: 500 })
+  }
   return NextResponse.json(data)
 }

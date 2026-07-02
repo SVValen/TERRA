@@ -13,6 +13,12 @@ import type { BotPaso, DatosParciales, Categoria } from '@/lib/types'
 
 type Supabase = ReturnType<typeof createServiceClient>
 
+const SESION_MAX_AGE_MS = 24 * 60 * 60 * 1000
+
+function esc(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
 async function getCategorias(supabase: Supabase): Promise<Categoria[]> {
   const { data } = await supabase.from('categorias').select('*').order('nombre')
   return data ?? []
@@ -20,7 +26,7 @@ async function getCategorias(supabase: Supabase): Promise<Categoria[]> {
 
 export async function POST(request: NextRequest) {
   const secret = request.headers.get('x-telegram-bot-api-secret-token')
-  if (process.env.TELEGRAM_WEBHOOK_SECRET && secret !== process.env.TELEGRAM_WEBHOOK_SECRET) {
+  if (secret !== process.env.TELEGRAM_WEBHOOK_SECRET) {
     return new NextResponse('Unauthorized', { status: 401 })
   }
 
@@ -39,13 +45,11 @@ export async function POST(request: NextRequest) {
   const texto = message.text?.trim() ?? ''
   const foto = message.photo
 
-  // Comando público: devuelve el chat_id sin verificar acceso
   if (texto === '/id') {
     await sendMessage(chatId, `Tu ID de Telegram es: <code>${chatId}</code>\n\nCompartilo con el administrador para que te dé acceso.`)
     return NextResponse.json({ ok: true })
   }
 
-  // Verificar que el chat_id esté autorizado
   const { data: usuarioAutorizado } = await supabase
     .from('usuarios')
     .select('id')
@@ -57,13 +61,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
-  const { data: sesion } = await supabase
+  // Leer sesión y verificar expiración
+  const { data: sesionRaw } = await supabase
     .from('bot_sesiones')
     .select('*')
     .eq('chat_id', chatId)
     .single()
 
-  // Comandos globales
+  let sesion = sesionRaw
+  if (sesion && Date.now() - new Date(sesion.actualizado_en).getTime() > SESION_MAX_AGE_MS) {
+    await supabase.from('bot_sesiones').delete().eq('chat_id', chatId)
+    sesion = null
+  }
+
   if (texto === '/cancelar') {
     await supabase.from('bot_sesiones').delete().eq('chat_id', chatId)
     await sendMessage(chatId, 'Cancelado. Usá /cargar para agregar un producto o /ayuda para ver opciones.')
@@ -88,7 +98,7 @@ export async function POST(request: NextRequest) {
       .limit(5)
 
     if (!encontrados?.length) {
-      await sendMessage(chatId, `No encontré productos con "${termino}".`)
+      await sendMessage(chatId, `No encontré productos con "${esc(termino)}".`)
       return NextResponse.json({ ok: true })
     }
 
@@ -117,13 +127,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
-  // Si hay sesión activa → continuar el flujo
   if (sesion) {
     await manejarPaso(chatId, sesion.paso as BotPaso, sesion.datos_parciales as Partial<DatosParciales>, texto, foto, supabase)
     return NextResponse.json({ ok: true })
   }
 
-  // Sin sesión: consulta de stock
   if (texto) {
     const lower = texto.toLowerCase()
     const esConsulta = ['stock', 'precio', 'estado', 'hay', 'tenés', 'tenes'].some(p => lower.includes(p))
@@ -146,21 +154,26 @@ async function handleCallbackQuery(
 
   await answerCallbackQuery(cq.id)
 
-  const { data: sesion } = await supabase
+  const { data: sesionRaw } = await supabase
     .from('bot_sesiones')
     .select('*')
     .eq('chat_id', chatId)
     .single()
 
-  if (!sesion) {
+  let sesion = sesionRaw
+  if (sesion && Date.now() - new Date(sesion.actualizado_en).getTime() > SESION_MAX_AGE_MS) {
+    await supabase.from('bot_sesiones').delete().eq('chat_id', chatId)
+    sesion = null
+  }
+
+  if (!sesion && !data.startsWith('eliminar:') && !data.startsWith('confirmar_eliminar:') && data !== 'cancelar_eliminar') {
     await sendMessage(chatId, 'La sesión expiró. Usá /cargar para empezar de nuevo.')
     return
   }
 
-  const paso = sesion.paso as BotPaso
-  const datos = sesion.datos_parciales as Partial<DatosParciales>
+  const paso = sesion?.paso as BotPaso
+  const datos = sesion?.datos_parciales as Partial<DatosParciales>
 
-  // Eliminar producto
   if (data.startsWith('eliminar:')) {
     const productoId = data.replace('eliminar:', '')
     const { data: prod } = await supabase.from('productos').select('nombre').eq('id', productoId).single()
@@ -174,7 +187,7 @@ async function handleCallbackQuery(
         { text: '❌ Cancelar',     callback_data: 'cancelar_eliminar' },
       ]],
     }
-    await sendMessage(chatId, `¿Seguro que querés eliminar <b>${prod.nombre}</b>? Esta acción no se puede deshacer.`, kb)
+    await sendMessage(chatId, `¿Seguro que querés eliminar <b>${esc(prod.nombre)}</b>? Esta acción no se puede deshacer.`, kb)
     return
   }
 
@@ -186,7 +199,7 @@ async function handleCallbackQuery(
       await sendMessage(chatId, '❌ Error al eliminar. Intentá de nuevo.')
       return
     }
-    await sendMessage(chatId, `✅ <b>${prod?.nombre ?? 'Producto'}</b> eliminado del stock.`)
+    await sendMessage(chatId, `✅ <b>${esc(prod?.nombre ?? 'Producto')}</b> eliminado del stock.`)
     return
   }
 
@@ -195,24 +208,21 @@ async function handleCallbackQuery(
     return
   }
 
-  // Selección de talle
   if (data.startsWith('talle:') && paso === 'esperando_talle') {
     const raw = data.replace('talle:', '')
     const talle = raw === 'skip' ? '' : raw
     await actualizarSesion(supabase, chatId, 'esperando_fotos', { ...datos, talle, fotos_urls: [] })
     await sendMessage(
       chatId,
-      `${talle ? `Talle: <b>${talle}</b>\n\n` : ''}📷 Ahora mandá las fotos del producto (una o varias). Cuando termines, tocá el botón.`,
+      `${talle ? `Talle: <b>${esc(talle)}</b>\n\n` : ''}📷 Ahora mandá las fotos del producto (una o varias). Cuando termines, tocá el botón.`,
       KB_LISTO_FOTOS
     )
     return
   }
 
-  // Selección de categoría
   if (data.startsWith('cat:') && paso === 'esperando_categoria') {
     const categoria = data.replace('cat:', '')
     if (categoria === 'skip') {
-      // Sin categorías cargadas, saltear directo a costo
       await actualizarSesion(supabase, chatId, 'esperando_costo', { ...datos, categoria: '' })
       await sendMessage(chatId, '💰 ¿Cuál es el precio de costo? (ej: 8000)')
       return
@@ -224,28 +234,25 @@ async function handleCallbackQuery(
     const kbSub = subs.length > 0
       ? buildKeyboardSubcategorias(subs)
       : { inline_keyboard: [[{ text: 'Omitir subcategoría', callback_data: 'subcat:skip' }]] }
-    await sendMessage(chatId, `Categoría: <b>${categoria}</b>\n\n¿Subcategoría?`, kbSub)
+    await sendMessage(chatId, `Categoría: <b>${esc(categoria)}</b>\n\n¿Subcategoría?`, kbSub)
     return
   }
 
-  // Selección de subcategoría
   if (data.startsWith('subcat:') && paso === 'esperando_subcategoria') {
     const raw = data.replace('subcat:', '')
     const subcategoria = raw === 'skip' ? '' : raw
     const nuevosDatos = { ...datos, subcategoria }
     await actualizarSesion(supabase, chatId, 'esperando_costo', nuevosDatos)
-    await sendMessage(chatId, `${subcategoria ? `Subcategoría: <b>${subcategoria}</b>\n\n` : ''}💰 ¿Cuál es el precio de costo? (ej: 8000)`)
+    await sendMessage(chatId, `${subcategoria ? `Subcategoría: <b>${esc(subcategoria)}</b>\n\n` : ''}💰 ¿Cuál es el precio de costo? (ej: 8000)`)
     return
   }
 
-  // Fin de fotos
   if (data === 'fotos:listo' && paso === 'esperando_fotos') {
     await actualizarSesion(supabase, chatId, 'esperando_confirmacion', datos)
     await sendMessage(chatId, resumenProducto(datos), KB_CONFIRMAR)
     return
   }
 
-  // Confirmar o cancelar
   if (data.startsWith('action:') && paso === 'esperando_confirmacion') {
     if (data === 'action:confirmar') {
       const fotosUrls: string[] = datos.fotos_urls ?? []
@@ -268,7 +275,7 @@ async function handleCallbackQuery(
         return
       }
       await supabase.from('bot_sesiones').delete().eq('chat_id', chatId)
-      await sendMessage(chatId, `✅ <b>${datos.nombre}</b> cargado al stock.\n\nUsá /cargar para agregar otro producto.`)
+      await sendMessage(chatId, `✅ <b>${esc(datos.nombre ?? '')}</b> cargado al stock.\n\nUsá /cargar para agregar otro producto.`)
     } else {
       await supabase.from('bot_sesiones').delete().eq('chat_id', chatId)
       await sendMessage(chatId, 'Cancelado. Usá /cargar cuando quieras.')
@@ -293,7 +300,7 @@ async function manejarPaso(
       const kbCats = cats.length > 0
         ? buildKeyboardCategorias(cats)
         : { inline_keyboard: [[{ text: 'Sin categorías — cargá desde el panel', callback_data: 'cat:skip' }]] }
-      await sendMessage(chatId, `Nombre: <b>${texto}</b>\n\n¿Cuál es la categoría?`, kbCats)
+      await sendMessage(chatId, `Nombre: <b>${esc(texto)}</b>\n\n¿Cuál es la categoría?`, kbCats)
       break
     }
 
@@ -326,12 +333,11 @@ async function manejarPaso(
     }
 
     case 'esperando_talle': {
-      // talle recibido como texto libre
       const talle = texto.trim() || null
       await actualizarSesion(supabase, chatId, 'esperando_fotos', { ...datos, talle: talle ?? '', fotos_urls: [] })
       await sendMessage(
         chatId,
-        `${talle ? `Talle: <b>${talle}</b>\n\n` : ''}📷 Ahora mandá las fotos del producto (una o varias). Cuando termines, tocá el botón.`,
+        `${talle ? `Talle: <b>${esc(talle)}</b>\n\n` : ''}📷 Ahora mandá las fotos del producto (una o varias). Cuando termines, tocá el botón.`,
         KB_LISTO_FOTOS
       )
       break
@@ -339,11 +345,9 @@ async function manejarPaso(
 
     case 'esperando_fotos': {
       if (!foto) {
-        // Texto recibido en paso de fotos — ignorar y recordar
         await sendMessage(chatId, 'Mandá una foto o tocá "Listo" para continuar.', KB_LISTO_FOTOS)
         return
       }
-      // Subir foto
       const mejorFoto = foto[foto.length - 1]
       const fileUrl = await getFile(mejorFoto.file_id)
       if (!fileUrl) { await sendMessage(chatId, 'No pude obtener la foto. Intentá de nuevo.', KB_LISTO_FOTOS); return }
@@ -376,8 +380,6 @@ async function manejarPaso(
       break
     }
 
-    // Los pasos esperando_categoria, esperando_subcategoria y esperando_confirmacion
-    // se manejan por callback_query, no por texto
     default: {
       await sendMessage(chatId, 'Usá los botones para continuar, o /cancelar para empezar de nuevo.')
       break
@@ -398,11 +400,11 @@ async function manejarConsulta(chatId: string, texto: string, supabase: Supabase
     .ilike('nombre', `%${termino}%`)
     .limit(5)
 
-  if (!data?.length) { await sendMessage(chatId, `No encontré productos con "${termino}".`); return }
+  if (!data?.length) { await sendMessage(chatId, `No encontré productos con "${esc(termino)}".`); return }
 
   const lineas = data.map((p) => {
     const cat = [p.categoria, p.subcategoria].filter(Boolean).join(' › ')
-    return `• <b>${p.nombre}</b>${cat ? ` <i>(${cat})</i>` : ''}\n  ${p.estado} · Stock: ${p.stock} · $${p.precio_venta.toLocaleString('es-AR')}`
+    return `• <b>${esc(p.nombre)}</b>${cat ? ` <i>(${esc(cat)})</i>` : ''}\n  ${p.estado} · Stock: ${p.stock} · $${p.precio_venta.toLocaleString('es-AR')}`
   })
   await sendMessage(chatId, `Encontré ${data.length} resultado(s):\n\n${lineas.join('\n\n')}`)
 }
@@ -425,9 +427,9 @@ function resumenProducto(datos: Partial<DatosParciales>): string {
   const fotos = datos.fotos_urls?.length ?? 0
   return (
     `📦 <b>Resumen del producto</b>\n\n` +
-    `• Nombre: <b>${datos.nombre}</b>\n` +
-    `• Categoría: <b>${cat || 'Sin categoría'}</b>\n` +
-    `• Talle: <b>${datos.talle || 'Sin talle'}</b>\n` +
+    `• Nombre: <b>${esc(datos.nombre ?? '')}</b>\n` +
+    `• Categoría: <b>${esc(cat || 'Sin categoría')}</b>\n` +
+    `• Talle: <b>${esc(datos.talle || 'Sin talle')}</b>\n` +
     `• Costo: <b>$${datos.costo?.toLocaleString('es-AR')}</b>\n` +
     `• Precio de venta: <b>$${datos.precio_venta?.toLocaleString('es-AR')}</b>\n` +
     `• Stock: <b>${datos.stock ?? 1} unidad${(datos.stock ?? 1) !== 1 ? 'es' : ''}</b>\n` +
