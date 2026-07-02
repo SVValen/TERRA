@@ -18,6 +18,9 @@ export async function PATCH(request: NextRequest) {
   const nombre = formData.get('nombre')
   if (nombre) updates.nombre = String(nombre).trim()
 
+  const whatsapp = formData.get('whatsapp')
+  if (whatsapp !== null) updates.whatsapp = String(whatsapp).trim()
+
   const logo = formData.get('logo') as File | null
   if (logo && logo.size > 0) {
     const arrayBuffer = await logo.arrayBuffer()

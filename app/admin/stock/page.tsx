@@ -39,7 +39,6 @@ export default function StockPage() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
-      {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Stock</h1>
@@ -49,9 +48,7 @@ export default function StockPage() {
         </div>
       </div>
 
-      {/* Filtros */}
       <div className="flex flex-wrap gap-2 mb-5">
-        {/* Búsqueda */}
         <div className="relative min-w-[180px] flex-1 max-w-xs">
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -65,11 +62,7 @@ export default function StockPage() {
           />
         </div>
 
-        <select
-          value={filtroEstado}
-          onChange={(e) => setFiltroEstado(e.target.value)}
-          className="input w-auto"
-        >
+        <select value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)} className="input w-auto">
           <option value="">Todos los estados</option>
           <option value="disponible">Disponible</option>
           <option value="vendido">Vendido</option>
@@ -86,11 +79,7 @@ export default function StockPage() {
         </select>
 
         {filtroCategoria && subcategorias.length > 0 && (
-          <select
-            value={filtroSubcategoria}
-            onChange={(e) => setFiltroSubcategoria(e.target.value)}
-            className="input w-auto"
-          >
+          <select value={filtroSubcategoria} onChange={(e) => setFiltroSubcategoria(e.target.value)} className="input w-auto">
             <option value="">Todas las subs</option>
             {subcategorias.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
@@ -106,7 +95,6 @@ export default function StockPage() {
         )}
       </div>
 
-      {/* Grid */}
       {loading && (
         <div className="flex items-center justify-center gap-2 py-20 text-gray-400 dark:text-slate-500">
           <div className="w-5 h-5 border-2 border-gray-200 dark:border-slate-700 border-t-gray-400 dark:border-t-slate-400 rounded-full animate-spin" />
@@ -139,20 +127,13 @@ function ProductCard({ producto: p }: { producto: Producto }) {
     : null
 
   return (
-    <Link href={`/stock/${p.id}`} className="group block">
+    <Link href={`/admin/stock/${p.id}`} className="group block">
       <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden hover:shadow-lg hover:border-gray-300 dark:hover:border-slate-600 transition-all duration-200">
-        {/* Foto */}
         <div className="aspect-square bg-gray-50 dark:bg-slate-700 relative overflow-hidden">
           {p.foto_url ? (
-            <img
-              src={p.foto_url}
-              alt={p.nombre}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
+            <img src={p.foto_url} alt={p.nombre} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-4xl text-gray-200 dark:text-slate-600">
-              📷
-            </div>
+            <div className="w-full h-full flex items-center justify-center text-4xl text-gray-200 dark:text-slate-600">📷</div>
           )}
           <div className="absolute top-2 right-2">
             <EstadoBadge estado={p.estado} />
@@ -163,25 +144,20 @@ function ProductCard({ producto: p }: { producto: Producto }) {
             </div>
           )}
         </div>
-
-        {/* Info */}
         <div className="p-3">
-          <p className="font-semibold text-sm text-gray-900 dark:text-white line-clamp-2 leading-tight mb-1">
-            {p.nombre}
-          </p>
+          <p className="font-semibold text-sm text-gray-900 dark:text-white line-clamp-2 leading-tight mb-1">{p.nombre}</p>
           {(p.categoria || p.subcategoria) && (
-            <p className="text-xs text-gray-400 dark:text-slate-500 mb-2 line-clamp-1">
+            <p className="text-xs text-gray-400 dark:text-slate-500 mb-1 line-clamp-1">
               {[p.categoria, p.subcategoria].filter(Boolean).join(' › ')}
             </p>
           )}
+          {p.talle && (
+            <p className="text-xs text-gray-400 dark:text-slate-500 mb-1">Talle: {p.talle}</p>
+          )}
           <div className="flex items-end justify-between mt-2">
             <div>
-              <p className="text-base font-bold text-gray-900 dark:text-white">
-                ${p.precio_venta.toLocaleString('es-AR')}
-              </p>
-              <p className="text-xs text-gray-400 dark:text-slate-500">
-                costo ${p.costo.toLocaleString('es-AR')}
-              </p>
+              <p className="text-base font-bold text-gray-900 dark:text-white">${p.precio_venta.toLocaleString('es-AR')}</p>
+              <p className="text-xs text-gray-400 dark:text-slate-500">costo ${p.costo.toLocaleString('es-AR')}</p>
             </div>
             {margen !== null && (
               <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
@@ -206,9 +182,5 @@ function EstadoBadge({ estado }: { estado: string }) {
     reservado:  { label: 'Reservado',  cls: 'bg-amber-400 text-white' },
   }
   const { label, cls } = map[estado] ?? { label: estado, cls: 'bg-gray-400 text-white' }
-  return (
-    <span className={`text-xs px-2 py-0.5 rounded-full font-medium shadow-sm ${cls}`}>
-      {label}
-    </span>
-  )
+  return <span className={`text-xs px-2 py-0.5 rounded-full font-medium shadow-sm ${cls}`}>{label}</span>
 }

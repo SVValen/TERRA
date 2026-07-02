@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 export default function NegocioPage() {
   const router = useRouter()
   const [nombre, setNombre] = useState('')
+  const [whatsapp, setWhatsapp] = useState('')
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [archivo, setArchivo] = useState<File | null>(null)
@@ -16,6 +17,7 @@ export default function NegocioPage() {
   useEffect(() => {
     fetch('/api/negocio').then(r => r.json()).then(d => {
       setNombre(d.nombre ?? '')
+      setWhatsapp(d.whatsapp ?? '')
       setLogoUrl(d.logo_url ?? null)
     })
   }, [])
@@ -33,6 +35,7 @@ export default function NegocioPage() {
     setGuardando(true)
     const fd = new FormData()
     fd.append('nombre', nombre)
+    fd.append('whatsapp', whatsapp)
     if (archivo) fd.append('logo', archivo)
     const res = await fetch('/api/negocio', { method: 'PATCH', body: fd })
     const data = await res.json()
@@ -54,7 +57,7 @@ export default function NegocioPage() {
     <div className="p-4 sm:p-6 lg:p-8 max-w-lg mx-auto">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Mi negocio</h1>
-        <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">Nombre y logo que aparecen en el panel</p>
+        <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">Nombre, logo y contacto de la tienda</p>
       </div>
 
       <form onSubmit={guardar} className="space-y-5">
@@ -97,6 +100,23 @@ export default function NegocioPage() {
             required
             placeholder="Ej: Showroom SP"
           />
+        </div>
+
+        {/* WhatsApp */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5">
+          <label className="block text-sm font-semibold text-gray-700 dark:text-slate-200 mb-1">WhatsApp de contacto</label>
+          <p className="text-xs text-gray-400 dark:text-slate-500 mb-3">Se usa en la tienda online para el botón "Consultar"</p>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 text-sm">+</span>
+            <input
+              type="text"
+              value={whatsapp}
+              onChange={e => setWhatsapp(e.target.value)}
+              className="input pl-7"
+              placeholder="5491112345678"
+            />
+          </div>
+          <p className="text-xs text-gray-400 dark:text-slate-500 mt-1.5">Incluí el código de país sin el +. Ej: 5491112345678</p>
         </div>
 
         {msg && (

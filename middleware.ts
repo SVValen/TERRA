@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { jwtVerify } from 'jose'
 
-const PUBLIC = ['/login', '/api/auth', '/api/telegram']
+const PUBLIC = ['/login', '/api/auth', '/api/telegram', '/api/tienda', '/tienda']
 
 function getSecret() {
   return new TextEncoder().encode(process.env.AUTH_SECRET ?? '')
@@ -10,13 +10,15 @@ function getSecret() {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Rutas públicas: pasar siempre
   if (PUBLIC.some(p => pathname.startsWith(p))) {
     return NextResponse.next()
   }
 
-  // Archivos estáticos y Next internals
-  if (pathname.startsWith('/_next') || pathname.startsWith('/favicon')) {
+  if (pathname === '/') {
+    return NextResponse.redirect(new URL('/tienda', request.url))
+  }
+
+  if (pathname.startsWith('/_next') || pathname.startsWith('/favicon') || pathname.startsWith('/icon')) {
     return NextResponse.next()
   }
 

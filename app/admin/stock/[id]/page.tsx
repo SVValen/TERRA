@@ -92,13 +92,13 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
     })
     setModalVenta(false)
     setVendiendo(false)
-    router.push('/stock')
+    router.push('/admin/stock')
   }
 
   const eliminar = async () => {
     if (!confirm('¿Eliminar este producto? No se puede deshacer.')) return
     await fetch(`/api/productos/${id}`, { method: 'DELETE' })
-    router.push('/stock')
+    router.push('/admin/stock')
   }
 
   const subirFoto = async (file: File) => {
@@ -168,7 +168,7 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
     <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 mb-6 text-sm">
-        <Link href="/stock" className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition-colors">
+        <Link href="/admin/stock" className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition-colors">
           ← Stock
         </Link>
         <span className="text-gray-300 dark:text-slate-700">/</span>
