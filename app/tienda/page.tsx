@@ -167,7 +167,7 @@ export default function TiendaPage() {
       {!loading && productos.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
           {productos.map(p => (
-            <ProductCard key={p.id} producto={p} whatsapp={whatsapp} />
+            <ProductCard key={p.id} producto={p} whatsapp={whatsapp} nombreTienda={nombre} />
           ))}
         </div>
       )}
@@ -175,10 +175,24 @@ export default function TiendaPage() {
   )
 }
 
-function ProductCard({ producto: p, whatsapp }: { producto: Producto; whatsapp: string | null }) {
-  const waUrl = whatsapp
-    ? `https://wa.me/${whatsapp}?text=${encodeURIComponent(`Hola! Me interesa: ${p.nombre}${p.talle ? ` (Talle ${p.talle})` : ''} · $${p.precio_venta.toLocaleString('es-AR')}`)}`
-    : null
+function buildWaUrl(whatsapp: string, nombreTienda: string, p: { id: string; nombre: string; talle: string | null; precio_venta: number }) {
+  const base = typeof window !== 'undefined' ? window.location.origin : ''
+  const link = `${base}/tienda/${p.id}`
+  const lines = [
+    `Hola *${nombreTienda}*! 👋`,
+    ``,
+    `Me interesa este producto:`,
+    `*${p.nombre}*`,
+    p.talle ? `Talle: ${p.talle}` : '',
+    `Precio: $${p.precio_venta.toLocaleString('es-AR')}`,
+    ``,
+    link,
+  ].filter(l => l !== undefined)
+  return `https://wa.me/${whatsapp}?text=${encodeURIComponent(lines.join('\n'))}`
+}
+
+function ProductCard({ producto: p, whatsapp, nombreTienda }: { producto: Producto; whatsapp: string | null; nombreTienda: string }) {
+  const waUrl = whatsapp ? buildWaUrl(whatsapp, nombreTienda, p) : null
 
   return (
     <div className="group bg-white rounded-2xl overflow-hidden border border-stone-100 hover:border-stone-200 hover:shadow-lg transition-all duration-300">

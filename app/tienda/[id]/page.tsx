@@ -1,41 +1,72 @@
-'use client'
-
-import { use, useEffect, useState } from 'react'
+import { createServiceClient } from '@/lib/supabase/server'
+import type { Metadata } from 'next'
 import Link from 'next/link'
-import { useTienda } from '../TiendaShell'
+import FotoCarousel from './FotoCarousel'
 
-interface Producto {
-  id: string
-  nombre: string
-  foto_url: string | null
-  fotos_urls: string[]
-  talle: string | null
-  precio_venta: number
-  categoria: string | null
-  subcategoria: string | null
-  stock: number
+async function getProducto(id: string) {
+  const supabase = createServiceClient()
+  const { data } = await supabase
+    .from('productos')
+    .select('id, nombre, foto_url, fotos_urls, talle, precio_venta, categoria, subcategoria, stock')
+    .eq('id', id)
+    .eq('estado', 'disponible')
+    .single()
+  return data
 }
 
-export default function ProductoTiendaPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params)
-  const { whatsapp, nombre: nombreTienda } = useTienda()
-  const [producto, setProducto] = useState<Producto | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [fotoActiva, setFotoActiva] = useState(0)
+async function getNegocio() {
+  const supabase = createServiceClient()
+  const { data } = await supabase.from('negocio').select('nombre, whatsapp').eq('id', 1).single()
+  return data
+}
 
-  useEffect(() => {
-    fetch(`/api/tienda/productos/${id}`)
-      .then(r => r.ok ? r.json() : null)
-      .then(data => { setProducto(data); setLoading(false) })
-  }, [id])
+function getBaseUrl() {
+  if (process.env.NEXT_PUBLIC_BASE_URL) return process.env.NEXT_PUBLIC_BASE_URL
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
+  return ''
+}
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center gap-3 py-32 text-stone-400">
-        <div className="w-5 h-5 border-2 border-stone-200 border-t-amber-400 rounded-full animate-spin" />
-      </div>
-    )
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params
+  const producto = await getProducto(id)
+  if (!producto) return { title: 'Producto no encontrado' }
+
+  const negocio = await getNegocio()
+  const storeName = negocio?.nombre ?? ''
+
+  const desc = [
+    producto.talle ? `Talle ${producto.talle}` : null,
+    `$${producto.precio_venta.toLocaleString('es-AR')}`,
+    producto.categoria,
+  ].filter(Boolean).join(' · ')
+
+  const images = producto.foto_url
+    ? [{ url: producto.foto_url, width: 800, height: 800, alt: producto.nombre }]
+    : []
+
+  return {
+    title: `${producto.nombre} · ${storeName}`,
+    description: desc,
+    openGraph: {
+      title: producto.nombre,
+      description: desc,
+      siteName: storeName,
+      images,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: producto.nombre,
+      description: desc,
+      images: producto.foto_url ? [producto.foto_url] : [],
+    },
   }
+}
+
+export default async function ProductoTiendaPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+
+  const [producto, negocio] = await Promise.all([getProducto(id), getNegocio()])
 
   if (!producto) {
     return (
@@ -49,13 +80,22 @@ export default function ProductoTiendaPage({ params }: { params: Promise<{ id: s
     )
   }
 
+  const { whatsapp, nombre: nombreTienda } = negocio ?? { whatsapp: null, nombre: '' }
   const fotos = producto.fotos_urls?.length ? producto.fotos_urls : producto.foto_url ? [producto.foto_url] : []
-  const fotoMostrada = fotos[fotoActiva] ?? null
 
-  const waMsg = encodeURIComponent(
-    `Hola! Me interesa este producto:\n*${producto.nombre}*${producto.talle ? ` · Talle ${producto.talle}` : ''}\nPrecio: $${producto.precio_venta.toLocaleString('es-AR')}`
-  )
-  const waUrl = whatsapp ? `https://wa.me/${whatsapp}?text=${waMsg}` : null
+  const productoUrl = `${getBaseUrl()}/tienda/${id}`
+  const waMsg = [
+    `Hola *${nombreTienda}*! 👋`,
+    ``,
+    `Me interesa este producto:`,
+    `*${producto.nombre}*`,
+    producto.talle ? `Talle: ${producto.talle}` : '',
+    `Precio: $${producto.precio_venta.toLocaleString('es-AR')}`,
+    ``,
+    productoUrl,
+  ].filter(l => l !== undefined).join('\n')
+
+  const waUrl = whatsapp ? `https://wa.me/${whatsapp}?text=${encodeURIComponent(waMsg)}` : null
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
@@ -73,33 +113,8 @@ export default function ProductoTiendaPage({ params }: { params: Promise<{ id: s
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
-        {/* Fotos */}
-        <div className="space-y-3">
-          <div className="aspect-square bg-stone-100 rounded-3xl overflow-hidden shadow-sm">
-            {fotoMostrada ? (
-              <img src={fotoMostrada} alt={producto.nombre} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-7xl text-stone-200">📷</div>
-            )}
-          </div>
-
-          {fotos.length > 1 && (
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {fotos.map((url, i) => (
-                <button
-                  key={url}
-                  onClick={() => setFotoActiva(i)}
-                  className={`shrink-0 w-18 h-18 rounded-xl overflow-hidden border-2 transition-all ${
-                    i === fotoActiva ? 'border-amber-400 shadow-md' : 'border-transparent opacity-60 hover:opacity-90'
-                  }`}
-                  style={{ width: '72px', height: '72px' }}
-                >
-                  <img src={url} alt="" className="w-full h-full object-cover" />
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Carrusel de fotos */}
+        <FotoCarousel fotos={fotos} nombre={producto.nombre} />
 
         {/* Info */}
         <div className="flex flex-col">
@@ -128,7 +143,6 @@ export default function ProductoTiendaPage({ params }: { params: Promise<{ id: s
             </p>
           </div>
 
-          {/* Stock indicator */}
           {producto.stock > 1 && (
             <p className="text-xs text-emerald-600 font-medium mb-4">
               ✓ {producto.stock} unidades disponibles
@@ -140,7 +154,6 @@ export default function ProductoTiendaPage({ params }: { params: Promise<{ id: s
             </p>
           )}
 
-          {/* CTA */}
           {waUrl ? (
             <a
               href={waUrl}
@@ -160,10 +173,7 @@ export default function ProductoTiendaPage({ params }: { params: Promise<{ id: s
             </div>
           )}
 
-          <Link
-            href="/tienda"
-            className="text-center mt-4 text-sm text-stone-400 hover:text-stone-700 transition-colors"
-          >
+          <Link href="/tienda" className="text-center mt-4 text-sm text-stone-400 hover:text-stone-700 transition-colors">
             ← Ver más productos
           </Link>
         </div>
