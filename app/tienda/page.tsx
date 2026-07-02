@@ -22,7 +22,7 @@ interface Categoria {
 }
 
 export default function TiendaPage() {
-  const { whatsapp } = useTienda()
+  const { whatsapp, nombre } = useTienda()
   const [productos, setProductos] = useState<Producto[]>([])
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [loading, setLoading] = useState(true)
