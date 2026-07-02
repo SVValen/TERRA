@@ -48,7 +48,6 @@ export async function POST(request: NextRequest) {
       producto_id,
       precio_vendido,
       costo_al_momento: producto.costo,
-      ganancia: (precio_vendido - producto.costo) * cantidad,
       cantidad,
     })
     .select()
