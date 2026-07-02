@@ -23,29 +23,37 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const supabase = createServiceClient()
-  const { producto_id, precio_vendido } = await request.json()
+  const { producto_id, precio_vendido, cantidad = 1 } = await request.json()
 
-  // Obtener costo actual del producto
   const { data: producto, error: errorProducto } = await supabase
     .from('productos')
-    .select('costo')
+    .select('costo, stock, estado')
     .eq('id', producto_id)
     .single()
 
   if (errorProducto) return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 })
 
-  // Registrar venta y marcar producto como vendido en una transacción lógica
   const { data: venta, error: errorVenta } = await supabase
     .from('ventas')
-    .insert({ producto_id, precio_vendido, costo_al_momento: producto.costo })
+    .insert({
+      producto_id,
+      precio_vendido,
+      costo_al_momento: producto.costo,
+      cantidad,
+    })
     .select()
     .single()
 
   if (errorVenta) return NextResponse.json({ error: errorVenta.message }, { status: 500 })
 
+  const nuevoStock = Math.max(0, producto.stock - cantidad)
   await supabase
     .from('productos')
-    .update({ estado: 'vendido', actualizado_en: new Date().toISOString() })
+    .update({
+      stock: nuevoStock,
+      estado: nuevoStock === 0 ? 'vendido' : producto.estado,
+      actualizado_en: new Date().toISOString(),
+    })
     .eq('id', producto_id)
 
   return NextResponse.json(venta, { status: 201 })

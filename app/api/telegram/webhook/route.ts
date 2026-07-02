@@ -5,6 +5,7 @@ import { parseNumero } from '@/lib/telegram/parser'
 import {
   buildKeyboardCategorias,
   buildKeyboardSubcategorias,
+  KB_TALLE,
   KB_LISTO_FOTOS,
   KB_CONFIRMAR,
 } from '@/lib/telegram/categorias'
@@ -194,6 +195,19 @@ async function handleCallbackQuery(
     return
   }
 
+  // Selección de talle
+  if (data.startsWith('talle:') && paso === 'esperando_talle') {
+    const raw = data.replace('talle:', '')
+    const talle = raw === 'skip' ? '' : raw
+    await actualizarSesion(supabase, chatId, 'esperando_fotos', { ...datos, talle, fotos_urls: [] })
+    await sendMessage(
+      chatId,
+      `${talle ? `Talle: <b>${talle}</b>\n\n` : ''}📷 Ahora mandá las fotos del producto (una o varias). Cuando termines, tocá el botón.`,
+      KB_LISTO_FOTOS
+    )
+    return
+  }
+
   // Selección de categoría
   if (data.startsWith('cat:') && paso === 'esperando_categoria') {
     const categoria = data.replace('cat:', '')
@@ -239,6 +253,7 @@ async function handleCallbackQuery(
         nombre: datos.nombre,
         categoria: datos.categoria || null,
         subcategoria: datos.subcategoria || null,
+        talle: datos.talle || null,
         costo: datos.costo,
         precio_venta: datos.precio_venta,
         foto_url: fotosUrls[0] ?? null,
@@ -301,10 +316,22 @@ async function manejarPaso(
     case 'esperando_stock': {
       const stock = parseInt(texto)
       if (isNaN(stock) || stock < 0) { await sendMessage(chatId, 'Ingresá un número entero. Ej: 1'); return }
-      await actualizarSesion(supabase, chatId, 'esperando_fotos', { ...datos, stock, fotos_urls: [] })
+      await actualizarSesion(supabase, chatId, 'esperando_talle', { ...datos, stock })
       await sendMessage(
         chatId,
-        `Stock: <b>${stock} unidad${stock !== 1 ? 'es' : ''}</b>\n\n📷 Ahora mandá las fotos del producto (una o varias). Cuando termines, tocá el botón.`,
+        `Stock: <b>${stock} unidad${stock !== 1 ? 'es' : ''}</b>\n\n📏 ¿Cuál es el talle? Tocá uno o escribilo (Ej: 42, M/L, etc.)`,
+        KB_TALLE
+      )
+      break
+    }
+
+    case 'esperando_talle': {
+      // talle recibido como texto libre
+      const talle = texto.trim() || null
+      await actualizarSesion(supabase, chatId, 'esperando_fotos', { ...datos, talle: talle ?? '', fotos_urls: [] })
+      await sendMessage(
+        chatId,
+        `${talle ? `Talle: <b>${talle}</b>\n\n` : ''}📷 Ahora mandá las fotos del producto (una o varias). Cuando termines, tocá el botón.`,
         KB_LISTO_FOTOS
       )
       break
@@ -400,6 +427,7 @@ function resumenProducto(datos: Partial<DatosParciales>): string {
     `📦 <b>Resumen del producto</b>\n\n` +
     `• Nombre: <b>${datos.nombre}</b>\n` +
     `• Categoría: <b>${cat || 'Sin categoría'}</b>\n` +
+    `• Talle: <b>${datos.talle || 'Sin talle'}</b>\n` +
     `• Costo: <b>$${datos.costo?.toLocaleString('es-AR')}</b>\n` +
     `• Precio de venta: <b>$${datos.precio_venta?.toLocaleString('es-AR')}</b>\n` +
     `• Stock: <b>${datos.stock ?? 1} unidad${(datos.stock ?? 1) !== 1 ? 'es' : ''}</b>\n` +

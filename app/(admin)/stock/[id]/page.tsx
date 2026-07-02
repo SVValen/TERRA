@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useEffect, useState } from 'react'
+import { use, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import type { Producto, Categoria } from '@/lib/types'
@@ -18,10 +18,21 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
   const [nombre, setNombre] = useState('')
   const [categoria, setCategoria] = useState('')
   const [subcategoria, setSubcategoria] = useState('')
+  const [talle, setTalle] = useState('')
   const [costo, setCosto] = useState('')
   const [precioVenta, setPrecioVenta] = useState('')
   const [estado, setEstado] = useState('')
   const [stock, setStock] = useState('')
+
+  // Modal venta
+  const [modalVenta, setModalVenta] = useState(false)
+  const [precioModal, setPrecioModal] = useState('')
+  const [cantidadModal, setCantidadModal] = useState('1')
+  const [vendiendo, setVendiendo] = useState(false)
+
+  // Fotos
+  const [subiendo, setSubiendo] = useState(false)
+  const fotoInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     Promise.all([
@@ -33,6 +44,7 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
       setNombre(p.nombre)
       setCategoria(p.categoria ?? '')
       setSubcategoria(p.subcategoria ?? '')
+      setTalle(p.talle ?? '')
       setCosto(String(p.costo))
       setPrecioVenta(String(p.precio_venta))
       setEstado(p.estado)
@@ -50,6 +62,7 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
         nombre,
         categoria: categoria || null,
         subcategoria: subcategoria || null,
+        talle: talle || null,
         costo: parseFloat(costo),
         precio_venta: parseFloat(precioVenta),
         estado,
@@ -60,20 +73,25 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
     router.back()
   }
 
-  const marcarVendido = async () => {
+  const abrirModalVenta = () => {
+    setPrecioModal(String(producto?.precio_venta ?? ''))
+    setCantidadModal('1')
+    setModalVenta(true)
+  }
+
+  const confirmarVenta = async () => {
     if (!producto) return
-    const precioStr = prompt(
-      `Precio de venta para "${producto.nombre}":\n(sugerido: $${producto.precio_venta.toLocaleString('es-AR')})`,
-      String(producto.precio_venta)
-    )
-    if (!precioStr) return
-    const precio = parseFloat(precioStr)
-    if (isNaN(precio)) return
+    const precio = parseFloat(precioModal)
+    const cantidad = parseInt(cantidadModal)
+    if (isNaN(precio) || precio <= 0 || isNaN(cantidad) || cantidad <= 0) return
+    setVendiendo(true)
     await fetch('/api/ventas', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ producto_id: id, precio_vendido: precio }),
+      body: JSON.stringify({ producto_id: id, precio_vendido: precio, cantidad }),
     })
+    setModalVenta(false)
+    setVendiendo(false)
     router.push('/stock')
   }
 
@@ -81,6 +99,47 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
     if (!confirm('¿Eliminar este producto? No se puede deshacer.')) return
     await fetch(`/api/productos/${id}`, { method: 'DELETE' })
     router.push('/stock')
+  }
+
+  const subirFoto = async (file: File) => {
+    setSubiendo(true)
+    const fd = new FormData()
+    fd.append('foto', file)
+    const res = await fetch(`/api/productos/${id}/fotos`, { method: 'POST', body: fd })
+    const data = await res.json()
+    if (res.ok) {
+      setProducto(prev => prev ? { ...prev, fotos_urls: data.fotos_urls, foto_url: data.foto_url } : prev)
+      setFotoActiva((data.fotos_urls?.length ?? 1) - 1)
+    }
+    setSubiendo(false)
+  }
+
+  const eliminarFoto = async (url: string) => {
+    if (!confirm('¿Eliminar esta foto?')) return
+    const res = await fetch(`/api/productos/${id}/fotos`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    })
+    const data = await res.json()
+    if (res.ok) {
+      setProducto(prev => prev ? { ...prev, fotos_urls: data.fotos_urls, foto_url: data.foto_url } : prev)
+      setFotoActiva(0)
+    }
+  }
+
+  const hacerPrincipal = async (url: string) => {
+    if (!producto) return
+    const nuevasFotos = [url, ...producto.fotos_urls.filter(f => f !== url)]
+    const res = await fetch(`/api/productos/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fotos_urls: nuevasFotos, foto_url: url }),
+    })
+    if (res.ok) {
+      setProducto(prev => prev ? { ...prev, fotos_urls: nuevasFotos, foto_url: url } : prev)
+      setFotoActiva(0)
+    }
   }
 
   if (loading) {
@@ -94,10 +153,10 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
 
   if (!producto) return <div className="p-8 text-red-500 text-sm">Producto no encontrado.</div>
 
-  const todasLasFotos = [
-    ...(producto.foto_url ? [producto.foto_url] : []),
-    ...(producto.fotos_urls ?? []).filter(f => f !== producto.foto_url),
-  ]
+  const todasLasFotos = producto.fotos_urls?.length
+    ? producto.fotos_urls
+    : producto.foto_url ? [producto.foto_url] : []
+
   const fotoMostrada = todasLasFotos[fotoActiva] ?? null
   const margen = producto.costo > 0
     ? Math.round((producto.precio_venta - producto.costo) / producto.precio_venta * 100)
@@ -119,6 +178,7 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
         {/* Columna izquierda: fotos */}
         <div className="space-y-3">
+          {/* Foto principal */}
           <div className="aspect-square bg-gray-100 dark:bg-slate-800 rounded-2xl overflow-hidden relative">
             {fotoMostrada ? (
               <img src={fotoMostrada} alt={producto.nombre} className="w-full h-full object-cover" />
@@ -133,22 +193,63 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
             </div>
           </div>
 
-          {todasLasFotos.length > 1 && (
-            <div className="flex gap-2 overflow-x-auto pb-1">
+          {/* Gestión de fotos */}
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-3">
+            <p className="text-xs font-medium text-gray-500 dark:text-slate-400 mb-2">
+              Fotos ({todasLasFotos.length})
+            </p>
+            <div className="flex flex-wrap gap-2">
               {todasLasFotos.map((url, i) => (
-                <button
-                  key={i}
-                  onClick={() => setFotoActiva(i)}
-                  className={`shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
-                    i === fotoActiva ? 'border-amber-400' : 'border-transparent'
-                  }`}
-                >
-                  <img src={url} alt="" className="w-full h-full object-cover" />
-                </button>
+                <div key={url} className="relative group">
+                  <button
+                    onClick={() => setFotoActiva(i)}
+                    className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                      i === fotoActiva ? 'border-amber-400' : 'border-transparent'
+                    }`}
+                  >
+                    <img src={url} alt="" className="w-full h-full object-cover" />
+                  </button>
+                  {/* Eliminar */}
+                  <button
+                    onClick={() => eliminarFoto(url)}
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow"
+                  >
+                    ×
+                  </button>
+                  {/* Hacer principal (solo si no es ya la primera) */}
+                  {i !== 0 && (
+                    <button
+                      onClick={() => hacerPrincipal(url)}
+                      className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[9px] py-0.5 text-center opacity-0 group-hover:opacity-100 transition-opacity rounded-b-lg"
+                    >
+                      principal
+                    </button>
+                  )}
+                </div>
               ))}
-            </div>
-          )}
 
+              {/* Botón agregar */}
+              <button
+                onClick={() => fotoInputRef.current?.click()}
+                disabled={subiendo}
+                className="w-16 h-16 rounded-lg border-2 border-dashed border-gray-300 dark:border-slate-600 flex items-center justify-center text-gray-400 dark:text-slate-500 hover:border-amber-400 hover:text-amber-500 transition-colors disabled:opacity-50"
+              >
+                {subiendo
+                  ? <div className="w-4 h-4 border-2 border-gray-300 border-t-amber-400 rounded-full animate-spin" />
+                  : <span className="text-xl leading-none">+</span>
+                }
+              </button>
+              <input
+                ref={fotoInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={e => { const f = e.target.files?.[0]; if (f) subirFoto(f); e.target.value = '' }}
+              />
+            </div>
+          </div>
+
+          {/* Meta info */}
           <div className="bg-gray-50 dark:bg-slate-800 rounded-xl p-3 text-xs text-gray-400 dark:text-slate-500 space-y-1 border border-gray-100 dark:border-slate-700">
             <div className="flex justify-between">
               <span>Origen</span>
@@ -206,6 +307,16 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
             </FormField>
           </div>
 
+          <FormField label="Talle">
+            <input
+              type="text"
+              value={talle}
+              onChange={e => setTalle(e.target.value)}
+              placeholder="Ej: M, XL, 42, Único..."
+              className="input"
+            />
+          </FormField>
+
           <div className="grid grid-cols-2 gap-3">
             <FormField label="Precio de costo">
               <div className="relative">
@@ -245,7 +356,7 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
             </button>
             {producto.estado === 'disponible' && (
               <button
-                onClick={marcarVendido}
+                onClick={abrirModalVenta}
                 className="w-full py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-500 hover:bg-emerald-600 transition-colors"
               >
                 Marcar como vendido
@@ -264,6 +375,67 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
           </div>
         </div>
       </div>
+
+      {/* Modal venta */}
+      {modalVenta && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setModalVenta(false)} />
+          <div className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4">
+            <h2 className="text-base font-bold text-gray-900 dark:text-white">Registrar venta</h2>
+            <p className="text-sm text-gray-500 dark:text-slate-400 -mt-2">{producto.nombre}</p>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Precio de venta</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 text-sm">$</span>
+                <input
+                  type="number"
+                  value={precioModal}
+                  onChange={e => setPrecioModal(e.target.value)}
+                  className="input pl-7"
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">
+                Cantidad vendida <span className="font-normal text-gray-400 dark:text-slate-500">(stock: {producto.stock})</span>
+              </label>
+              <input
+                type="number"
+                value={cantidadModal}
+                onChange={e => setCantidadModal(e.target.value)}
+                min="1"
+                max={String(producto.stock)}
+                className="input"
+              />
+            </div>
+
+            {parseInt(cantidadModal) >= producto.stock && (
+              <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 px-3 py-2 rounded-lg">
+                El stock llegará a 0 y el producto quedará como <b>Vendido</b>.
+              </p>
+            )}
+
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={() => setModalVenta(false)}
+                className="flex-1 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmarVenta}
+                disabled={vendiendo || !precioModal || !cantidadModal}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 transition-colors"
+              >
+                {vendiendo ? 'Guardando...' : 'Confirmar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

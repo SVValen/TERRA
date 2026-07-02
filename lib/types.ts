@@ -6,6 +6,7 @@ export interface Producto {
   nombre: string
   categoria: string | null
   subcategoria: string | null
+  talle: string | null
   costo: number
   precio_venta: number
   stock: number
@@ -23,6 +24,7 @@ export interface Venta {
   precio_vendido: number
   costo_al_momento: number
   ganancia: number
+  cantidad: number
   fecha: string
 }
 
@@ -54,6 +56,7 @@ export type BotPaso =
   | 'esperando_costo'
   | 'esperando_venta'
   | 'esperando_stock'
+  | 'esperando_talle'
   | 'esperando_fotos'
   | 'esperando_confirmacion'
 
@@ -61,6 +64,7 @@ export interface DatosParciales {
   nombre: string
   categoria: string
   subcategoria: string
+  talle: string
   costo: number
   precio_venta: number
   stock: number

@@ -24,6 +24,25 @@ export function buildKeyboardSubcategorias(subcategorias: string[]) {
   return { inline_keyboard: rows }
 }
 
+export const KB_TALLE = {
+  inline_keyboard: [
+    [
+      { text: 'XS',    callback_data: 'talle:XS' },
+      { text: 'S',     callback_data: 'talle:S' },
+      { text: 'M',     callback_data: 'talle:M' },
+    ],
+    [
+      { text: 'L',     callback_data: 'talle:L' },
+      { text: 'XL',    callback_data: 'talle:XL' },
+      { text: 'XXL',   callback_data: 'talle:XXL' },
+    ],
+    [
+      { text: 'Único', callback_data: 'talle:Único' },
+      { text: 'Omitir talle', callback_data: 'talle:skip' },
+    ],
+  ],
+}
+
 export const KB_LISTO_FOTOS = {
   inline_keyboard: [[{ text: '✅ Listo, no hay más fotos', callback_data: 'fotos:listo' }]],
 }
