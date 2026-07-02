@@ -321,20 +321,24 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
             <div className="space-y-2">
               {talles.map((t, i) => (
                 <div key={t.id ?? `nuevo-${i}`} className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={t.talle}
-                    onChange={e => setTalles(prev => prev.map((x, xi) => xi === i ? { ...x, talle: e.target.value } : x))}
-                    placeholder="Ej: M, XL, 42, Único..."
-                    className="input flex-1"
-                  />
-                  <input
-                    type="number"
-                    value={t.stock}
-                    onChange={e => setTalles(prev => prev.map((x, xi) => xi === i ? { ...x, stock: parseInt(e.target.value) || 0 } : x))}
-                    min="0"
-                    className="input w-24"
-                  />
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      value={t.talle}
+                      onChange={e => setTalles(prev => prev.map((x, xi) => xi === i ? { ...x, talle: e.target.value } : x))}
+                      placeholder="Ej: M, XL, 42, Único..."
+                      className="input"
+                    />
+                  </div>
+                  <div className="w-24 shrink-0">
+                    <input
+                      type="number"
+                      value={t.stock}
+                      onChange={e => setTalles(prev => prev.map((x, xi) => xi === i ? { ...x, stock: parseInt(e.target.value) || 0 } : x))}
+                      min="0"
+                      className="input"
+                    />
+                  </div>
                   <button
                     type="button"
                     onClick={() => setTalles(prev => prev.filter((_, xi) => xi !== i))}
