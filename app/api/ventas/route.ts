@@ -26,11 +26,15 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const supabase = createServiceClient()
-  const { producto_id, precio_vendido, cantidad = 1 } = await request.json()
+  const { producto_id, precio_vendido, cantidad = 1, talle } = await request.json()
+
+  if (!talle) {
+    return NextResponse.json({ error: 'Falta indicar el talle vendido' }, { status: 422 })
+  }
 
   const { data: producto, error: errorProducto } = await supabase
     .from('productos')
-    .select('costo, stock, estado')
+    .select('costo, estado')
     .eq('id', producto_id)
     .single()
 
@@ -38,7 +42,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Producto no encontrado' }, { status: 404 })
   }
 
-  if (cantidad > producto.stock) {
+  const { data: variante, error: errorVariante } = await supabase
+    .from('producto_talles')
+    .select('id, stock')
+    .eq('producto_id', producto_id)
+    .eq('talle', talle)
+    .single()
+
+  if (errorVariante || !variante) {
+    return NextResponse.json({ error: 'Talle no encontrado' }, { status: 404 })
+  }
+
+  if (cantidad > variante.stock) {
     return NextResponse.json({ error: 'Stock insuficiente' }, { status: 422 })
   }
 
@@ -49,6 +64,7 @@ export async function POST(request: NextRequest) {
       precio_vendido,
       costo_al_momento: producto.costo,
       cantidad,
+      talle,
     })
     .select()
     .single()
@@ -58,12 +74,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Error al registrar la venta' }, { status: 500 })
   }
 
-  const nuevoStock = producto.stock - cantidad
+  await supabase
+    .from('producto_talles')
+    .update({ stock: variante.stock - cantidad })
+    .eq('id', variante.id)
+
+  const { data: talles } = await supabase
+    .from('producto_talles')
+    .select('stock')
+    .eq('producto_id', producto_id)
+
+  const nuevoStockTotal = (talles ?? []).reduce((acc, t) => acc + t.stock, 0)
   await supabase
     .from('productos')
     .update({
-      stock: nuevoStock,
-      estado: nuevoStock === 0 ? 'vendido' : producto.estado,
+      stock: nuevoStockTotal,
+      estado: nuevoStockTotal === 0 ? 'vendido' : producto.estado,
       actualizado_en: new Date().toISOString(),
     })
     .eq('id', producto_id)

@@ -24,23 +24,21 @@ export function buildKeyboardSubcategorias(subcategorias: string[]) {
   return { inline_keyboard: rows }
 }
 
-export const KB_TALLE = {
-  inline_keyboard: [
-    [
-      { text: 'XS',    callback_data: 'talle:XS' },
-      { text: 'S',     callback_data: 'talle:S' },
-      { text: 'M',     callback_data: 'talle:M' },
-    ],
-    [
-      { text: 'L',     callback_data: 'talle:L' },
-      { text: 'XL',    callback_data: 'talle:XL' },
-      { text: 'XXL',   callback_data: 'talle:XXL' },
-    ],
-    [
-      { text: 'Único', callback_data: 'talle:Único' },
-      { text: 'Omitir talle', callback_data: 'talle:skip' },
-    ],
-  ],
+const TALLES_DISPONIBLES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Único']
+
+export function buildKeyboardTalles(seleccionados: string[]) {
+  const rows: Array<Array<{ text: string; callback_data: string }>> = []
+  for (let i = 0; i < TALLES_DISPONIBLES.length; i += 3) {
+    rows.push(
+      TALLES_DISPONIBLES.slice(i, i + 3).map(t => ({
+        text: seleccionados.includes(t) ? `✓ ${t}` : t,
+        callback_data: `toggle_talle:${t}`,
+      }))
+    )
+  }
+  rows.push([{ text: '✅ Confirmar talles', callback_data: 'talles:confirmar' }])
+  rows.push([{ text: 'Omitir (talle único)', callback_data: 'talles:skip' }])
+  return { inline_keyboard: rows }
 }
 
 export const KB_LISTO_FOTOS = {

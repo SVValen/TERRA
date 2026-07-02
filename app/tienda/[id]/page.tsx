@@ -7,7 +7,7 @@ async function getProducto(id: string) {
   const supabase = createServiceClient()
   const { data } = await supabase
     .from('productos')
-    .select('id, nombre, foto_url, fotos_urls, talle, precio_venta, categoria, subcategoria, stock')
+    .select('id, nombre, foto_url, fotos_urls, precio_venta, categoria, subcategoria, stock, producto_talles(talle, stock)')
     .eq('id', id)
     .eq('estado', 'disponible')
     .single()
@@ -34,8 +34,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const negocio = await getNegocio()
   const storeName = negocio?.nombre ?? ''
 
+  const tallesDisponibles = producto.producto_talles?.filter(t => t.stock > 0).map(t => t.talle) ?? []
+
   const desc = [
-    producto.talle ? `Talle ${producto.talle}` : null,
+    tallesDisponibles.length > 0 ? `Talles ${tallesDisponibles.join(', ')}` : null,
     `$${producto.precio_venta.toLocaleString('es-AR')}`,
     producto.categoria,
   ].filter(Boolean).join(' · ')
@@ -83,13 +85,15 @@ export default async function ProductoTiendaPage({ params }: { params: Promise<{
   const { whatsapp, nombre: nombreTienda } = negocio ?? { whatsapp: null, nombre: '' }
   const fotos = producto.fotos_urls?.length ? producto.fotos_urls : producto.foto_url ? [producto.foto_url] : []
 
+  const tallesConStock = producto.producto_talles?.filter(t => t.stock > 0) ?? []
+
   const productoUrl = `${getBaseUrl()}/tienda/${id}`
   const waMsg = [
     `Hola *${nombreTienda}*! 👋`,
     ``,
     `Me interesa este producto:`,
     `*${producto.nombre}*`,
-    producto.talle ? `Talle: ${producto.talle}` : '',
+    tallesConStock.length > 0 ? `Talle: ${tallesConStock.map(t => t.talle).join('/')}` : '',
     `Precio: $${producto.precio_venta.toLocaleString('es-AR')}`,
     ``,
     productoUrl,
@@ -128,12 +132,21 @@ export default async function ProductoTiendaPage({ params }: { params: Promise<{
             {producto.nombre}
           </h1>
 
-          {producto.talle && (
+          {producto.producto_talles && producto.producto_talles.length > 0 && (
             <div className="mb-4">
               <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-2">Talle</p>
-              <span className="inline-block px-4 py-1.5 bg-stone-100 text-stone-800 font-semibold text-sm rounded-full">
-                {producto.talle}
-              </span>
+              <div className="flex flex-wrap gap-2">
+                {producto.producto_talles.map(t => (
+                  <span
+                    key={t.talle}
+                    className={`inline-block px-4 py-1.5 font-semibold text-sm rounded-full ${
+                      t.stock > 0 ? 'bg-stone-100 text-stone-800' : 'bg-stone-50 text-stone-300 line-through'
+                    }`}
+                  >
+                    {t.talle}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
 
@@ -151,6 +164,11 @@ export default async function ProductoTiendaPage({ params }: { params: Promise<{
           {producto.stock === 1 && (
             <p className="text-xs text-amber-600 font-medium mb-4">
               ⚡ ¡Última unidad!
+            </p>
+          )}
+          {producto.stock === 0 && (
+            <p className="text-xs text-stone-400 font-medium mb-4">
+              Sin stock disponible
             </p>
           )}
 

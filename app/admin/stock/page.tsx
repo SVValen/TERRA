@@ -152,8 +152,21 @@ function ProductCard({ producto: p }: { producto: Producto }) {
               {[p.categoria, p.subcategoria].filter(Boolean).join(' › ')}
             </p>
           )}
-          {p.talle && (
-            <p className="text-xs text-gray-400 dark:text-slate-500 mb-1">Talle: {p.talle}</p>
+          {p.producto_talles && p.producto_talles.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-1">
+              {p.producto_talles.map(t => (
+                <span
+                  key={t.id}
+                  className={`text-xs px-1.5 py-0.5 rounded ${
+                    t.stock > 0
+                      ? 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400'
+                      : 'bg-gray-50 dark:bg-slate-800 text-gray-300 dark:text-slate-600 line-through'
+                  }`}
+                >
+                  {t.talle}
+                </span>
+              ))}
+            </div>
           )}
           <div className="flex items-end justify-between mt-2">
             <div>

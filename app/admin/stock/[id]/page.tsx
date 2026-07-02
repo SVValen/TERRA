@@ -6,6 +6,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import type { Producto, Categoria } from '@/lib/types'
 
+type TalleForm = { id?: string; talle: string; stock: number }
+
 export default function ProductoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
@@ -19,17 +21,17 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
   const [nombre, setNombre] = useState('')
   const [categoria, setCategoria] = useState('')
   const [subcategoria, setSubcategoria] = useState('')
-  const [talle, setTalle] = useState('')
+  const [talles, setTalles] = useState<TalleForm[]>([])
   const [costo, setCosto] = useState('')
   const [precioVenta, setPrecioVenta] = useState('')
   const [margenObjetivo, setMargenObjetivo] = useState<number | null>(null)
   const [estado, setEstado] = useState('')
-  const [stock, setStock] = useState('')
 
   // Modal venta
   const [modalVenta, setModalVenta] = useState(false)
   const [precioModal, setPrecioModal] = useState('')
   const [cantidadModal, setCantidadModal] = useState('1')
+  const [talleModal, setTalleModal] = useState('')
   const [vendiendo, setVendiendo] = useState(false)
 
   // Fotos
@@ -48,11 +50,13 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
       setNombre(p.nombre)
       setCategoria(p.categoria ?? '')
       setSubcategoria(p.subcategoria ?? '')
-      setTalle(p.talle ?? '')
+      const variantes = p.producto_talles?.length
+        ? p.producto_talles.map(t => ({ id: t.id, talle: t.talle, stock: t.stock }))
+        : p.talle ? [{ talle: p.talle, stock: p.stock }] : []
+      setTalles(variantes)
       setCosto(String(p.costo))
       setPrecioVenta(String(p.precio_venta))
       setEstado(p.estado)
-      setStock(String(p.stock))
       setLoading(false)
     })
   }, [id])
@@ -66,20 +70,22 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
         nombre,
         categoria: categoria || null,
         subcategoria: subcategoria || null,
-        talle: talle || null,
         costo: parseFloat(costo),
         precio_venta: parseFloat(precioVenta),
         estado,
-        stock: parseInt(stock),
+        talles: talles.filter(t => t.talle.trim()),
       }),
     })
     setGuardando(false)
     router.back()
   }
 
+  const tallesConStock = producto?.producto_talles?.filter(t => t.stock > 0) ?? []
+
   const abrirModalVenta = () => {
     setPrecioModal(String(producto?.precio_venta ?? ''))
     setCantidadModal('1')
+    setTalleModal(tallesConStock[0]?.talle ?? '')
     setModalVenta(true)
   }
 
@@ -87,12 +93,12 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
     if (!producto) return
     const precio = parseFloat(precioModal)
     const cantidad = parseInt(cantidadModal)
-    if (isNaN(precio) || precio <= 0 || isNaN(cantidad) || cantidad <= 0) return
+    if (isNaN(precio) || precio <= 0 || isNaN(cantidad) || cantidad <= 0 || !talleModal) return
     setVendiendo(true)
     await fetch('/api/ventas', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ producto_id: id, precio_vendido: precio, cantidad }),
+      body: JSON.stringify({ producto_id: id, precio_vendido: precio, cantidad, talle: talleModal }),
     })
     setModalVenta(false)
     setVendiendo(false)
@@ -311,14 +317,41 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
             </FormField>
           </div>
 
-          <FormField label="Talle">
-            <input
-              type="text"
-              value={talle}
-              onChange={e => setTalle(e.target.value)}
-              placeholder="Ej: M, XL, 42, Único..."
-              className="input"
-            />
+          <FormField label={`Talles (stock total: ${talles.reduce((a, t) => a + (t.stock || 0), 0)})`}>
+            <div className="space-y-2">
+              {talles.map((t, i) => (
+                <div key={t.id ?? `nuevo-${i}`} className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={t.talle}
+                    onChange={e => setTalles(prev => prev.map((x, xi) => xi === i ? { ...x, talle: e.target.value } : x))}
+                    placeholder="Ej: M, XL, 42, Único..."
+                    className="input flex-1"
+                  />
+                  <input
+                    type="number"
+                    value={t.stock}
+                    onChange={e => setTalles(prev => prev.map((x, xi) => xi === i ? { ...x, stock: parseInt(e.target.value) || 0 } : x))}
+                    min="0"
+                    className="input w-24"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setTalles(prev => prev.filter((_, xi) => xi !== i))}
+                    className="w-9 h-9 flex items-center justify-center rounded-lg text-red-500 border border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors shrink-0"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setTalles(prev => [...prev, { talle: '', stock: 0 }])}
+                className="text-xs font-medium text-amber-700 dark:text-amber-400 hover:underline"
+              >
+                + Agregar talle
+              </button>
+            </div>
           </FormField>
 
           <div className="grid grid-cols-2 gap-3">
@@ -351,18 +384,13 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
             </FormField>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <FormField label="Estado">
-              <select value={estado} onChange={e => setEstado(e.target.value)} className="input">
-                <option value="disponible">Disponible</option>
-                <option value="reservado">Reservado</option>
-                <option value="vendido">Vendido</option>
-              </select>
-            </FormField>
-            <FormField label="Stock">
-              <input type="number" value={stock} onChange={e => setStock(e.target.value)} min="0" className="input" />
-            </FormField>
-          </div>
+          <FormField label="Estado">
+            <select value={estado} onChange={e => setEstado(e.target.value)} className="input">
+              <option value="disponible">Disponible</option>
+              <option value="reservado">Reservado</option>
+              <option value="vendido">Vendido</option>
+            </select>
+          </FormField>
 
           <div className="flex flex-col gap-2 pt-2">
             <button
@@ -418,24 +446,41 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">
-                Cantidad vendida <span className="font-normal text-gray-400 dark:text-slate-500">(stock: {producto.stock})</span>
-              </label>
-              <input
-                type="number"
-                value={cantidadModal}
-                onChange={e => setCantidadModal(e.target.value)}
-                min="1"
-                max={String(producto.stock)}
-                className="input"
-              />
+              <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Talle</label>
+              <select value={talleModal} onChange={e => setTalleModal(e.target.value)} className="input">
+                {tallesConStock.map(t => (
+                  <option key={t.id} value={t.talle}>{t.talle} (stock: {t.stock})</option>
+                ))}
+              </select>
             </div>
 
-            {parseInt(cantidadModal) >= producto.stock && (
-              <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 px-3 py-2 rounded-lg">
-                El stock llegará a 0 y el producto quedará como <b>Vendido</b>.
-              </p>
-            )}
+            {(() => {
+              const varianteModal = tallesConStock.find(t => t.talle === talleModal)
+              const stockVariante = varianteModal?.stock ?? 0
+              return (
+                <>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">
+                      Cantidad vendida <span className="font-normal text-gray-400 dark:text-slate-500">(stock: {stockVariante})</span>
+                    </label>
+                    <input
+                      type="number"
+                      value={cantidadModal}
+                      onChange={e => setCantidadModal(e.target.value)}
+                      min="1"
+                      max={String(stockVariante)}
+                      className="input"
+                    />
+                  </div>
+
+                  {parseInt(cantidadModal) >= stockVariante && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 px-3 py-2 rounded-lg">
+                      El talle <b>{talleModal}</b> se quedará sin stock.
+                    </p>
+                  )}
+                </>
+              )
+            })()}
 
             <div className="flex gap-2 pt-1">
               <button
@@ -446,7 +491,7 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
               </button>
               <button
                 onClick={confirmarVenta}
-                disabled={vendiendo || !precioModal || !cantidadModal}
+                disabled={vendiendo || !precioModal || !cantidadModal || !talleModal}
                 className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 transition-colors"
               >
                 {vendiendo ? 'Guardando...' : 'Confirmar'}

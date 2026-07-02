@@ -4,17 +4,12 @@ import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useTienda } from './TiendaShell'
+import type { Producto as ProductoBase } from '@/lib/types'
 
-interface Producto {
-  id: string
-  nombre: string
-  foto_url: string | null
-  fotos_urls: string[]
-  talle: string | null
-  precio_venta: number
-  categoria: string | null
-  subcategoria: string | null
-}
+type Producto = Pick<
+  ProductoBase,
+  'id' | 'nombre' | 'foto_url' | 'fotos_urls' | 'precio_venta' | 'categoria' | 'subcategoria' | 'stock'
+> & { producto_talles: { talle: string; stock: number }[] }
 
 interface Categoria {
   id: string
@@ -173,15 +168,16 @@ export default function TiendaPage() {
   )
 }
 
-function buildWaUrl(whatsapp: string, nombreTienda: string, p: { id: string; nombre: string; talle: string | null; precio_venta: number }) {
+function buildWaUrl(whatsapp: string, nombreTienda: string, p: Producto) {
   const base = typeof window !== 'undefined' ? window.location.origin : ''
   const link = `${base}/tienda/${p.id}`
+  const tallesConStock = p.producto_talles?.filter(t => t.stock > 0).map(t => t.talle) ?? []
   const lines = [
     `Hola *${nombreTienda}*! 👋`,
     ``,
     `Me interesa este producto:`,
     `*${p.nombre}*`,
-    p.talle ? `Talle: ${p.talle}` : '',
+    tallesConStock.length > 0 ? `Talle: ${tallesConStock.join('/')}` : '',
     `Precio: $${p.precio_venta.toLocaleString('es-AR')}`,
     ``,
     link,
@@ -192,8 +188,10 @@ function buildWaUrl(whatsapp: string, nombreTienda: string, p: { id: string; nom
 function ProductCard({ producto: p, whatsapp, nombreTienda }: { producto: Producto; whatsapp: string | null; nombreTienda: string }) {
   const waUrl = whatsapp ? buildWaUrl(whatsapp, nombreTienda, p) : null
 
+  const sinStock = p.stock === 0
+
   return (
-    <div className="group bg-white rounded-2xl overflow-hidden border border-stone-100 hover:border-stone-200 hover:shadow-lg transition-all duration-300">
+    <div className={`group bg-white rounded-2xl overflow-hidden border border-stone-100 hover:border-stone-200 hover:shadow-lg transition-all duration-300 ${sinStock ? 'opacity-60' : ''}`}>
       <Link href={`/tienda/${p.id}`} className="block">
         <div className="aspect-square bg-stone-50 relative overflow-hidden">
           {p.foto_url ? (
@@ -201,7 +199,7 @@ function ProductCard({ producto: p, whatsapp, nombreTienda }: { producto: Produc
               src={p.foto_url}
               alt={p.nombre}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-500"
+              className={`object-cover group-hover:scale-105 transition-transform duration-500 ${sinStock ? 'grayscale' : ''}`}
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />
           ) : (
@@ -210,6 +208,11 @@ function ProductCard({ producto: p, whatsapp, nombreTienda }: { producto: Produc
           {p.fotos_urls?.length > 1 && (
             <div className="absolute bottom-2 right-2 bg-black/40 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium">
               +{p.fotos_urls.length - 1}
+            </div>
+          )}
+          {sinStock && (
+            <div className="absolute top-2 left-2 bg-stone-800/80 text-white text-[10px] px-2 py-0.5 rounded-full font-medium">
+              Sin stock
             </div>
           )}
         </div>
@@ -228,10 +231,19 @@ function ProductCard({ producto: p, whatsapp, nombreTienda }: { producto: Produc
           </p>
         )}
 
-        {p.talle && (
-          <span className="inline-block text-xs font-medium text-stone-600 bg-stone-100 px-2 py-0.5 rounded-full mb-2">
-            Talle {p.talle}
-          </span>
+        {p.producto_talles && p.producto_talles.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-2">
+            {p.producto_talles.map(t => (
+              <span
+                key={t.talle}
+                className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full ${
+                  t.stock > 0 ? 'text-stone-600 bg-stone-100' : 'text-stone-300 bg-stone-50 line-through'
+                }`}
+              >
+                {t.talle}
+              </span>
+            ))}
+          </div>
         )}
 
         <div className="flex items-center justify-between mt-2">

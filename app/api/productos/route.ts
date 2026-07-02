@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   const supabase = createServiceClient()
   const { searchParams } = new URL(request.url)
 
-  let query = supabase.from('productos').select('*').order('creado_en', { ascending: false })
+  let query = supabase.from('productos').select('*, producto_talles(*)').order('creado_en', { ascending: false })
 
   const estado = searchParams.get('estado')
   if (estado) query = query.eq('estado', estado)

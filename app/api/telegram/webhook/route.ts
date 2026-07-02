@@ -5,7 +5,7 @@ import { parseNumero } from '@/lib/telegram/parser'
 import {
   buildKeyboardCategorias,
   buildKeyboardSubcategorias,
-  KB_TALLE,
+  buildKeyboardTalles,
   KB_LISTO_FOTOS,
   KB_CONFIRMAR,
 } from '@/lib/telegram/categorias'
@@ -208,15 +208,33 @@ async function handleCallbackQuery(
     return
   }
 
-  if (data.startsWith('talle:') && paso === 'esperando_talle') {
-    const raw = data.replace('talle:', '')
-    const talle = raw === 'skip' ? '' : raw
-    await actualizarSesion(supabase, chatId, 'esperando_fotos', { ...datos, talle, fotos_urls: [] })
-    await sendMessage(
-      chatId,
-      `${talle ? `Talle: <b>${esc(talle)}</b>\n\n` : ''}📷 Ahora mandá las fotos del producto (una o varias). Cuando termines, tocá el botón.`,
-      KB_LISTO_FOTOS
-    )
+  if (data.startsWith('toggle_talle:') && paso === 'esperando_talles') {
+    const talle = data.replace('toggle_talle:', '')
+    const actuales = datos.talles_seleccionados ?? []
+    const seleccionados = actuales.includes(talle)
+      ? actuales.filter(t => t !== talle)
+      : [...actuales, talle]
+    await actualizarSesion(supabase, chatId, 'esperando_talles', { ...datos, talles_seleccionados: seleccionados })
+    await sendMessage(chatId, '📏 ¿Qué talles tiene? Tocá los que correspondan y confirmá.', buildKeyboardTalles(seleccionados))
+    return
+  }
+
+  if (data === 'talles:skip' && paso === 'esperando_talles') {
+    const nuevosDatos = { ...datos, talles_seleccionados: ['Único'], talles_cantidades: {}, talle_actual_idx: 0 }
+    await actualizarSesion(supabase, chatId, 'esperando_cantidad_talle', nuevosDatos)
+    await sendMessage(chatId, '📦 ¿Cuántas unidades hay?')
+    return
+  }
+
+  if (data === 'talles:confirmar' && paso === 'esperando_talles') {
+    const seleccionados = datos.talles_seleccionados ?? []
+    if (seleccionados.length === 0) {
+      await sendMessage(chatId, 'Tocá al menos un talle antes de confirmar.', buildKeyboardTalles([]))
+      return
+    }
+    const nuevosDatos = { ...datos, talles_cantidades: {}, talle_actual_idx: 0 }
+    await actualizarSesion(supabase, chatId, 'esperando_cantidad_talle', nuevosDatos)
+    await sendMessage(chatId, `📦 ¿Cuántas unidades hay del talle <b>${esc(seleccionados[0])}</b>?`)
     return
   }
 
@@ -256,23 +274,35 @@ async function handleCallbackQuery(
   if (data.startsWith('action:') && paso === 'esperando_confirmacion') {
     if (data === 'action:confirmar') {
       const fotosUrls: string[] = datos.fotos_urls ?? []
-      const { error } = await supabase.from('productos').insert({
+      const cantidades = datos.talles_cantidades ?? {}
+      const stockTotal = Object.values(cantidades).reduce((a, b) => a + b, 0)
+      const { data: producto, error } = await supabase.from('productos').insert({
         nombre: datos.nombre,
         categoria: datos.categoria || null,
         subcategoria: datos.subcategoria || null,
-        talle: datos.talle || null,
+        talle: null,
         costo: datos.costo,
         precio_venta: datos.precio_venta,
         foto_url: fotosUrls[0] ?? null,
         fotos_urls: fotosUrls,
         origen: 'bot',
-        stock: datos.stock ?? 1,
+        stock: stockTotal,
         estado: 'disponible',
-      })
-      if (error) {
+      }).select('id').single()
+      if (error || !producto) {
         console.error('[confirmar] insert error:', error)
         await sendMessage(chatId, '❌ Error al guardar. Intentá de nuevo con /cargar.')
         return
+      }
+      const filasTalles = Object.entries(cantidades).map(([talle, stock]) => ({
+        producto_id: producto.id,
+        talle,
+        stock,
+      }))
+      const { error: errorTalles } = await supabase.from('producto_talles').insert(filasTalles)
+      if (errorTalles) {
+        console.error('[confirmar] producto_talles insert error:', errorTalles)
+        await sendMessage(chatId, '⚠️ El producto se guardó pero hubo un error con los talles. Revisalo desde el panel.')
       }
       await supabase.from('bot_sesiones').delete().eq('chat_id', chatId)
       await sendMessage(chatId, `✅ <b>${esc(datos.nombre ?? '')}</b> cargado al stock.\n\nUsá /cargar para agregar otro producto.`)
@@ -315,29 +345,43 @@ async function manejarPaso(
     case 'esperando_venta': {
       const precio_venta = parseNumero(texto)
       if (!precio_venta || precio_venta <= 0) { await sendMessage(chatId, 'Ingresá un número válido. Ej: 15000'); return }
-      await actualizarSesion(supabase, chatId, 'esperando_stock', { ...datos, precio_venta })
-      await sendMessage(chatId, `Venta: <b>$${precio_venta.toLocaleString('es-AR')}</b>\n\n📦 ¿Cuántas unidades hay en stock?`)
-      break
-    }
-
-    case 'esperando_stock': {
-      const stock = parseInt(texto)
-      if (isNaN(stock) || stock < 0) { await sendMessage(chatId, 'Ingresá un número entero. Ej: 1'); return }
-      await actualizarSesion(supabase, chatId, 'esperando_talle', { ...datos, stock })
+      await actualizarSesion(supabase, chatId, 'esperando_talles', { ...datos, precio_venta, talles_seleccionados: [] })
       await sendMessage(
         chatId,
-        `Stock: <b>${stock} unidad${stock !== 1 ? 'es' : ''}</b>\n\n📏 ¿Cuál es el talle? Tocá uno o escribilo (Ej: 42, M/L, etc.)`,
-        KB_TALLE
+        `Venta: <b>$${precio_venta.toLocaleString('es-AR')}</b>\n\n📏 ¿Qué talles tiene? Tocá los que correspondan y confirmá.`,
+        buildKeyboardTalles([])
       )
       break
     }
 
-    case 'esperando_talle': {
-      const talle = texto.trim() || null
-      await actualizarSesion(supabase, chatId, 'esperando_fotos', { ...datos, talle: talle ?? '', fotos_urls: [] })
+    case 'esperando_cantidad_talle': {
+      const cantidad = parseInt(texto)
+      if (isNaN(cantidad) || cantidad < 0) { await sendMessage(chatId, 'Ingresá un número entero. Ej: 1'); return }
+
+      const seleccionados = datos.talles_seleccionados ?? []
+      const idx = datos.talle_actual_idx ?? 0
+      const talleActual = seleccionados[idx]
+      const cantidades = { ...(datos.talles_cantidades ?? {}), [talleActual]: cantidad }
+      const siguienteIdx = idx + 1
+
+      if (siguienteIdx < seleccionados.length) {
+        await actualizarSesion(supabase, chatId, 'esperando_cantidad_talle', {
+          ...datos,
+          talles_cantidades: cantidades,
+          talle_actual_idx: siguienteIdx,
+        })
+        await sendMessage(chatId, `📦 ¿Cuántas unidades hay del talle <b>${esc(seleccionados[siguienteIdx])}</b>?`)
+        return
+      }
+
+      await actualizarSesion(supabase, chatId, 'esperando_fotos', {
+        ...datos,
+        talles_cantidades: cantidades,
+        fotos_urls: [],
+      })
       await sendMessage(
         chatId,
-        `${talle ? `Talle: <b>${esc(talle)}</b>\n\n` : ''}📷 Ahora mandá las fotos del producto (una o varias). Cuando termines, tocá el botón.`,
+        `📷 Ahora mandá las fotos del producto (una o varias). Cuando termines, tocá el botón.`,
         KB_LISTO_FOTOS
       )
       break
@@ -425,14 +469,18 @@ async function actualizarSesion(
 function resumenProducto(datos: Partial<DatosParciales>): string {
   const cat = [datos.categoria, datos.subcategoria].filter(Boolean).join(' › ')
   const fotos = datos.fotos_urls?.length ?? 0
+  const cantidades = datos.talles_cantidades ?? {}
+  const talles = Object.entries(cantidades)
+  const stockTotal = talles.reduce((a, [, cant]) => a + cant, 0)
+  const lineasTalles = talles.map(([talle, cant]) => `   ‣ ${esc(talle)}: ${cant} unidad${cant !== 1 ? 'es' : ''}`).join('\n')
   return (
     `📦 <b>Resumen del producto</b>\n\n` +
     `• Nombre: <b>${esc(datos.nombre ?? '')}</b>\n` +
     `• Categoría: <b>${esc(cat || 'Sin categoría')}</b>\n` +
-    `• Talle: <b>${esc(datos.talle || 'Sin talle')}</b>\n` +
+    `• Talles:\n${lineasTalles || '   ‣ Sin talles'}\n` +
     `• Costo: <b>$${datos.costo?.toLocaleString('es-AR')}</b>\n` +
     `• Precio de venta: <b>$${datos.precio_venta?.toLocaleString('es-AR')}</b>\n` +
-    `• Stock: <b>${datos.stock ?? 1} unidad${(datos.stock ?? 1) !== 1 ? 'es' : ''}</b>\n` +
+    `• Stock total: <b>${stockTotal} unidad${stockTotal !== 1 ? 'es' : ''}</b>\n` +
     `• Fotos: <b>${fotos}</b>\n\n` +
     `¿Confirmás?`
   )

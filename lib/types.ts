@@ -1,6 +1,14 @@
 export type ProductoEstado = 'disponible' | 'vendido' | 'reservado'
 export type ProductoOrigen = 'bot' | 'web'
 
+export interface ProductoTalle {
+  id: string
+  producto_id: string
+  talle: string
+  stock: number
+  creado_en: string
+}
+
 export interface Producto {
   id: string
   nombre: string
@@ -16,6 +24,7 @@ export interface Producto {
   origen: ProductoOrigen
   creado_en: string
   actualizado_en: string
+  producto_talles?: ProductoTalle[]
 }
 
 export interface Venta {
@@ -25,6 +34,7 @@ export interface Venta {
   costo_al_momento: number
   ganancia: number
   cantidad: number
+  talle: string | null
   fecha: string
 }
 
@@ -55,8 +65,8 @@ export type BotPaso =
   | 'esperando_subcategoria'
   | 'esperando_costo'
   | 'esperando_venta'
-  | 'esperando_stock'
-  | 'esperando_talle'
+  | 'esperando_talles'
+  | 'esperando_cantidad_talle'
   | 'esperando_fotos'
   | 'esperando_confirmacion'
 
@@ -64,10 +74,11 @@ export interface DatosParciales {
   nombre: string
   categoria: string
   subcategoria: string
-  talle: string
   costo: number
   precio_venta: number
-  stock: number
   foto_url: string
   fotos_urls: string[]
+  talles_seleccionados: string[]
+  talles_cantidades: Record<string, number>
+  talle_actual_idx: number
 }

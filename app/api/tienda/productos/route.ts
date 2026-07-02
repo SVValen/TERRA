@@ -5,11 +5,13 @@ export async function GET(request: NextRequest) {
   const supabase = createServiceClient()
   const { searchParams } = new URL(request.url)
 
+  const talle = searchParams.get('talle')
+  const selectTalles = talle ? 'producto_talles!inner(talle, stock)' : 'producto_talles(talle, stock)'
+
   let query = supabase
     .from('productos')
-    .select('id, nombre, foto_url, fotos_urls, talle, precio_venta, categoria, subcategoria, stock, creado_en')
+    .select(`id, nombre, foto_url, fotos_urls, precio_venta, categoria, subcategoria, stock, creado_en, ${selectTalles}`)
     .eq('estado', 'disponible')
-    .gt('stock', 0)
     .order('creado_en', { ascending: false })
 
   const q = searchParams.get('q')
@@ -21,8 +23,7 @@ export async function GET(request: NextRequest) {
   const subcategoria = searchParams.get('subcategoria')
   if (subcategoria) query = query.eq('subcategoria', subcategoria)
 
-  const talle = searchParams.get('talle')
-  if (talle) query = query.eq('talle', talle)
+  if (talle) query = query.eq('producto_talles.talle', talle)
 
   const { data, error } = await query
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

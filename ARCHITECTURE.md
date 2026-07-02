@@ -15,12 +15,12 @@
 - `lib/supabase/client.ts` — `createBrowserClient()` con anon key; sujeto a RLS; para componentes client-side
 
 ### Tipos compartidos
-- `lib/types.ts` — `Producto`, `Venta`, `Categoria`, `Retiro`, `BotSesion`, `BotPaso`, `DatosParciales`; fuente de verdad de todas las entidades
+- `lib/types.ts` — `Producto`, `ProductoTalle`, `Venta`, `Categoria`, `Retiro`, `BotSesion`, `BotPaso`, `DatosParciales`; fuente de verdad de todas las entidades
 
 ### Bot de Telegram
 - `app/api/telegram/webhook/route.ts` — cerebro del bot; maneja `manejarPaso()` y `handleCallbackQuery()`; estado de conversación en tabla `bot_sesiones`
 - `lib/telegram/bot.ts` — wrappers HTTP sobre la Telegram API (`sendMessage`, `sendPhoto`, `getFile`, `answerCallbackQuery`)
-- `lib/telegram/categorias.ts` — teclados inline para categorías, subcategorías y talles (`KB_TALLE`)
+- `lib/telegram/categorias.ts` — teclados inline para categorías, subcategorías y talles (`buildKeyboardTalles`, multi-select)
 - `lib/telegram/parser.ts` — parseo de mensajes entrantes
 
 ### Panel admin (`/admin`)
@@ -33,7 +33,7 @@
 ### APIs protegidas (`/api/*`)
 - `app/api/productos/route.ts` — CRUD de productos
 - `app/api/productos/[id]/fotos/route.ts` — POST sube foto a Storage y appends a `fotos_urls`; DELETE elimina de array y Storage, actualiza `foto_url` al siguiente disponible
-- `app/api/ventas/route.ts` — POST venta: descuenta `stock`, marca `vendido` solo si llega a 0
+- `app/api/ventas/route.ts` — POST venta: requiere `talle`, descuenta el `stock` de esa variante en `producto_talles`, recalcula `productos.stock` como suma de variantes, marca `vendido` solo si el total llega a 0
 - `app/api/negocio/route.ts` — GET/PATCH config del negocio (incluye `whatsapp` field)
 - `app/api/categorias/route.ts` y `[id]/route.ts` — CRUD categorías con subcategorías como array
 
@@ -46,7 +46,7 @@
 
 ### APIs públicas (`/api/tienda/*`)
 - `app/api/tienda/negocio/route.ts` — GET `nombre, logo_url, whatsapp`; sin auth
-- `app/api/tienda/productos/route.ts` — GET productos `disponible` con `stock > 0`; soporta filtros `q, categoria, subcategoria, talle`; **omite `costo`**
+- `app/api/tienda/productos/route.ts` — GET productos `disponible` (ya no filtra por `stock > 0` — productos agotados se siguen mostrando, grisados en el cliente); incluye `producto_talles(talle, stock)` embebido; soporta filtros `q, categoria, subcategoria, talle` (el filtro `talle` usa `producto_talles!inner`); **omite `costo`**
 - `app/api/tienda/productos/[id]/route.ts` — GET producto individual si `estado = disponible`
 
 ---
@@ -71,6 +71,9 @@ Middleware valida JWT con `jose` en cada request no-PUBLIC. Las API routes no re
 ### Fotos de productos
 Dos campos en la tabla: `foto_url` (principal/thumbnail, string) y `fotos_urls` (todas las fotos, array). Al borrar una foto: se remueve de `fotos_urls` y `foto_url` se actualiza a `fotos_urls[0]` o null. Storage bucket: `Fotos`.
 
+### Talles y stock por variante
+Un producto puede tener varios talles, cada uno con su propio stock, en la tabla hija `producto_talles` (`producto_id` FK con `ON DELETE CASCADE`, `talle`, `stock`). `productos.stock` se mantiene como columna denormalizada = suma de `producto_talles.stock`, recalculada en el código (no hay triggers en la DB) cada vez que se vende (`/api/ventas`) o se edita el producto (`PATCH /api/productos/[id]`). `productos.talle` (columna vieja, escalar) queda sin usar — se elimina en una limpieza futura tras un período de verificación en producción. Un producto/talle sin stock no se oculta: se sigue mostrando (grisado) tanto en el panel admin como en la tienda pública, y el botón de WhatsApp se mantiene activo.
+
 ### WhatsApp URL
 En tienda pública la URL del producto se construye con `getBaseUrl()`:
 1. `NEXT_PUBLIC_BASE_URL` (env var de producción — debe configurarse en Vercel)
@@ -86,6 +89,7 @@ En tienda pública la URL del producto se construye con `getBaseUrl()`:
 - **Bot de Telegram como interfaz primaria de carga**: la dueña carga productos por chat, no por formulario web. Estado de conversación persistido en tabla `bot_sesiones`.
 - **`app/tienda/[id]/page.tsx` como Server Component**: requisito para exportar `generateMetadata()` con OG tags. La interactividad (carrusel) se extrae a `FotoCarousel.tsx`.
 - **React Context en TiendaShell**: `whatsapp` y `nombre` del negocio se fetchan una vez en el layout (Server) y se distribuyen a todos los componentes de la tienda via Context, sin prop drilling.
+- **`producto_talles` como tabla hija en vez de columna JSON**: todo el código usa el query builder directo de Supabase JS (`.eq()`, `.gt()`, filtros embebidos); una tabla hija compone naturalmente con eso, mientras que un array JSON hubiera requerido operadores `jsonb` más frágiles sin ORM. El stock total en `productos.stock` se recalcula en los route handlers (no con triggers de DB) para mantener toda la lógica de negocio auditable en TypeScript, consistente con el resto del proyecto.
 
 ---
 
@@ -93,9 +97,11 @@ En tienda pública la URL del producto se construye con `getBaseUrl()`:
 
 ### Pendiente de configuración
 - Dominio custom (Donweb → Vercel): DNS sin configurar → `NEXT_PUBLIC_BASE_URL` sin definir en Vercel
-- SQL migrations: `ALTER TABLE productos ADD COLUMN talle text`, `ALTER TABLE ventas ADD COLUMN cantidad int DEFAULT 1`, `ALTER TABLE negocio ADD COLUMN whatsapp text`
+- Migración de talles múltiples ya aplicada (`CREATE TABLE producto_talles`, backfill, `ALTER TABLE ventas ADD COLUMN talle text`) en TERRA y SHOWROOM
+- Limpieza pendiente tras período de verificación: `ALTER TABLE productos DROP COLUMN talle` (columna vieja escalar, ya no se usa)
 
 ### Deuda técnica conocida
 - No hay RLS en Supabase: si el `SUPABASE_SERVICE_ROLE_KEY` se filtra, hay acceso total a la DB
 - El bot no valida que el `telegram_id` pertenezca a un usuario registrado antes de procesar pasos de carga
 - `app/admin/stock/[id]/page.tsx` es un Client Component pesado — candidato a split Server/Client cuando crezca
+- `app/api/productos/route.ts` POST hace `insert(body)` passthrough sin manejar `talles`; no tiene caller conocido en el código actual (los productos se cargan vía bot)
