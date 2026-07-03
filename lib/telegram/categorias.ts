@@ -24,13 +24,14 @@ export function buildKeyboardSubcategorias(subcategorias: string[]) {
   return { inline_keyboard: rows }
 }
 
-const TALLES_DISPONIBLES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'Único']
-
-export function buildKeyboardTalles(seleccionados: string[]) {
+export function buildKeyboardTalles(seleccionados: string[], disponibles: string[]) {
+  if (disponibles.length === 0) {
+    return { inline_keyboard: [[{ text: 'Sin talles configurados', callback_data: 'talles:skip' }]] }
+  }
   const rows: Array<Array<{ text: string; callback_data: string }>> = []
-  for (let i = 0; i < TALLES_DISPONIBLES.length; i += 3) {
+  for (let i = 0; i < disponibles.length; i += 3) {
     rows.push(
-      TALLES_DISPONIBLES.slice(i, i + 3).map(t => ({
+      disponibles.slice(i, i + 3).map(t => ({
         text: seleccionados.includes(t) ? `✓ ${t}` : t,
         callback_data: `toggle_talle:${t}`,
       }))
@@ -38,6 +39,21 @@ export function buildKeyboardTalles(seleccionados: string[]) {
   }
   rows.push([{ text: '✅ Confirmar talles', callback_data: 'talles:confirmar' }])
   rows.push([{ text: 'Omitir (talle único)', callback_data: 'talles:skip' }])
+  return { inline_keyboard: rows }
+}
+
+export function buildKeyboardColores(seleccionados: string[], disponibles: string[]) {
+  const rows: Array<Array<{ text: string; callback_data: string }>> = []
+  for (let i = 0; i < disponibles.length; i += 3) {
+    rows.push(
+      disponibles.slice(i, i + 3).map(c => ({
+        text: seleccionados.includes(c) ? `✓ ${c}` : c,
+        callback_data: `toggle_color:${c}`,
+      }))
+    )
+  }
+  rows.push([{ text: '✅ Confirmar colores', callback_data: 'colores:confirmar' }])
+  rows.push([{ text: 'Omitir (sin color)', callback_data: 'colores:skip' }])
   return { inline_keyboard: rows }
 }
 

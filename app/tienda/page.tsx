@@ -9,7 +9,7 @@ import type { Producto as ProductoBase } from '@/lib/types'
 type Producto = Pick<
   ProductoBase,
   'id' | 'nombre' | 'foto_url' | 'fotos_urls' | 'precio_venta' | 'categoria' | 'subcategoria' | 'stock'
-> & { producto_talles: { talle: string; stock: number }[] }
+> & { producto_talles: { talle: string; color: string; stock: number }[] }
 
 interface Categoria {
   id: string

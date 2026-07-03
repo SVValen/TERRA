@@ -1,22 +1,69 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import type { Categoria } from '@/lib/types'
+import type { Categoria, Talle, Color } from '@/lib/types'
+import ListaSimple from './ListaSimple'
 
 export default function CategoriasPage() {
   const [categorias, setCategorias] = useState<Categoria[]>([])
+  const [talles, setTalles] = useState<Talle[]>([])
+  const [colores, setColores] = useState<Color[]>([])
   const [loading, setLoading] = useState(true)
   const [nuevaCategoria, setNuevaCategoria] = useState('')
   const [creando, setCreando] = useState(false)
   const [error, setError] = useState('')
 
   const cargar = async () => {
-    const res = await fetch('/api/categorias')
-    setCategorias(await res.json())
+    const [cats, tallesRes, coloresRes] = await Promise.all([
+      fetch('/api/categorias').then(r => r.json()),
+      fetch('/api/talles').then(r => r.json()),
+      fetch('/api/colores').then(r => r.json()),
+    ])
+    setCategorias(cats)
+    setTalles(tallesRes)
+    setColores(coloresRes)
     setLoading(false)
   }
 
   useEffect(() => { cargar() }, [])
+
+  const crearTalle = async (nombre: string) => {
+    const res = await fetch('/api/talles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre }),
+    })
+    if (!res.ok) {
+      const data = await res.json()
+      throw new Error(data.error ?? 'Error al crear')
+    }
+    await cargar()
+  }
+
+  const eliminarTalle = async (id: string, nombre: string) => {
+    if (!confirm(`¿Eliminar el talle "${nombre}"?`)) return
+    await fetch(`/api/talles/${id}`, { method: 'DELETE' })
+    cargar()
+  }
+
+  const crearColor = async (nombre: string) => {
+    const res = await fetch('/api/colores', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre }),
+    })
+    if (!res.ok) {
+      const data = await res.json()
+      throw new Error(data.error ?? 'Error al crear')
+    }
+    await cargar()
+  }
+
+  const eliminarColor = async (id: string, nombre: string) => {
+    if (!confirm(`¿Eliminar el color "${nombre}"?`)) return
+    await fetch(`/api/colores/${id}`, { method: 'DELETE' })
+    cargar()
+  }
 
   const crearCategoria = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -68,9 +115,9 @@ export default function CategoriasPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Categorías</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Categorías, talles y colores</h1>
         <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
-          Organizá los productos por categoría y subcategoría
+          Organizá los productos por categoría/subcategoría, y gestioná las listas de talles y colores disponibles para cargar stock
         </p>
       </div>
 
@@ -124,6 +171,25 @@ export default function CategoriasPage() {
           />
         ))}
       </div>
+
+      {!loading && (
+        <div className="mt-8 space-y-4">
+          <ListaSimple
+            titulo="Talles"
+            placeholder="Ej: M, XL, 42..."
+            items={talles}
+            onAgregar={crearTalle}
+            onEliminar={eliminarTalle}
+          />
+          <ListaSimple
+            titulo="Colores"
+            placeholder="Ej: Negro, Blanco, Beige..."
+            items={colores}
+            onAgregar={crearColor}
+            onEliminar={eliminarColor}
+          />
+        </div>
+      )}
     </div>
   )
 }

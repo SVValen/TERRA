@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
 
   const talle = searchParams.get('talle')
-  const selectTalles = talle ? 'producto_talles!inner(talle, stock)' : 'producto_talles(talle, stock)'
+  const selectTalles = talle ? 'producto_talles!inner(talle, color, stock)' : 'producto_talles(talle, color, stock)'
 
   let query = supabase
     .from('productos')

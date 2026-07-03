@@ -4,15 +4,17 @@
 ## Descripción
 App de gestión de showroom de indumentaria. Permite a la dueña administrar stock,
 registrar ventas, controlar caja y retiros, y ver métricas del negocio. Incluye
-un catálogo público (/tienda) para que las clientas vean productos disponibles y
-consulten por WhatsApp. Los productos se cargan vía bot de Telegram o desde el
-panel web (`/admin/stock/nuevo`), y pueden tener varios talles con stock independiente.
+un catálogo público (/tienda) para que las clientas vean productos disponibles,
+elijan talle/color y consulten por WhatsApp. Los productos se cargan vía bot de
+Telegram o desde el panel web (`/admin/stock/nuevo`), con descripción y stock
+por combinación de talle+color. Las listas de talles y colores disponibles son
+configurables desde el panel (`/admin/categorias`).
 
 ## Stack
 - **Next.js 16.2.9** — App Router, Server + Client Components, `generateMetadata`
 - **React 19 + TypeScript**
 - **Tailwind v4** — `@custom-variant dark` en globals.css
-- **Supabase** — PostgreSQL (tablas: productos, ventas, caja, retiros, categorias, negocio, usuarios) + Storage bucket "Fotos"
+- **Supabase** — PostgreSQL (tablas: productos, producto_talles, ventas, caja, retiros, categorias, talles, colores, negocio, usuarios) + Storage bucket "Fotos"
 - **Auth custom** — JWT firmado con `jose` + `bcryptjs`, cookie httpOnly `session` (7 días)
 - **Telegram Bot API** — webhook en `/api/telegram/webhook`, bot de carga de productos por pasos
 - **Vercel** — hosting + env vars
@@ -20,13 +22,13 @@ panel web (`/admin/stock/nuevo`), y pueden tener varios talles con stock indepen
 ## Flujos críticos
 
 ### 1. Carga de producto (bot Telegram)
-Pasos en secuencia: nombre → categoría (inline keyboard) → subcategoría → precio_costo → precio_venta → talles (selección múltiple, inline keyboard) → cantidad por cada talle elegido → fotos (múltiples) → confirmación/publicación. Cada talle se guarda como fila en `producto_talles`; `productos.stock` es la suma.
+Pasos en secuencia: nombre → descripción (texto libre, "-" para omitir) → categoría (inline keyboard) → subcategoría → precio_costo → precio_venta → talles (selección múltiple) → **por cada talle elegido**: colores (selección múltiple, se saltea automáticamente si no hay colores configurados) → cantidad por cada combinación talle+color → fotos (múltiples) → confirmación/publicación. Cada combinación se guarda como fila en `producto_talles` (`talle`, `color`, `stock`); `productos.stock` es la suma de todas.
 
 ### 1b. Carga de producto (panel web)
-`/admin/stock/nuevo` → formulario con nombre, categoría/subcategoría, talles múltiples + stock, costo, precio de venta → `POST /api/productos` crea el producto y sus `producto_talles` → redirige a `/admin/stock/[id]` para subir fotos.
+`/admin/stock/nuevo` → formulario con nombre, descripción, categoría/subcategoría, talles/colores múltiples (selects poblados desde `/api/talles` y `/api/colores`) + stock por combinación, costo, precio de venta → `POST /api/productos` crea el producto y sus `producto_talles` → redirige a `/admin/stock/[id]` para subir fotos.
 
 ### 2. Venta
-`POST /api/ventas` con `{ producto_id, precio_vendido, cantidad, talle }` → descuenta el stock de esa variante en `producto_talles` → registra en tabla `ventas` → recalcula `productos.stock` como suma de variantes → solo marca `estado = 'vendido'` cuando el total llega a 0.
+`POST /api/ventas` con `{ producto_id, precio_vendido, cantidad, talle, color }` → descuenta el stock de esa variante talle+color en `producto_talles` → registra en tabla `ventas` → recalcula `productos.stock` como suma de variantes → solo marca `estado = 'vendido'` cuando el total llega a 0.
 
 ### 3. Login admin
 `POST /api/auth/login` → verifica password con bcrypt → emite JWT → cookie `session` → redirect `/admin/stock`.
@@ -35,7 +37,7 @@ Pasos en secuencia: nombre → categoría (inline keyboard) → subcategoría �
 Endpoints `/api/tienda/*` son públicos. Solo exponen productos con `estado = 'disponible'` y `activo = true`. Los agotados (`stock = 0`) igual se muestran, grisados. **Nunca exponen `precio_costo`**. WhatsApp URL incluye link al producto con Open Graph.
 
 ### 5. Panel admin (/admin)
-Rutas protegidas por middleware JWT. Stock (con alta manual y toggle de visibilidad), caja, retiros, métricas, categorías, configuración del negocio (logo, nombre, whatsapp).
+Rutas protegidas por middleware JWT. Stock (con alta manual y toggle de visibilidad), caja, retiros, métricas, categorías (más las listas configurables de talles y colores en la misma sección), configuración del negocio (logo, nombre, whatsapp).
 
 ## Reglas de negocio invariantes
 - `stock` **nunca baja de 0** — se valida contra el stock de la variante (`producto_talles`) antes de descontar en cada venta.

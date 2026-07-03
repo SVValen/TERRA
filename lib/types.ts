@@ -5,6 +5,7 @@ export interface ProductoTalle {
   id: string
   producto_id: string
   talle: string
+  color: string
   stock: number
   creado_en: string
 }
@@ -12,6 +13,7 @@ export interface ProductoTalle {
 export interface Producto {
   id: string
   nombre: string
+  descripcion: string | null
   categoria: string | null
   subcategoria: string | null
   talle: string | null
@@ -36,6 +38,7 @@ export interface Venta {
   ganancia: number
   cantidad: number
   talle: string | null
+  color: string | null
   fecha: string
 }
 
@@ -43,6 +46,18 @@ export interface Categoria {
   id: string
   nombre: string
   subcategorias: string[]
+  creado_en: string
+}
+
+export interface Talle {
+  id: string
+  nombre: string
+  creado_en: string
+}
+
+export interface Color {
+  id: string
+  nombre: string
   creado_en: string
 }
 
@@ -62,17 +77,20 @@ export interface BotSesion {
 
 export type BotPaso =
   | 'esperando_nombre'
+  | 'esperando_descripcion'
   | 'esperando_categoria'
   | 'esperando_subcategoria'
   | 'esperando_costo'
   | 'esperando_venta'
   | 'esperando_talles'
-  | 'esperando_cantidad_talle'
+  | 'esperando_colores'
+  | 'esperando_cantidad_combinacion'
   | 'esperando_fotos'
   | 'esperando_confirmacion'
 
 export interface DatosParciales {
   nombre: string
+  descripcion: string
   categoria: string
   subcategoria: string
   costo: number
@@ -80,6 +98,9 @@ export interface DatosParciales {
   foto_url: string
   fotos_urls: string[]
   talles_seleccionados: string[]
-  talles_cantidades: Record<string, number>
   talle_actual_idx: number
+  colores_seleccionados: string[]
+  colores_pendientes: string[]
+  colores_pendientes_idx: number
+  combinaciones: { talle: string; color: string; stock: number }[]
 }

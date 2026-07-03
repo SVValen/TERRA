@@ -15,40 +15,43 @@
 - `lib/supabase/client.ts` — `createBrowserClient()` con anon key; sujeto a RLS; para componentes client-side
 
 ### Tipos compartidos
-- `lib/types.ts` — `Producto` (incluye `activo: boolean`), `ProductoTalle`, `Venta`, `Categoria`, `Retiro`, `BotSesion`, `BotPaso`, `DatosParciales`; fuente de verdad de todas las entidades
+- `lib/types.ts` — `Producto` (incluye `activo: boolean`, `descripcion: string | null`), `ProductoTalle` (incluye `color: string`), `Venta`, `Categoria`, `Talle`, `Color`, `Retiro`, `BotSesion`, `BotPaso`, `DatosParciales`; fuente de verdad de todas las entidades
 
 ### Bot de Telegram
 - `app/api/telegram/webhook/route.ts` — cerebro del bot; maneja `manejarPaso()` y `handleCallbackQuery()`; estado de conversación en tabla `bot_sesiones`
 - `lib/telegram/bot.ts` — wrappers HTTP sobre la Telegram API (`sendMessage`, `sendPhoto`, `getFile`, `answerCallbackQuery`)
-- `lib/telegram/categorias.ts` — teclados inline para categorías, subcategorías y talles (`buildKeyboardTalles`, multi-select)
+- `lib/telegram/categorias.ts` — teclados inline para categorías, subcategorías, talles y colores (`buildKeyboardTalles`, `buildKeyboardColores`, multi-select, ambos DB-driven)
 - `lib/telegram/parser.ts` — parseo de mensajes entrantes
 
 ### Panel admin (`/admin`)
 - `app/admin/layout.tsx` — Server Component; fetcha `negocio` (nombre, logo_url) y pasa a Sidebar
 - `app/admin/Sidebar.tsx` — Client Component; navegación principal; link "Ver tienda" abre `/tienda` en nueva pestaña
 - `app/admin/stock/page.tsx` — listado de productos con filtros; botón "Nuevo producto"; toggle rápido `activo` (visible/oculto en tienda) por tarjeta
-- `app/admin/stock/nuevo/page.tsx` — alta de producto desde cero (nombre, categoría, talles múltiples, costo/precio); crea el producto vía `POST /api/productos` y redirige a `/admin/stock/[id]` para cargar fotos
-- `app/admin/stock/[id]/page.tsx` — detalle de producto: edición, registro de ventas (con modal cantidad), gestión de fotos, checkbox `activo`
+- `app/admin/stock/nuevo/page.tsx` — alta de producto desde cero (nombre, descripción, categoría, talles/colores múltiples con stock por combinación, costo/precio); crea el producto vía `POST /api/productos` y redirige a `/admin/stock/[id]` para cargar fotos
+- `app/admin/stock/[id]/page.tsx` — detalle de producto: edición (incluye descripción), registro de ventas (modal con un único selector de variante talle+color), gestión de fotos, checkbox `activo`
+- `app/admin/categorias/page.tsx` — gestión de categorías/subcategorías, y (secciones nuevas) listas planas de **talles** y **colores** disponibles para cargar stock, vía el componente compartido `ListaSimple.tsx`
 - `app/admin/negocio/page.tsx` — config del negocio: nombre, logo, whatsapp
 
 ### APIs protegidas (`/api/*`)
-- `app/api/productos/route.ts` — GET lista con filtros; POST crea producto desde el panel web (`origen: 'web'`, `estado: 'disponible'`, `activo: true`) e inserta sus `producto_talles`
+- `app/api/productos/route.ts` — GET lista con filtros; POST crea producto desde el panel web (`origen: 'web'`, `estado: 'disponible'`, `activo: true`, `descripcion`) e inserta sus `producto_talles` (talle + color + stock por fila)
 - `app/api/productos/[id]/fotos/route.ts` — POST sube foto a Storage y appends a `fotos_urls`; DELETE elimina de array y Storage, actualiza `foto_url` al siguiente disponible
-- `app/api/ventas/route.ts` — POST venta: requiere `talle`, descuenta el `stock` de esa variante en `producto_talles`, recalcula `productos.stock` como suma de variantes, marca `vendido` solo si el total llega a 0
+- `app/api/ventas/route.ts` — POST venta: requiere `talle` (y opcionalmente `color`, `''` si no aplica), descuenta el `stock` de esa variante talle+color en `producto_talles`, recalcula `productos.stock` como suma de todas las variantes, marca `vendido` solo si el total llega a 0
 - `app/api/negocio/route.ts` — GET/PATCH config del negocio (incluye `whatsapp` field)
 - `app/api/categorias/route.ts` y `[id]/route.ts` — CRUD categorías con subcategorías como array
+- `app/api/talles/route.ts` y `[id]/route.ts`, `app/api/colores/route.ts` y `[id]/route.ts` — CRUD simple (mismo patrón que categorías, sin subcategorías) de las listas configurables de talles y colores
 
 ### Tienda pública (`/tienda`)
 - `app/tienda/layout.tsx` — Server Component; fetcha `negocio` y pasa a TiendaShell
 - `app/tienda/TiendaShell.tsx` — Client Component; React Context `TiendaContext` (whatsapp, nombre); header sticky con logo, footer
 - `app/tienda/page.tsx` — Client Component; catálogo con filtros de categoría/subcategoría/búsqueda; usa `useTienda()` para contexto
-- `app/tienda/[id]/page.tsx` — **Server Component**; `generateMetadata()` con Open Graph/Twitter Card; construye WhatsApp URL server-side con `getBaseUrl()`
+- `app/tienda/[id]/page.tsx` — **Server Component**; `generateMetadata()` con Open Graph/Twitter Card (usa `descripcion` si existe, si no arma un resumen); muestra la `descripcion` del producto; delega el selector interactivo talle/color y la construcción del link de WhatsApp a `SelectorVariante.tsx`
 - `app/tienda/[id]/FotoCarousel.tsx` — Client Component; carrusel interactivo de fotos (useState)
+- `app/tienda/[id]/SelectorVariante.tsx` — Client Component; recibe las variantes (talle, color, stock) del Server Component padre; selección de talle → colores disponibles para ese talle → arma el mensaje de WhatsApp client-side incluyendo la variante elegida. La selección es **opcional**: el botón de WhatsApp nunca se deshabilita, si no se elige nada se manda el mensaje genérico
 
 ### APIs públicas (`/api/tienda/*`)
 - `app/api/tienda/negocio/route.ts` — GET `nombre, logo_url, whatsapp`; sin auth
-- `app/api/tienda/productos/route.ts` — GET productos `disponible` y `activo = true` (ya no filtra por `stock > 0` — productos agotados se siguen mostrando, grisados en el cliente); incluye `producto_talles(talle, stock)` embebido; soporta filtros `q, categoria, subcategoria, talle` (el filtro `talle` usa `producto_talles!inner`); **omite `costo`**
-- `app/api/tienda/productos/[id]/route.ts` — GET producto individual si `estado = disponible` y `activo = true`
+- `app/api/tienda/productos/route.ts` — GET productos `disponible` y `activo = true` (ya no filtra por `stock > 0` — productos agotados se siguen mostrando, grisados en el cliente); incluye `producto_talles(talle, color, stock)` embebido; soporta filtros `q, categoria, subcategoria, talle` (el filtro `talle` usa `producto_talles!inner`); **omite `costo`**
+- `app/api/tienda/productos/[id]/route.ts` — GET producto individual si `estado = disponible` y `activo = true`; incluye `descripcion` y `producto_talles(talle, color, stock)`
 
 ---
 
@@ -72,8 +75,11 @@ Middleware valida JWT con `jose` en cada request no-PUBLIC. Las API routes no re
 ### Fotos de productos
 Dos campos en la tabla: `foto_url` (principal/thumbnail, string) y `fotos_urls` (todas las fotos, array). Al borrar una foto: se remueve de `fotos_urls` y `foto_url` se actualiza a `fotos_urls[0]` o null. Storage bucket: `Fotos`.
 
-### Talles y stock por variante
-Un producto puede tener varios talles, cada uno con su propio stock, en la tabla hija `producto_talles` (`producto_id` FK con `ON DELETE CASCADE`, `talle`, `stock`). `productos.stock` se mantiene como columna denormalizada = suma de `producto_talles.stock`, recalculada en el código (no hay triggers en la DB) cada vez que se vende (`/api/ventas`) o se edita el producto (`PATCH /api/productos/[id]`). `productos.talle` (columna vieja, escalar) queda sin usar — se elimina en una limpieza futura tras un período de verificación en producción. Un producto/talle sin stock no se oculta: se sigue mostrando (grisado) tanto en el panel admin como en la tienda pública, y el botón de WhatsApp se mantiene activo.
+### Talles, colores y stock por variante
+Un producto puede tener varias combinaciones de talle+color, cada una con su propio stock, en la tabla hija `producto_talles` (`producto_id` FK con `ON DELETE CASCADE`, `talle`, `color`, `stock`, `UNIQUE(producto_id, talle, color)`). `color = ''` (string vacío) es el valor sentinela para "esta variante no distingue color" — es el mismo valor que dejó el `DEFAULT ''` de la migración que agregó la columna, así que las filas viejas (sin color) y las nuevas "sin color" son indistinguibles en toda la app. `productos.stock` se mantiene como columna denormalizada = suma de todas las filas de `producto_talles` del producto (sin importar color), recalculada en el código (no hay triggers en la DB) cada vez que se vende (`/api/ventas`) o se edita el producto (`PATCH /api/productos/[id]`). `productos.talle` (columna vieja, escalar) queda sin usar — se elimina en una limpieza futura tras un período de verificación en producción. Una variante sin stock no se oculta: se sigue mostrando (grisada/tachada) tanto en el panel admin como en la tienda pública, y el botón de WhatsApp se mantiene activo.
+
+### Categorías, talles y colores configurables
+Las tres listas (`categorias`, `talles`, `colores`) viven en tablas propias, gestionadas desde `/admin/categorias`, **sin foreign key** hacia `productos`/`producto_talles` — son catálogos de sugerencias para poblar los `<select>` de los formularios (web y bot), no restricciones a nivel de base de datos. Borrar un talle/color de la lista no afecta las filas de `producto_talles` que ya usan ese texto. `talles` se sembró inicialmente con la lista que antes estaba hardcodeada en el bot (XS, S, M, L, XL, XXL, Único); `colores` arranca vacía — tanto el bot como los formularios web saltean el paso de color automáticamente hasta que se cargue al menos un color.
 
 ### Visibilidad en la tienda (`activo`)
 `productos.activo` (boolean, `DEFAULT true`) es independiente de `estado`: permite ocultar un producto de `/tienda` sin tocar su stock ni marcarlo `vendido`/`reservado`. Se controla desde el panel admin (toggle rápido en la tarjeta del listado, o checkbox en el detalle) y se filtra junto con `estado = 'disponible'` en las tres queries públicas (`/api/tienda/productos`, `/api/tienda/productos/[id]`, `app/tienda/[id]/page.tsx`). Un producto inactivo sigue siendo visible para la dueña en `/admin/stock` (con opacidad reducida) para que no lo pierda de vista.
@@ -103,6 +109,7 @@ En tienda pública la URL del producto se construye con `getBaseUrl()`:
 - Dominio custom (Donweb → Vercel): DNS sin configurar → `NEXT_PUBLIC_BASE_URL` sin definir en Vercel
 - Migración de talles múltiples ya aplicada (`CREATE TABLE producto_talles`, backfill, `ALTER TABLE ventas ADD COLUMN talle text`) en TERRA y SHOWROOM
 - Migración de visibilidad ya aplicada (`ALTER TABLE productos ADD COLUMN activo boolean NOT NULL DEFAULT true`) en TERRA y SHOWROOM
+- Migración de descripción + color ya aplicada (`ALTER TABLE productos ADD COLUMN descripcion text`; tablas `talles`/`colores`; `ALTER TABLE producto_talles ADD COLUMN color text NOT NULL DEFAULT ''` + swap de constraint UNIQUE a `(producto_id, talle, color)`; `ALTER TABLE ventas ADD COLUMN color text`) en TERRA y SHOWROOM
 - Limpieza pendiente tras período de verificación: `ALTER TABLE productos DROP COLUMN talle` (columna vieja escalar, ya no se usa)
 
 ### Deuda técnica conocida

@@ -27,10 +27,10 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const supabase = createServiceClient()
-  const { talles, nombre, categoria, subcategoria, costo, precio_venta } = await request.json()
+  const { talles, nombre, descripcion, categoria, subcategoria, costo, precio_venta } = await request.json()
 
   const tallesValidos = (Array.isArray(talles) ? talles : []).filter(
-    (t: { talle: string; stock: number }) => t.talle?.trim()
+    (t: { talle: string; color?: string; stock: number }) => t.talle?.trim()
   )
   const stockTotal = tallesValidos.reduce((acc: number, t: { stock: number }) => acc + (t.stock || 0), 0)
 
@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
     .from('productos')
     .insert({
       nombre,
+      descripcion: descripcion?.trim() || null,
       categoria: categoria || null,
       subcategoria: subcategoria || null,
       talle: null,
@@ -57,9 +58,10 @@ export async function POST(request: NextRequest) {
 
   if (tallesValidos.length > 0) {
     const { error: errorTalles } = await supabase.from('producto_talles').insert(
-      tallesValidos.map((t: { talle: string; stock: number }) => ({
+      tallesValidos.map((t: { talle: string; color?: string; stock: number }) => ({
         producto_id: producto.id,
         talle: t.talle,
+        color: t.color || '',
         stock: t.stock || 0,
       }))
     )

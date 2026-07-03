@@ -6,6 +6,7 @@ import {
   buildKeyboardCategorias,
   buildKeyboardSubcategorias,
   buildKeyboardTalles,
+  buildKeyboardColores,
   KB_LISTO_FOTOS,
   KB_CONFIRMAR,
 } from '@/lib/telegram/categorias'
@@ -22,6 +23,59 @@ function esc(s: string): string {
 async function getCategorias(supabase: Supabase): Promise<Categoria[]> {
   const { data } = await supabase.from('categorias').select('*').order('nombre')
   return data ?? []
+}
+
+async function getTalles(supabase: Supabase): Promise<string[]> {
+  const { data } = await supabase.from('talles').select('nombre').order('nombre')
+  return (data ?? []).map(t => t.nombre)
+}
+
+async function getColores(supabase: Supabase): Promise<string[]> {
+  const { data } = await supabase.from('colores').select('nombre').order('nombre')
+  return (data ?? []).map(c => c.nombre)
+}
+
+async function iniciarColoresParaTalle(
+  chatId: string,
+  datos: Partial<DatosParciales>,
+  idx: number,
+  supabase: Supabase
+) {
+  const talles = datos.talles_seleccionados ?? []
+  const talleActual = talles[idx]
+  const colores = await getColores(supabase)
+
+  if (colores.length === 0) {
+    const nuevosDatos = { ...datos, talle_actual_idx: idx, colores_pendientes: [''], colores_pendientes_idx: 0 }
+    await actualizarSesion(supabase, chatId, 'esperando_cantidad_combinacion', nuevosDatos)
+    await sendMessage(chatId, `📦 ¿Cuántas unidades hay del talle <b>${esc(talleActual)}</b>?`)
+    return
+  }
+
+  const nuevosDatos = { ...datos, talle_actual_idx: idx, colores_seleccionados: [] }
+  await actualizarSesion(supabase, chatId, 'esperando_colores', nuevosDatos)
+  await sendMessage(
+    chatId,
+    `🎨 ¿De qué colores tiene el talle <b>${esc(talleActual)}</b>? Tocá los que correspondan y confirmá.`,
+    buildKeyboardColores([], colores)
+  )
+}
+
+async function avanzarAColoresPendientes(
+  chatId: string,
+  datos: Partial<DatosParciales>,
+  colores: string[],
+  supabase: Supabase
+) {
+  const talles = datos.talles_seleccionados ?? []
+  const talleActual = talles[datos.talle_actual_idx ?? 0]
+  const nuevosDatos = { ...datos, colores_pendientes: colores, colores_pendientes_idx: 0 }
+  await actualizarSesion(supabase, chatId, 'esperando_cantidad_combinacion', nuevosDatos)
+  const colorActual = colores[0]
+  const pregunta = colorActual
+    ? `📦 ¿Cuántas unidades hay del talle <b>${esc(talleActual)}</b> en color <b>${esc(colorActual)}</b>?`
+    : `📦 ¿Cuántas unidades hay del talle <b>${esc(talleActual)}</b>?`
+  await sendMessage(chatId, pregunta)
 }
 
 export async function POST(request: NextRequest) {
@@ -215,26 +269,64 @@ async function handleCallbackQuery(
       ? actuales.filter(t => t !== talle)
       : [...actuales, talle]
     await actualizarSesion(supabase, chatId, 'esperando_talles', { ...datos, talles_seleccionados: seleccionados })
-    await sendMessage(chatId, '📏 ¿Qué talles tiene? Tocá los que correspondan y confirmá.', buildKeyboardTalles(seleccionados))
+    const disponibles = await getTalles(supabase)
+    await sendMessage(chatId, '📏 ¿Qué talles tiene? Tocá los que correspondan y confirmá.', buildKeyboardTalles(seleccionados, disponibles))
     return
   }
 
   if (data === 'talles:skip' && paso === 'esperando_talles') {
-    const nuevosDatos = { ...datos, talles_seleccionados: ['Único'], talles_cantidades: {}, talle_actual_idx: 0 }
-    await actualizarSesion(supabase, chatId, 'esperando_cantidad_talle', nuevosDatos)
-    await sendMessage(chatId, '📦 ¿Cuántas unidades hay?')
+    const nuevosDatos = { ...datos, talles_seleccionados: ['Único'], combinaciones: [] }
+    await iniciarColoresParaTalle(chatId, nuevosDatos, 0, supabase)
     return
   }
 
   if (data === 'talles:confirmar' && paso === 'esperando_talles') {
     const seleccionados = datos.talles_seleccionados ?? []
     if (seleccionados.length === 0) {
-      await sendMessage(chatId, 'Tocá al menos un talle antes de confirmar.', buildKeyboardTalles([]))
+      const disponibles = await getTalles(supabase)
+      await sendMessage(chatId, 'Tocá al menos un talle antes de confirmar.', buildKeyboardTalles([], disponibles))
       return
     }
-    const nuevosDatos = { ...datos, talles_cantidades: {}, talle_actual_idx: 0 }
-    await actualizarSesion(supabase, chatId, 'esperando_cantidad_talle', nuevosDatos)
-    await sendMessage(chatId, `📦 ¿Cuántas unidades hay del talle <b>${esc(seleccionados[0])}</b>?`)
+    const nuevosDatos = { ...datos, combinaciones: [] }
+    await iniciarColoresParaTalle(chatId, nuevosDatos, 0, supabase)
+    return
+  }
+
+  if (data.startsWith('toggle_color:') && paso === 'esperando_colores') {
+    const color = data.replace('toggle_color:', '')
+    const actuales = datos.colores_seleccionados ?? []
+    const seleccionados = actuales.includes(color)
+      ? actuales.filter(c => c !== color)
+      : [...actuales, color]
+    await actualizarSesion(supabase, chatId, 'esperando_colores', { ...datos, colores_seleccionados: seleccionados })
+    const disponibles = await getColores(supabase)
+    const talleActual = (datos.talles_seleccionados ?? [])[datos.talle_actual_idx ?? 0]
+    await sendMessage(
+      chatId,
+      `🎨 ¿De qué colores tiene el talle <b>${esc(talleActual)}</b>? Tocá los que correspondan y confirmá.`,
+      buildKeyboardColores(seleccionados, disponibles)
+    )
+    return
+  }
+
+  if (data === 'colores:skip' && paso === 'esperando_colores') {
+    await avanzarAColoresPendientes(chatId, datos, [''], supabase)
+    return
+  }
+
+  if (data === 'colores:confirmar' && paso === 'esperando_colores') {
+    const seleccionados = datos.colores_seleccionados ?? []
+    if (seleccionados.length === 0) {
+      const disponibles = await getColores(supabase)
+      const talleActual = (datos.talles_seleccionados ?? [])[datos.talle_actual_idx ?? 0]
+      await sendMessage(
+        chatId,
+        `Tocá al menos un color antes de confirmar, o usá "Omitir (sin color)" para el talle <b>${esc(talleActual)}</b>.`,
+        buildKeyboardColores([], disponibles)
+      )
+      return
+    }
+    await avanzarAColoresPendientes(chatId, datos, seleccionados, supabase)
     return
   }
 
@@ -274,10 +366,11 @@ async function handleCallbackQuery(
   if (data.startsWith('action:') && paso === 'esperando_confirmacion') {
     if (data === 'action:confirmar') {
       const fotosUrls: string[] = datos.fotos_urls ?? []
-      const cantidades = datos.talles_cantidades ?? {}
-      const stockTotal = Object.values(cantidades).reduce((a, b) => a + b, 0)
+      const combinaciones = datos.combinaciones ?? []
+      const stockTotal = combinaciones.reduce((a, c) => a + c.stock, 0)
       const { data: producto, error } = await supabase.from('productos').insert({
         nombre: datos.nombre,
+        descripcion: datos.descripcion?.trim() || null,
         categoria: datos.categoria || null,
         subcategoria: datos.subcategoria || null,
         talle: null,
@@ -288,16 +381,18 @@ async function handleCallbackQuery(
         origen: 'bot',
         stock: stockTotal,
         estado: 'disponible',
+        activo: true,
       }).select('id').single()
       if (error || !producto) {
         console.error('[confirmar] insert error:', error)
         await sendMessage(chatId, '❌ Error al guardar. Intentá de nuevo con /cargar.')
         return
       }
-      const filasTalles = Object.entries(cantidades).map(([talle, stock]) => ({
+      const filasTalles = combinaciones.map(c => ({
         producto_id: producto.id,
-        talle,
-        stock,
+        talle: c.talle,
+        color: c.color,
+        stock: c.stock,
       }))
       const { error: errorTalles } = await supabase.from('producto_talles').insert(filasTalles)
       if (errorTalles) {
@@ -325,12 +420,19 @@ async function manejarPaso(
   switch (paso) {
     case 'esperando_nombre': {
       if (!texto) { await sendMessage(chatId, 'Escribí el nombre del producto.'); return }
-      await actualizarSesion(supabase, chatId, 'esperando_categoria', { ...datos, nombre: texto })
+      await actualizarSesion(supabase, chatId, 'esperando_descripcion', { ...datos, nombre: texto })
+      await sendMessage(chatId, `Nombre: <b>${esc(texto)}</b>\n\n📝 ¿Querés agregar una descripción? (o mandá "-" para omitir)`)
+      break
+    }
+
+    case 'esperando_descripcion': {
+      const descripcion = texto.trim() === '-' ? '' : texto.trim()
+      await actualizarSesion(supabase, chatId, 'esperando_categoria', { ...datos, descripcion })
       const cats = await getCategorias(supabase)
       const kbCats = cats.length > 0
         ? buildKeyboardCategorias(cats)
         : { inline_keyboard: [[{ text: 'Sin categorías — cargá desde el panel', callback_data: 'cat:skip' }]] }
-      await sendMessage(chatId, `Nombre: <b>${esc(texto)}</b>\n\n¿Cuál es la categoría?`, kbCats)
+      await sendMessage(chatId, '¿Cuál es la categoría?', kbCats)
       break
     }
 
@@ -346,37 +448,52 @@ async function manejarPaso(
       const precio_venta = parseNumero(texto)
       if (!precio_venta || precio_venta <= 0) { await sendMessage(chatId, 'Ingresá un número válido. Ej: 15000'); return }
       await actualizarSesion(supabase, chatId, 'esperando_talles', { ...datos, precio_venta, talles_seleccionados: [] })
+      const disponibles = await getTalles(supabase)
       await sendMessage(
         chatId,
         `Venta: <b>$${precio_venta.toLocaleString('es-AR')}</b>\n\n📏 ¿Qué talles tiene? Tocá los que correspondan y confirmá.`,
-        buildKeyboardTalles([])
+        buildKeyboardTalles([], disponibles)
       )
       break
     }
 
-    case 'esperando_cantidad_talle': {
+    case 'esperando_cantidad_combinacion': {
       const cantidad = parseInt(texto)
       if (isNaN(cantidad) || cantidad < 0) { await sendMessage(chatId, 'Ingresá un número entero. Ej: 1'); return }
 
-      const seleccionados = datos.talles_seleccionados ?? []
-      const idx = datos.talle_actual_idx ?? 0
-      const talleActual = seleccionados[idx]
-      const cantidades = { ...(datos.talles_cantidades ?? {}), [talleActual]: cantidad }
-      const siguienteIdx = idx + 1
+      const talles = datos.talles_seleccionados ?? []
+      const talleIdx = datos.talle_actual_idx ?? 0
+      const talleActual = talles[talleIdx]
+      const coloresPendientes = datos.colores_pendientes ?? ['']
+      const colorIdx = datos.colores_pendientes_idx ?? 0
+      const colorActual = coloresPendientes[colorIdx]
 
-      if (siguienteIdx < seleccionados.length) {
-        await actualizarSesion(supabase, chatId, 'esperando_cantidad_talle', {
+      const combinaciones = [...(datos.combinaciones ?? []), { talle: talleActual, color: colorActual, stock: cantidad }]
+
+      const siguienteColorIdx = colorIdx + 1
+      if (siguienteColorIdx < coloresPendientes.length) {
+        await actualizarSesion(supabase, chatId, 'esperando_cantidad_combinacion', {
           ...datos,
-          talles_cantidades: cantidades,
-          talle_actual_idx: siguienteIdx,
+          combinaciones,
+          colores_pendientes_idx: siguienteColorIdx,
         })
-        await sendMessage(chatId, `📦 ¿Cuántas unidades hay del talle <b>${esc(seleccionados[siguienteIdx])}</b>?`)
+        const siguienteColor = coloresPendientes[siguienteColorIdx]
+        const pregunta = siguienteColor
+          ? `📦 ¿Cuántas unidades hay del talle <b>${esc(talleActual)}</b> en color <b>${esc(siguienteColor)}</b>?`
+          : `📦 ¿Cuántas unidades hay del talle <b>${esc(talleActual)}</b>?`
+        await sendMessage(chatId, pregunta)
+        return
+      }
+
+      const siguienteTalleIdx = talleIdx + 1
+      if (siguienteTalleIdx < talles.length) {
+        await iniciarColoresParaTalle(chatId, { ...datos, combinaciones }, siguienteTalleIdx, supabase)
         return
       }
 
       await actualizarSesion(supabase, chatId, 'esperando_fotos', {
         ...datos,
-        talles_cantidades: cantidades,
+        combinaciones,
         fotos_urls: [],
       })
       await sendMessage(
@@ -469,13 +586,15 @@ async function actualizarSesion(
 function resumenProducto(datos: Partial<DatosParciales>): string {
   const cat = [datos.categoria, datos.subcategoria].filter(Boolean).join(' › ')
   const fotos = datos.fotos_urls?.length ?? 0
-  const cantidades = datos.talles_cantidades ?? {}
-  const talles = Object.entries(cantidades)
-  const stockTotal = talles.reduce((a, [, cant]) => a + cant, 0)
-  const lineasTalles = talles.map(([talle, cant]) => `   ‣ ${esc(talle)}: ${cant} unidad${cant !== 1 ? 'es' : ''}`).join('\n')
+  const combinaciones = datos.combinaciones ?? []
+  const stockTotal = combinaciones.reduce((a, c) => a + c.stock, 0)
+  const lineasTalles = combinaciones
+    .map(c => `   ‣ ${esc(c.talle)}${c.color ? ` - ${esc(c.color)}` : ''}: ${c.stock} unidad${c.stock !== 1 ? 'es' : ''}`)
+    .join('\n')
   return (
     `📦 <b>Resumen del producto</b>\n\n` +
     `• Nombre: <b>${esc(datos.nombre ?? '')}</b>\n` +
+    (datos.descripcion ? `• Descripción: <b>${esc(datos.descripcion)}</b>\n` : '') +
     `• Categoría: <b>${esc(cat || 'Sin categoría')}</b>\n` +
     `• Talles:\n${lineasTalles || '   ‣ Sin talles'}\n` +
     `• Costo: <b>$${datos.costo?.toLocaleString('es-AR')}</b>\n` +

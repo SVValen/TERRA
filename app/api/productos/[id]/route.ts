@@ -25,14 +25,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       await supabase.from('producto_talles').delete().in('id', aEliminar)
     }
 
-    const aActualizar = talles.filter((t: { id?: string; talle: string; stock: number }) => t.id)
+    const aActualizar = talles.filter((t: { id?: string; talle: string; color?: string; stock: number }) => t.id)
     for (const t of aActualizar) {
-      await supabase.from('producto_talles').update({ talle: t.talle, stock: t.stock }).eq('id', t.id)
+      await supabase.from('producto_talles').update({ talle: t.talle, color: t.color || '', stock: t.stock }).eq('id', t.id)
     }
 
     const aInsertar = talles
-      .filter((t: { id?: string; talle: string; stock: number }) => !t.id)
-      .map((t: { talle: string; stock: number }) => ({ producto_id: id, talle: t.talle, stock: t.stock }))
+      .filter((t: { id?: string; talle: string; color?: string; stock: number }) => !t.id)
+      .map((t: { talle: string; color?: string; stock: number }) => ({ producto_id: id, talle: t.talle, color: t.color || '', stock: t.stock }))
     if (aInsertar.length > 0) {
       await supabase.from('producto_talles').insert(aInsertar)
     }

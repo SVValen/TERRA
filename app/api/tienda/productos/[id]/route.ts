@@ -7,7 +7,7 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
 
   const { data, error } = await supabase
     .from('productos')
-    .select('id, nombre, foto_url, fotos_urls, precio_venta, categoria, subcategoria, stock, creado_en, producto_talles(talle, stock)')
+    .select('id, nombre, descripcion, foto_url, fotos_urls, precio_venta, categoria, subcategoria, stock, creado_en, producto_talles(talle, color, stock)')
     .eq('id', id)
     .eq('estado', 'disponible')
     .eq('activo', true)

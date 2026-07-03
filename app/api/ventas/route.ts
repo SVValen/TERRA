@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const supabase = createServiceClient()
-  const { producto_id, precio_vendido, cantidad = 1, talle } = await request.json()
+  const { producto_id, precio_vendido, cantidad = 1, talle, color = '' } = await request.json()
 
   if (!talle) {
     return NextResponse.json({ error: 'Falta indicar el talle vendido' }, { status: 422 })
@@ -47,10 +47,11 @@ export async function POST(request: NextRequest) {
     .select('id, stock')
     .eq('producto_id', producto_id)
     .eq('talle', talle)
+    .eq('color', color)
     .single()
 
   if (errorVariante || !variante) {
-    return NextResponse.json({ error: 'Talle no encontrado' }, { status: 404 })
+    return NextResponse.json({ error: 'Variante no encontrada' }, { status: 404 })
   }
 
   if (cantidad > variante.stock) {
@@ -65,6 +66,7 @@ export async function POST(request: NextRequest) {
       costo_al_momento: producto.costo,
       cantidad,
       talle,
+      color,
     })
     .select()
     .single()

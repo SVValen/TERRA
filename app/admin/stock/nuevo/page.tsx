@@ -3,20 +3,23 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import type { Categoria } from '@/lib/types'
+import type { Categoria, Talle, Color } from '@/lib/types'
 
-type TalleForm = { talle: string; stock: number }
+type TalleForm = { talle: string; color: string; stock: number }
 
 export default function NuevoProductoPage() {
   const router = useRouter()
 
   const [categorias, setCategorias] = useState<Categoria[]>([])
+  const [tallesDisponibles, setTallesDisponibles] = useState<Talle[]>([])
+  const [coloresDisponibles, setColoresDisponibles] = useState<Color[]>([])
   const [margenObjetivo, setMargenObjetivo] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState('')
 
   const [nombre, setNombre] = useState('')
+  const [descripcion, setDescripcion] = useState('')
   const [categoria, setCategoria] = useState('')
   const [subcategoria, setSubcategoria] = useState('')
   const [talles, setTalles] = useState<TalleForm[]>([])
@@ -27,9 +30,13 @@ export default function NuevoProductoPage() {
     Promise.all([
       fetch('/api/categorias').then(r => r.json()),
       fetch('/api/negocio').then(r => r.json()),
-    ]).then(([cats, neg]: [Categoria[], { margen_objetivo?: number }]) => {
+      fetch('/api/talles').then(r => r.json()),
+      fetch('/api/colores').then(r => r.json()),
+    ]).then(([cats, neg, tallesRes, coloresRes]: [Categoria[], { margen_objetivo?: number }, Talle[], Color[]]) => {
       setCategorias(cats)
       setMargenObjetivo(neg.margen_objetivo ?? null)
+      setTallesDisponibles(tallesRes)
+      setColoresDisponibles(coloresRes)
       setLoading(false)
     })
   }, [])
@@ -50,6 +57,7 @@ export default function NuevoProductoPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         nombre,
+        descripcion: descripcion.trim() || null,
         categoria: categoria || null,
         subcategoria: subcategoria || null,
         costo: costoNum,
@@ -92,6 +100,16 @@ export default function NuevoProductoPage() {
           <input type="text" value={nombre} onChange={e => setNombre(e.target.value)} className="input" />
         </FormField>
 
+        <FormField label="Descripción">
+          <textarea
+            value={descripcion}
+            onChange={e => setDescripcion(e.target.value)}
+            placeholder="Detalles del producto: tela, caída, cuidados..."
+            rows={3}
+            className="input resize-none"
+          />
+        </FormField>
+
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Categoría">
             <select
@@ -116,18 +134,29 @@ export default function NuevoProductoPage() {
           </FormField>
         </div>
 
-        <FormField label={`Talles (stock total: ${talles.reduce((a, t) => a + (t.stock || 0), 0)})`}>
+        <FormField label={`Talles y colores (stock total: ${talles.reduce((a, t) => a + (t.stock || 0), 0)})`}>
           <div className="space-y-2">
             {talles.map((t, i) => (
               <div key={i} className="flex items-center gap-2">
                 <div className="flex-1">
-                  <input
-                    type="text"
+                  <select
                     value={t.talle}
                     onChange={e => setTalles(prev => prev.map((x, xi) => xi === i ? { ...x, talle: e.target.value } : x))}
-                    placeholder="Ej: M, XL, 42, Único..."
                     className="input"
-                  />
+                  >
+                    <option value="">Talle...</option>
+                    {tallesDisponibles.map(td => <option key={td.id} value={td.nombre}>{td.nombre}</option>)}
+                  </select>
+                </div>
+                <div className="flex-1">
+                  <select
+                    value={t.color}
+                    onChange={e => setTalles(prev => prev.map((x, xi) => xi === i ? { ...x, color: e.target.value } : x))}
+                    className="input"
+                  >
+                    <option value="">Sin color</option>
+                    {coloresDisponibles.map(cd => <option key={cd.id} value={cd.nombre}>{cd.nombre}</option>)}
+                  </select>
                 </div>
                 <div className="w-24 shrink-0">
                   <input
@@ -149,10 +178,10 @@ export default function NuevoProductoPage() {
             ))}
             <button
               type="button"
-              onClick={() => setTalles(prev => [...prev, { talle: '', stock: 0 }])}
+              onClick={() => setTalles(prev => [...prev, { talle: '', color: '', stock: 0 }])}
               className="text-xs font-medium text-amber-700 dark:text-amber-400 hover:underline"
             >
-              + Agregar talle
+              + Agregar talle/color
             </button>
           </div>
         </FormField>

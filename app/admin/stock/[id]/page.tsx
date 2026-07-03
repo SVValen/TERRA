@@ -4,9 +4,9 @@ import { use, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import type { Producto, Categoria } from '@/lib/types'
+import type { Producto, Categoria, Talle, Color } from '@/lib/types'
 
-type TalleForm = { id?: string; talle: string; stock: number }
+type TalleForm = { id?: string; talle: string; color: string; stock: number }
 
 export default function ProductoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -14,11 +14,14 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
 
   const [producto, setProducto] = useState<Producto | null>(null)
   const [categorias, setCategorias] = useState<Categoria[]>([])
+  const [tallesDisponibles, setTallesDisponibles] = useState<Talle[]>([])
+  const [coloresDisponibles, setColoresDisponibles] = useState<Color[]>([])
   const [loading, setLoading] = useState(true)
   const [guardando, setGuardando] = useState(false)
   const [fotoActiva, setFotoActiva] = useState(0)
 
   const [nombre, setNombre] = useState('')
+  const [descripcion, setDescripcion] = useState('')
   const [categoria, setCategoria] = useState('')
   const [subcategoria, setSubcategoria] = useState('')
   const [talles, setTalles] = useState<TalleForm[]>([])
@@ -32,7 +35,7 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
   const [modalVenta, setModalVenta] = useState(false)
   const [precioModal, setPrecioModal] = useState('')
   const [cantidadModal, setCantidadModal] = useState('1')
-  const [talleModal, setTalleModal] = useState('')
+  const [varianteModalId, setVarianteModalId] = useState('')
   const [vendiendo, setVendiendo] = useState(false)
 
   // Fotos
@@ -44,16 +47,21 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
       fetch(`/api/productos/${id}`).then(r => r.json()),
       fetch('/api/categorias').then(r => r.json()),
       fetch('/api/negocio').then(r => r.json()),
-    ]).then(([p, cats, neg]: [Producto, Categoria[], { margen_objetivo?: number }]) => {
+      fetch('/api/talles').then(r => r.json()),
+      fetch('/api/colores').then(r => r.json()),
+    ]).then(([p, cats, neg, tallesRes, coloresRes]: [Producto, Categoria[], { margen_objetivo?: number }, Talle[], Color[]]) => {
       setCategorias(cats)
+      setTallesDisponibles(tallesRes)
+      setColoresDisponibles(coloresRes)
       setMargenObjetivo(neg.margen_objetivo ?? null)
       setProducto(p)
       setNombre(p.nombre)
+      setDescripcion(p.descripcion ?? '')
       setCategoria(p.categoria ?? '')
       setSubcategoria(p.subcategoria ?? '')
       const variantes = p.producto_talles?.length
-        ? p.producto_talles.map(t => ({ id: t.id, talle: t.talle, stock: t.stock }))
-        : p.talle ? [{ talle: p.talle, stock: p.stock }] : []
+        ? p.producto_talles.map(t => ({ id: t.id, talle: t.talle, color: t.color, stock: t.stock }))
+        : p.talle ? [{ talle: p.talle, color: '', stock: p.stock }] : []
       setTalles(variantes)
       setCosto(String(p.costo))
       setPrecioVenta(String(p.precio_venta))
@@ -70,6 +78,7 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         nombre,
+        descripcion: descripcion.trim() || null,
         categoria: categoria || null,
         subcategoria: subcategoria || null,
         costo: parseFloat(costo),
@@ -88,7 +97,7 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
   const abrirModalVenta = () => {
     setPrecioModal(String(producto?.precio_venta ?? ''))
     setCantidadModal('1')
-    setTalleModal(tallesConStock[0]?.talle ?? '')
+    setVarianteModalId(tallesConStock[0]?.id ?? '')
     setModalVenta(true)
   }
 
@@ -96,12 +105,13 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
     if (!producto) return
     const precio = parseFloat(precioModal)
     const cantidad = parseInt(cantidadModal)
-    if (isNaN(precio) || precio <= 0 || isNaN(cantidad) || cantidad <= 0 || !talleModal) return
+    const variante = tallesConStock.find(t => t.id === varianteModalId)
+    if (isNaN(precio) || precio <= 0 || isNaN(cantidad) || cantidad <= 0 || !variante) return
     setVendiendo(true)
     await fetch('/api/ventas', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ producto_id: id, precio_vendido: precio, cantidad, talle: talleModal }),
+      body: JSON.stringify({ producto_id: id, precio_vendido: precio, cantidad, talle: variante.talle, color: variante.color }),
     })
     setModalVenta(false)
     setVendiendo(false)
@@ -296,6 +306,16 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
             <input type="text" value={nombre} onChange={e => setNombre(e.target.value)} className="input" />
           </FormField>
 
+          <FormField label="Descripción">
+            <textarea
+              value={descripcion}
+              onChange={e => setDescripcion(e.target.value)}
+              placeholder="Detalles del producto: tela, caída, cuidados..."
+              rows={3}
+              className="input resize-none"
+            />
+          </FormField>
+
           <div className="grid grid-cols-2 gap-3">
             <FormField label="Categoría">
               <select
@@ -320,18 +340,29 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
             </FormField>
           </div>
 
-          <FormField label={`Talles (stock total: ${talles.reduce((a, t) => a + (t.stock || 0), 0)})`}>
+          <FormField label={`Talles y colores (stock total: ${talles.reduce((a, t) => a + (t.stock || 0), 0)})`}>
             <div className="space-y-2">
               {talles.map((t, i) => (
                 <div key={t.id ?? `nuevo-${i}`} className="flex items-center gap-2">
                   <div className="flex-1">
-                    <input
-                      type="text"
+                    <select
                       value={t.talle}
                       onChange={e => setTalles(prev => prev.map((x, xi) => xi === i ? { ...x, talle: e.target.value } : x))}
-                      placeholder="Ej: M, XL, 42, Único..."
                       className="input"
-                    />
+                    >
+                      <option value="">Talle...</option>
+                      {tallesDisponibles.map(td => <option key={td.id} value={td.nombre}>{td.nombre}</option>)}
+                    </select>
+                  </div>
+                  <div className="flex-1">
+                    <select
+                      value={t.color}
+                      onChange={e => setTalles(prev => prev.map((x, xi) => xi === i ? { ...x, color: e.target.value } : x))}
+                      className="input"
+                    >
+                      <option value="">Sin color</option>
+                      {coloresDisponibles.map(cd => <option key={cd.id} value={cd.nombre}>{cd.nombre}</option>)}
+                    </select>
                   </div>
                   <div className="w-24 shrink-0">
                     <input
@@ -353,10 +384,10 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
               ))}
               <button
                 type="button"
-                onClick={() => setTalles(prev => [...prev, { talle: '', stock: 0 }])}
+                onClick={() => setTalles(prev => [...prev, { talle: '', color: '', stock: 0 }])}
                 className="text-xs font-medium text-amber-700 dark:text-amber-400 hover:underline"
               >
-                + Agregar talle
+                + Agregar talle/color
               </button>
             </div>
           </FormField>
@@ -465,16 +496,18 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Talle</label>
-              <select value={talleModal} onChange={e => setTalleModal(e.target.value)} className="input">
+              <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Talle / color</label>
+              <select value={varianteModalId} onChange={e => setVarianteModalId(e.target.value)} className="input">
                 {tallesConStock.map(t => (
-                  <option key={t.id} value={t.talle}>{t.talle} (stock: {t.stock})</option>
+                  <option key={t.id} value={t.id}>
+                    {t.color ? `${t.talle} - ${t.color}` : t.talle} (stock: {t.stock})
+                  </option>
                 ))}
               </select>
             </div>
 
             {(() => {
-              const varianteModal = tallesConStock.find(t => t.talle === talleModal)
+              const varianteModal = tallesConStock.find(t => t.id === varianteModalId)
               const stockVariante = varianteModal?.stock ?? 0
               return (
                 <>
@@ -492,9 +525,9 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
                     />
                   </div>
 
-                  {parseInt(cantidadModal) >= stockVariante && (
+                  {parseInt(cantidadModal) >= stockVariante && varianteModal && (
                     <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 px-3 py-2 rounded-lg">
-                      El talle <b>{talleModal}</b> se quedará sin stock.
+                      {varianteModal.color ? `${varianteModal.talle} - ${varianteModal.color}` : varianteModal.talle} se quedará sin stock.
                     </p>
                   )}
                 </>
@@ -510,7 +543,7 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
               </button>
               <button
                 onClick={confirmarVenta}
-                disabled={vendiendo || !precioModal || !cantidadModal || !talleModal}
+                disabled={vendiendo || !precioModal || !cantidadModal || !varianteModalId}
                 className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 transition-colors"
               >
                 {vendiendo ? 'Guardando...' : 'Confirmar'}
