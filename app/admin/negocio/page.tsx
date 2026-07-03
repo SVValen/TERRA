@@ -8,6 +8,7 @@ export default function NegocioPage() {
   const [nombre, setNombre] = useState('')
   const [whatsapp, setWhatsapp] = useState('')
   const [margen, setMargen] = useState('30')
+  const [diasNuevo, setDiasNuevo] = useState('14')
   const [colorPrimario, setColorPrimario] = useState('#C9A574')
   const [colorFondo, setColorFondo] = useState('#FAFAF9')
   const [colorTexto, setColorTexto] = useState('#1C1917')
@@ -27,6 +28,7 @@ export default function NegocioPage() {
       setNombre(d.nombre ?? '')
       setWhatsapp(d.whatsapp ?? '')
       setMargen(String(d.margen_objetivo ?? 30))
+      setDiasNuevo(String(d.dias_nuevo ?? 14))
       setColorPrimario(d.color_primario ?? '#C9A574')
       setColorFondo(d.color_fondo ?? '#FAFAF9')
       setColorTexto(d.color_texto ?? '#1C1917')
@@ -53,6 +55,7 @@ export default function NegocioPage() {
     fd.append('nombre', nombre)
     fd.append('whatsapp', whatsapp)
     fd.append('margen_objetivo', margen)
+    fd.append('dias_nuevo', diasNuevo)
     fd.append('color_primario', colorPrimario)
     fd.append('color_fondo', colorFondo)
     fd.append('color_texto', colorTexto)
@@ -227,6 +230,23 @@ export default function NegocioPage() {
                 </span>
               </p>
             )}
+          </div>
+        </div>
+
+        {/* Badge "Nuevo" */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5">
+          <label className="block text-sm font-semibold text-gray-700 dark:text-slate-200 mb-1">Badge &quot;Nuevo&quot;</label>
+          <p className="text-xs text-gray-400 dark:text-slate-500 mb-3">Días desde que se carga un producto durante los cuales se muestra el cartel &quot;Nuevo&quot; en la tienda pública</p>
+          <div className="relative w-28">
+            <input
+              type="number"
+              value={diasNuevo}
+              onChange={e => setDiasNuevo(e.target.value)}
+              min="0"
+              max="365"
+              className="input pr-10 text-right"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 text-sm">días</span>
           </div>
         </div>
 

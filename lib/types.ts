@@ -74,6 +74,7 @@ export interface Negocio {
   color_fondo: string | null
   color_texto: string | null
   margen_objetivo: number | null
+  dias_nuevo: number | null
   razon_social: string | null
   cuit: string | null
   direccion: string | null

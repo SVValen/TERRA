@@ -31,7 +31,7 @@
 - `app/tienda/PanelInteres.tsx` — drawer lateral (full-screen en mobile) con la lista de productos que la clienta fue agregando desde `SelectorVariante.tsx`; botón "Consultar por WhatsApp" arma un solo mensaje con `buildInteresWaUrl()` y limpia la lista al confirmar
 - `app/tienda/CatalogoSidebar.tsx` — panel lateral (full-screen en mobile, `sm:w-[85%] lg:w-[70%]` en desktop) oculto por defecto; contiene la búsqueda, pills de categoría/subcategoría, contador y grilla de `ProductoCard` que antes vivían inline en `page.tsx`; solo fetchea categorías/productos mientras `catalogo.abierto` es `true`; se abre desde `Header.tsx` o desde el botón "Ver catálogo completo" del home
 - `app/tienda/HeroDestacados.tsx` — banner full-width (rompe el `max-w-6xl`) con los productos `destacado = true`, uno a pantalla ancha por vez (imagen de fondo + degradé + nombre/precio/CTAs), flechas y dots si hay más de uno; no renderiza nada si no hay destacados
-- `app/tienda/ProductoCard.tsx` — card de producto (extraída de `page.tsx`): imagen con swap a la segunda foto on-hover (desktop), badge "Nuevo" (creado hace menos de 14 días) y "% OFF" (si `precio_anterior > precio_venta`), precio tachado si corresponde
+- `app/tienda/ProductoCard.tsx` — card de producto (extraída de `page.tsx`): imagen con swap a la segunda foto on-hover (desktop), badge "Nuevo" (creado hace menos de `negocio.diasNuevo` días — configurable desde `/admin/negocio`, default 14) y "% OFF" (si `precio_anterior > precio_venta`), precio tachado si corresponde
 - `app/tienda/ProductCarousel.tsx` — fila de `ProductoCard` con scroll-snap nativo (sin librería externa) y flechas prev/next en desktop; `justify-content: safe center` centra las cards cuando entran todas sin scroll (pocos productos) sin romper el scroll cuando desbordan; no renderiza nada si la lista de productos está vacía
 
 ### Tipos compartidos
@@ -50,13 +50,13 @@
 - `app/admin/stock/nuevo/page.tsx` — alta de producto desde cero (nombre, descripción, categoría, talles/colores múltiples con stock por combinación, costo/precio); crea el producto vía `POST /api/productos` y redirige a `/admin/stock/[id]` para cargar fotos
 - `app/admin/stock/[id]/page.tsx` — detalle de producto: edición (incluye descripción), registro de ventas (modal con un único selector de variante talle+color), gestión de fotos, checkbox `activo`, checkbox `destacado` + input `orden_destacado` (solo visible si está tildado), input `precio_anterior` opcional
 - `app/admin/categorias/page.tsx` — gestión de categorías/subcategorías, y (secciones nuevas) listas planas de **talles** y **colores** disponibles para cargar stock, vía el componente compartido `ListaSimple.tsx`
-- `app/admin/negocio/page.tsx` — config del negocio: nombre, logo, contacto (whatsapp + instagram), datos legales (`razon_social`/`cuit`/`direccion`, para el footer), margen objetivo, colores (`color_primario` de acento, `color_fondo` y `color_texto` de la tienda pública — todos `input type="color"` + hex)
+- `app/admin/negocio/page.tsx` — config del negocio: nombre, logo, contacto (whatsapp + instagram), datos legales (`razon_social`/`cuit`/`direccion`, para el footer), margen objetivo, días para el badge "Nuevo" (`dias_nuevo`, default 14), colores (`color_primario` de acento, `color_fondo` y `color_texto` de la tienda pública — todos `input type="color"` + hex)
 
 ### APIs protegidas (`/api/*`)
 - `app/api/productos/route.ts` — GET lista con filtros; POST crea producto desde el panel web (`origen: 'web'`, `estado: 'disponible'`, `activo: true`, `descripcion`) e inserta sus `producto_talles` (talle + color + stock por fila)
 - `app/api/productos/[id]/fotos/route.ts` — POST sube foto a Storage y appends a `fotos_urls`; DELETE elimina de array y Storage, actualiza `foto_url` al siguiente disponible
 - `app/api/ventas/route.ts` — POST venta: requiere `talle` (y opcionalmente `color`, `''` si no aplica), descuenta el `stock` de esa variante talle+color en `producto_talles`, recalcula `productos.stock` como suma de todas las variantes, marca `vendido` solo si el total llega a 0
-- `app/api/negocio/route.ts` — GET/PATCH config del negocio (incluye `whatsapp`, `instagram` (sin `@`), `razon_social`/`cuit`/`direccion`, `margen_objetivo`, `color_primario`/`color_fondo`/`color_texto` — validados con `isValidHexColor()`)
+- `app/api/negocio/route.ts` — GET/PATCH config del negocio (incluye `whatsapp`, `instagram` (sin `@`), `razon_social`/`cuit`/`direccion`, `margen_objetivo`, `dias_nuevo` (umbral del badge "Nuevo" en la tienda), `color_primario`/`color_fondo`/`color_texto` — validados con `isValidHexColor()`)
 - `app/api/categorias/route.ts` y `[id]/route.ts` — CRUD categorías con subcategorías como array
 - `app/api/talles/route.ts` y `[id]/route.ts`, `app/api/colores/route.ts` y `[id]/route.ts` — CRUD simple (mismo patrón que categorías, sin subcategorías) de las listas configurables de talles y colores
 
@@ -154,6 +154,7 @@ En tienda pública la URL del producto se construye con `getBaseUrl()`:
   ALTER TABLE negocio ADD COLUMN cuit text;
   ALTER TABLE negocio ADD COLUMN direccion text;
   ```
+- Migración del badge "Nuevo" configurable **pendiente de correr** en TERRA y SHOWROOM: `ALTER TABLE negocio ADD COLUMN dias_nuevo integer;`
 - Limpieza pendiente tras período de verificación: `ALTER TABLE productos DROP COLUMN talle` (columna vieja escalar, ya no se usa)
 
 ### Deuda técnica conocida

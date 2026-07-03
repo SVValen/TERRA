@@ -19,6 +19,7 @@ interface NegocioCtx {
   razonSocial: string | null
   cuit: string | null
   direccion: string | null
+  diasNuevo: number
 }
 
 interface InteresCtx {
@@ -48,6 +49,7 @@ interface TiendaCtx {
 const negocioVacio: NegocioCtx = {
   nombre: '', logoUrl: null, whatsapp: null, instagram: null,
   colorFondo: null, colorTexto: null, razonSocial: null, cuit: null, direccion: null,
+  diasNuevo: 14,
 }
 
 const TiendaContext = createContext<TiendaCtx>({

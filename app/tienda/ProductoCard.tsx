@@ -6,9 +6,9 @@ import Image from 'next/image'
 import type { Producto as ProductoBase } from '@/lib/types'
 import { buildProductoWaUrl } from '@/lib/whatsapp'
 import { getBaseUrl } from '@/lib/tienda'
+import { useTienda } from './TiendaShell'
 import WhatsAppIcon from './WhatsAppIcon'
 
-const DIAS_NUEVO = 14
 const AHORA_MS = Date.now()
 
 export type ProductoCardData = Pick<
@@ -26,9 +26,10 @@ export default function ProductoCard({
   nombreTienda: string
 }) {
   const [hover, setHover] = useState(false)
+  const { negocio } = useTienda()
 
   const sinStock = p.stock === 0
-  const esNuevo = AHORA_MS - new Date(p.creado_en).getTime() < DIAS_NUEVO * 24 * 60 * 60 * 1000
+  const esNuevo = AHORA_MS - new Date(p.creado_en).getTime() < negocio.diasNuevo * 24 * 60 * 60 * 1000
   const tieneDescuento = !!p.precio_anterior && p.precio_anterior > p.precio_venta
   const porcentajeOff = tieneDescuento ? Math.round((1 - p.precio_venta / p.precio_anterior!) * 100) : 0
 

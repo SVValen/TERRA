@@ -28,6 +28,9 @@ export async function PATCH(request: NextRequest) {
   const margen = formData.get('margen_objetivo')
   if (margen !== null && margen !== '') updates.margen_objetivo = String(parseInt(String(margen), 10))
 
+  const diasNuevo = formData.get('dias_nuevo')
+  if (diasNuevo !== null && diasNuevo !== '') updates.dias_nuevo = String(parseInt(String(diasNuevo), 10))
+
   const colorPrimario = formData.get('color_primario')
   if (colorPrimario !== null && colorPrimario !== '') {
     if (!isValidHexColor(String(colorPrimario))) {
