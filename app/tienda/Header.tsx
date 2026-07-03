@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useTienda } from './TiendaShell'
 import WhatsAppIcon from './WhatsAppIcon'
+import BannerEnvios from './BannerEnvios'
 
 interface Categoria {
   id: string
@@ -33,6 +34,7 @@ export default function Header() {
   return (
     <>
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-stone-200 shadow-sm">
+      <BannerEnvios />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           {/* Hamburguesa mobile */}

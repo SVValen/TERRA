@@ -22,6 +22,8 @@ export interface Producto {
   precio_anterior: number | null
   destacado: boolean
   orden_destacado: number | null
+  envio_gratis: boolean
+  envio_dia: boolean
   stock: number
   estado: ProductoEstado
   activo: boolean
@@ -64,6 +66,11 @@ export interface Color {
   creado_en: string
 }
 
+export interface GuiaTallas {
+  columnas: string[]
+  filas: string[][]
+}
+
 export interface Negocio {
   id: number
   nombre: string
@@ -78,6 +85,12 @@ export interface Negocio {
   razon_social: string | null
   cuit: string | null
   direccion: string | null
+  guia_talles: GuiaTallas | null
+  cambios_devoluciones: string | null
+  envios: string | null
+  banner_envios: string | null
+  etiqueta_envio_gratis: string | null
+  etiqueta_envio_dia: string | null
   actualizado_en: string
 }
 

@@ -33,6 +33,8 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
   const [destacado, setDestacado] = useState(false)
   const [ordenDestacado, setOrdenDestacado] = useState('')
   const [precioAnterior, setPrecioAnterior] = useState('')
+  const [envioGratis, setEnvioGratis] = useState(false)
+  const [envioDia, setEnvioDia] = useState(false)
 
   // Modal venta
   const [modalVenta, setModalVenta] = useState(false)
@@ -73,6 +75,8 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
       setDestacado(p.destacado)
       setOrdenDestacado(p.orden_destacado != null ? String(p.orden_destacado) : '')
       setPrecioAnterior(p.precio_anterior != null ? String(p.precio_anterior) : '')
+      setEnvioGratis(p.envio_gratis)
+      setEnvioDia(p.envio_dia)
       setLoading(false)
     })
   }, [id])
@@ -94,6 +98,8 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
         destacado,
         orden_destacado: destacado && ordenDestacado ? parseInt(ordenDestacado, 10) : null,
         precio_anterior: precioAnterior ? parseFloat(precioAnterior) : null,
+        envio_gratis: envioGratis,
+        envio_dia: envioDia,
         talles: talles.filter(t => t.talle.trim()),
       }),
     })
@@ -486,6 +492,27 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
                 />
               </div>
             )}
+          </div>
+
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={envioGratis}
+                onChange={e => setEnvioGratis(e.target.checked)}
+                className="w-4 h-4 rounded accent-amber-500"
+              />
+              <span className="text-sm text-gray-700 dark:text-slate-300">Envío gratis</span>
+            </label>
+            <label className="flex items-center gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={envioDia}
+                onChange={e => setEnvioDia(e.target.checked)}
+                className="w-4 h-4 rounded accent-amber-500"
+              />
+              <span className="text-sm text-gray-700 dark:text-slate-300">Envío en el día</span>
+            </label>
           </div>
 
           <div className="flex flex-col gap-2 pt-2">

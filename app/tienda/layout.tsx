@@ -1,6 +1,13 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { createServiceClient } from '@/lib/supabase/server'
+import {
+  GUIA_TALLES_DEFAULT,
+  CAMBIOS_DEVOLUCIONES_DEFAULT,
+  ENVIOS_DEFAULT,
+  ETIQUETA_ENVIO_GRATIS_DEFAULT,
+  ETIQUETA_ENVIO_DIA_DEFAULT,
+} from '@/lib/contenido'
 import TiendaShell from './TiendaShell'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -20,7 +27,12 @@ export default async function TiendaLayout({ children }: { children: ReactNode }
   const supabase = createServiceClient()
   const { data: negocio } = await supabase
     .from('negocio')
-    .select('nombre, logo_url, whatsapp, color_fondo, color_texto, instagram, razon_social, cuit, direccion, dias_nuevo')
+    .select(`
+      nombre, logo_url, whatsapp, color_fondo, color_texto, instagram,
+      razon_social, cuit, direccion, dias_nuevo,
+      guia_talles, cambios_devoluciones, envios, banner_envios,
+      etiqueta_envio_gratis, etiqueta_envio_dia
+    `)
     .eq('id', 1)
     .single()
 
@@ -36,6 +48,12 @@ export default async function TiendaLayout({ children }: { children: ReactNode }
       cuit={negocio?.cuit ?? null}
       direccion={negocio?.direccion ?? null}
       diasNuevo={negocio?.dias_nuevo ?? 14}
+      guiaTallas={negocio?.guia_talles ?? GUIA_TALLES_DEFAULT}
+      cambiosDevoluciones={negocio?.cambios_devoluciones ?? CAMBIOS_DEVOLUCIONES_DEFAULT}
+      envios={negocio?.envios ?? ENVIOS_DEFAULT}
+      bannerEnvios={negocio?.banner_envios ?? null}
+      etiquetaEnvioGratis={negocio?.etiqueta_envio_gratis ?? ETIQUETA_ENVIO_GRATIS_DEFAULT}
+      etiquetaEnvioDia={negocio?.etiqueta_envio_dia ?? ETIQUETA_ENVIO_DIA_DEFAULT}
     >
       {children}
     </TiendaShell>

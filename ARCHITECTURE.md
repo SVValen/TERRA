@@ -23,19 +23,22 @@
 ### Tienda pública — componentes compartidos
 - `lib/tienda.ts` — `PRODUCTO_TIENDA_FIELDS` (constante con el `.select()` de campos seguros para exponer públicamente, nunca incluye `costo`), `getBaseUrl()` (`NEXT_PUBLIC_BASE_URL` → `VERCEL_URL` → `''`; usada por `[id]/page.tsx` y por cualquier componente que arme URLs de producto)
 - `lib/whatsapp.ts` — `buildProductoWaUrl()` (mensaje de un solo producto, usado por `ProductoCard.tsx` y `SelectorVariante.tsx`) y `buildInteresWaUrl()` (mensaje con varios productos, usado por `PanelInteres.tsx`); ambas devuelven `null` si no hay `whatsapp` configurado
+- `lib/contenido.ts` — valores genéricos por defecto para el contenido editable del negocio cuando la columna todavía es `null` (`GUIA_TALLES_DEFAULT`, `CAMBIOS_DEVOLUCIONES_DEFAULT`, `ENVIOS_DEFAULT`, `BANNER_ENVIOS_DEFAULT`, `ETIQUETA_ENVIO_GRATIS_DEFAULT`, `ETIQUETA_ENVIO_DIA_DEFAULT`); se importan tanto en `app/tienda/layout.tsx` (server) como en `app/admin/negocio/page.tsx` (client) para no duplicar los defaults
 - `app/tienda/WhatsAppIcon.tsx` — ícono SVG compartido (antes duplicado inline en 4+ lugares)
-- `app/tienda/layout.tsx` — Server Component; fetcha `negocio` completo (nombre, logo, whatsapp, instagram, colores, datos legales) y se lo pasa a `TiendaShell`
+- `app/tienda/InfoModal.tsx` — modal genérico centrado (título + botón cerrar + contenido en `children`), usado por `Footer.tsx` para mostrar la guía de talles / cambios y devoluciones / envíos
+- `app/tienda/BannerEnvios.tsx` — cartel animado (marquee CSS puro, `@keyframes marquee` en `globals.css`, sin librería externa) con el texto de `negocio.bannerEnvios` repetido en loop; no renderiza nada si el campo está vacío; se monta en `Header.tsx` (dentro del `<header>` sticky) y en `Footer.tsx`
+- `app/tienda/layout.tsx` — Server Component; fetcha `negocio` completo (nombre, logo, whatsapp, instagram, colores, datos legales, contenido editable) y se lo pasa a `TiendaShell`
 - `app/tienda/TiendaShell.tsx` — Client Component orquestador; define `TiendaContext` (`{ negocio, interes, catalogo }`, ver más abajo) y renderiza `Header` + `children` + `Footer` + `PanelInteres` + `CatalogoSidebar`; aplica `color_fondo` como `background` inline del wrapper y expone `--tienda-text` como variable CSS
-- `app/tienda/Header.tsx` — sticky; logo+nombre, menú de categorías (fetch a `/api/tienda/categorias`, dropdown on-hover en desktop, acordeón full-screen en mobile detrás de un botón hamburguesa) — clickear una categoría/subcategoría llama `catalogo.setCategoriaActiva()`/`setSubcategoriaActiva()` + `catalogo.setAbierto(true)` (no navega, abre el panel); CTA de WhatsApp; ícono de búsqueda que abre el catálogo sin filtro; ícono de "Interés" con contador
-- `app/tienda/Footer.tsx` — columnas Ayuda (estática), Institucional (`razon_social`/`cuit`/`direccion`, solo si están completos), Seguinos (WhatsApp + Instagram) y Newsletter (`POST /api/tienda/newsletter`)
+- `app/tienda/Header.tsx` — sticky (incluye `BannerEnvios` arriba de la fila principal); logo+nombre, menú de categorías (fetch a `/api/tienda/categorias`, dropdown on-hover en desktop, acordeón full-screen en mobile detrás de un botón hamburguesa — el panel mobile se renderiza como hermano del `<header>`, no anidado, porque un `fixed` dentro de un ancestro `sticky` queda atrapado en su containing block en Safari/iOS) — clickear una categoría/subcategoría llama `catalogo.setCategoriaActiva()`/`setSubcategoriaActiva()` + `catalogo.setAbierto(true)` (no navega, abre el panel); CTA de WhatsApp; ícono de búsqueda que abre el catálogo sin filtro; ícono de "Interés" con contador
+- `app/tienda/Footer.tsx` — incluye `BannerEnvios` arriba de las columnas; columnas Ayuda (3 botones que abren `InfoModal` con guía de talles / cambios y devoluciones / envíos), Institucional (`razon_social`/`cuit`/`direccion`, solo si están completos), Seguinos (WhatsApp + Instagram) y Newsletter (`POST /api/tienda/newsletter`)
 - `app/tienda/PanelInteres.tsx` — drawer lateral (full-screen en mobile) con la lista de productos que la clienta fue agregando desde `SelectorVariante.tsx`; botón "Consultar por WhatsApp" arma un solo mensaje con `buildInteresWaUrl()` y limpia la lista al confirmar
 - `app/tienda/CatalogoSidebar.tsx` — panel lateral (full-screen en mobile, `sm:w-[85%] lg:w-[70%]` en desktop) oculto por defecto; contiene la búsqueda, pills de categoría/subcategoría, contador y grilla de `ProductoCard` que antes vivían inline en `page.tsx`; solo fetchea categorías/productos mientras `catalogo.abierto` es `true`; se abre desde `Header.tsx` o desde el botón "Ver catálogo completo" del home
 - `app/tienda/HeroDestacados.tsx` — banner full-width (rompe el `max-w-6xl`) con los productos `destacado = true`, uno a pantalla ancha por vez (imagen de fondo + degradé + nombre/precio/CTAs), flechas y dots si hay más de uno; no renderiza nada si no hay destacados
-- `app/tienda/ProductoCard.tsx` — card de producto (extraída de `page.tsx`): imagen con swap a la segunda foto on-hover (desktop), badge "Nuevo" (creado hace menos de `negocio.diasNuevo` días — configurable desde `/admin/negocio`, default 14) y "% OFF" (si `precio_anterior > precio_venta`), precio tachado si corresponde
+- `app/tienda/ProductoCard.tsx` — card de producto (extraída de `page.tsx`): imagen con swap a la segunda foto on-hover (desktop), badge "Nuevo" (creado hace menos de `negocio.diasNuevo` días — configurable desde `/admin/negocio`, default 14) y "% OFF" (si `precio_anterior > precio_venta`), precio tachado si corresponde, etiquetas de envío (`producto.envio_gratis`/`envio_dia`, con el texto configurable `negocio.etiquetaEnvioGratis`/`etiquetaEnvioDia`)
 - `app/tienda/ProductCarousel.tsx` — fila de `ProductoCard` con scroll-snap nativo (sin librería externa) y flechas prev/next en desktop; `justify-content: safe center` centra las cards cuando entran todas sin scroll (pocos productos) sin romper el scroll cuando desbordan; no renderiza nada si la lista de productos está vacía
 
 ### Tipos compartidos
-- `lib/types.ts` — `Producto` (incluye `activo: boolean`, `descripcion: string | null`, `destacado: boolean`, `orden_destacado: number | null`, `precio_anterior: number | null`), `ProductoTalle` (incluye `color: string`), `Negocio` (todos los campos de la tabla `negocio`, incluidos `razon_social`/`cuit`/`direccion`), `Venta`, `Categoria`, `Talle`, `Color`, `Retiro`, `BotSesion`, `BotPaso`, `DatosParciales`; fuente de verdad de todas las entidades
+- `lib/types.ts` — `Producto` (incluye `activo: boolean`, `descripcion: string | null`, `destacado: boolean`, `orden_destacado: number | null`, `precio_anterior: number | null`, `envio_gratis: boolean`, `envio_dia: boolean`), `ProductoTalle` (incluye `color: string`), `GuiaTallas` (`{ columnas: string[]; filas: string[][] }`, tabla genérica editable), `Negocio` (todos los campos de la tabla `negocio`, incluidos `razon_social`/`cuit`/`direccion`/`guia_talles`/`cambios_devoluciones`/`envios`/`banner_envios`/`etiqueta_envio_gratis`/`etiqueta_envio_dia`), `Venta`, `Categoria`, `Talle`, `Color`, `Retiro`, `BotSesion`, `BotPaso`, `DatosParciales`; fuente de verdad de todas las entidades
 
 ### Bot de Telegram
 - `app/api/telegram/webhook/route.ts` — cerebro del bot; maneja `manejarPaso()` y `handleCallbackQuery()`; estado de conversación en tabla `bot_sesiones`
@@ -48,15 +51,16 @@
 - `app/admin/Sidebar.tsx` — Client Component; navegación principal; link "Ver tienda" abre `/tienda` en nueva pestaña
 - `app/admin/stock/page.tsx` — listado de productos con filtros; botón "Nuevo producto"; toggle rápido `activo` (visible/oculto en tienda) por tarjeta
 - `app/admin/stock/nuevo/page.tsx` — alta de producto desde cero (nombre, descripción, categoría, talles/colores múltiples con stock por combinación, costo/precio); crea el producto vía `POST /api/productos` y redirige a `/admin/stock/[id]` para cargar fotos
-- `app/admin/stock/[id]/page.tsx` — detalle de producto: edición (incluye descripción), registro de ventas (modal con un único selector de variante talle+color), gestión de fotos, checkbox `activo`, checkbox `destacado` + input `orden_destacado` (solo visible si está tildado), input `precio_anterior` opcional
+- `app/admin/stock/[id]/page.tsx` — detalle de producto: edición (incluye descripción), registro de ventas (modal con un único selector de variante talle+color), gestión de fotos, checkbox `activo`, checkbox `destacado` + input `orden_destacado` (solo visible si está tildado), input `precio_anterior` opcional, checkboxes `envio_gratis`/`envio_dia` (activan la etiqueta correspondiente en la card pública)
 - `app/admin/categorias/page.tsx` — gestión de categorías/subcategorías, y (secciones nuevas) listas planas de **talles** y **colores** disponibles para cargar stock, vía el componente compartido `ListaSimple.tsx`
-- `app/admin/negocio/page.tsx` — config del negocio: nombre, logo, contacto (whatsapp + instagram), datos legales (`razon_social`/`cuit`/`direccion`, para el footer), margen objetivo, días para el badge "Nuevo" (`dias_nuevo`, default 14), colores (`color_primario` de acento, `color_fondo` y `color_texto` de la tienda pública — todos `input type="color"` + hex)
+- `app/admin/negocio/page.tsx` — config del negocio: nombre, logo, contacto (whatsapp + instagram), datos legales (`razon_social`/`cuit`/`direccion`, para el footer), margen objetivo, días para el badge "Nuevo" (`dias_nuevo`, default 14), colores (`color_primario` de acento, `color_fondo` y `color_texto` de la tienda pública — todos `input type="color"` + hex), envíos (texto libre, banner animado, etiquetas de "envío gratis"/"envío en el día"), guía de talles (tabla editable vía `GuiaTallasEditor.tsx`) y cambios/devoluciones (texto libre)
+- `app/admin/negocio/GuiaTallasEditor.tsx` — editor de tabla genérica controlado (`GuiaTallas`): agrega/elimina columnas (con reindexado de todas las filas) y filas, cada celda es un `<input>` — sin límite de columnas ni filas
 
 ### APIs protegidas (`/api/*`)
 - `app/api/productos/route.ts` — GET lista con filtros; POST crea producto desde el panel web (`origen: 'web'`, `estado: 'disponible'`, `activo: true`, `descripcion`) e inserta sus `producto_talles` (talle + color + stock por fila)
 - `app/api/productos/[id]/fotos/route.ts` — POST sube foto a Storage y appends a `fotos_urls`; DELETE elimina de array y Storage, actualiza `foto_url` al siguiente disponible
 - `app/api/ventas/route.ts` — POST venta: requiere `talle` (y opcionalmente `color`, `''` si no aplica), descuenta el `stock` de esa variante talle+color en `producto_talles`, recalcula `productos.stock` como suma de todas las variantes, marca `vendido` solo si el total llega a 0
-- `app/api/negocio/route.ts` — GET/PATCH config del negocio (incluye `whatsapp`, `instagram` (sin `@`), `razon_social`/`cuit`/`direccion`, `margen_objetivo`, `dias_nuevo` (umbral del badge "Nuevo" en la tienda), `color_primario`/`color_fondo`/`color_texto` — validados con `isValidHexColor()`)
+- `app/api/negocio/route.ts` — GET/PATCH config del negocio (incluye `whatsapp`, `instagram` (sin `@`), `razon_social`/`cuit`/`direccion`, `margen_objetivo`, `dias_nuevo` (umbral del badge "Nuevo" en la tienda), `color_primario`/`color_fondo`/`color_texto` — validados con `isValidHexColor()`, `cambios_devoluciones`/`envios`/`banner_envios`/`etiqueta_envio_gratis`/`etiqueta_envio_dia` (texto libre) y `guia_talles` (recibido como JSON string en el `FormData`, parseado con `JSON.parse` y guardado tal cual en la columna `jsonb` — por eso `updates` es `Record<string, unknown>` y no `Record<string, string>`)
 - `app/api/categorias/route.ts` y `[id]/route.ts` — CRUD categorías con subcategorías como array
 - `app/api/talles/route.ts` y `[id]/route.ts`, `app/api/colores/route.ts` y `[id]/route.ts` — CRUD simple (mismo patrón que categorías, sin subcategorías) de las listas configurables de talles y colores
 
@@ -155,6 +159,18 @@ En tienda pública la URL del producto se construye con `getBaseUrl()`:
   ALTER TABLE negocio ADD COLUMN direccion text;
   ```
 - Migración del badge "Nuevo" configurable **pendiente de correr** en TERRA y SHOWROOM: `ALTER TABLE negocio ADD COLUMN dias_nuevo integer;`
+- Migración de contenido editable (guía de talles, cambios/devoluciones, envíos, banner y etiquetas de envío) **pendiente de correr** en TERRA y SHOWROOM:
+  ```sql
+  ALTER TABLE negocio ADD COLUMN guia_talles jsonb;
+  ALTER TABLE negocio ADD COLUMN cambios_devoluciones text;
+  ALTER TABLE negocio ADD COLUMN envios text;
+  ALTER TABLE negocio ADD COLUMN banner_envios text;
+  ALTER TABLE negocio ADD COLUMN etiqueta_envio_gratis text;
+  ALTER TABLE negocio ADD COLUMN etiqueta_envio_dia text;
+
+  ALTER TABLE productos ADD COLUMN envio_gratis boolean NOT NULL DEFAULT false;
+  ALTER TABLE productos ADD COLUMN envio_dia boolean NOT NULL DEFAULT false;
+  ```
 - Limpieza pendiente tras período de verificación: `ALTER TABLE productos DROP COLUMN talle` (columna vieja escalar, ya no se usa)
 
 ### Deuda técnica conocida

@@ -2,6 +2,16 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import type { GuiaTallas } from '@/lib/types'
+import {
+  GUIA_TALLES_DEFAULT,
+  CAMBIOS_DEVOLUCIONES_DEFAULT,
+  ENVIOS_DEFAULT,
+  BANNER_ENVIOS_DEFAULT,
+  ETIQUETA_ENVIO_GRATIS_DEFAULT,
+  ETIQUETA_ENVIO_DIA_DEFAULT,
+} from '@/lib/contenido'
+import GuiaTallasEditor from './GuiaTallasEditor'
 
 export default function NegocioPage() {
   const router = useRouter()
@@ -16,6 +26,12 @@ export default function NegocioPage() {
   const [razonSocial, setRazonSocial] = useState('')
   const [cuit, setCuit] = useState('')
   const [direccion, setDireccion] = useState('')
+  const [cambiosDevoluciones, setCambiosDevoluciones] = useState(CAMBIOS_DEVOLUCIONES_DEFAULT)
+  const [envios, setEnvios] = useState(ENVIOS_DEFAULT)
+  const [bannerEnvios, setBannerEnvios] = useState(BANNER_ENVIOS_DEFAULT)
+  const [etiquetaEnvioGratis, setEtiquetaEnvioGratis] = useState(ETIQUETA_ENVIO_GRATIS_DEFAULT)
+  const [etiquetaEnvioDia, setEtiquetaEnvioDia] = useState(ETIQUETA_ENVIO_DIA_DEFAULT)
+  const [guiaTallas, setGuiaTallas] = useState<GuiaTallas>(GUIA_TALLES_DEFAULT)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [archivo, setArchivo] = useState<File | null>(null)
@@ -36,6 +52,12 @@ export default function NegocioPage() {
       setRazonSocial(d.razon_social ?? '')
       setCuit(d.cuit ?? '')
       setDireccion(d.direccion ?? '')
+      setCambiosDevoluciones(d.cambios_devoluciones ?? CAMBIOS_DEVOLUCIONES_DEFAULT)
+      setEnvios(d.envios ?? ENVIOS_DEFAULT)
+      setBannerEnvios(d.banner_envios ?? BANNER_ENVIOS_DEFAULT)
+      setEtiquetaEnvioGratis(d.etiqueta_envio_gratis ?? ETIQUETA_ENVIO_GRATIS_DEFAULT)
+      setEtiquetaEnvioDia(d.etiqueta_envio_dia ?? ETIQUETA_ENVIO_DIA_DEFAULT)
+      setGuiaTallas(d.guia_talles ?? GUIA_TALLES_DEFAULT)
       setLogoUrl(d.logo_url ?? null)
     })
   }, [])
@@ -63,6 +85,12 @@ export default function NegocioPage() {
     fd.append('razon_social', razonSocial)
     fd.append('cuit', cuit)
     fd.append('direccion', direccion)
+    fd.append('cambios_devoluciones', cambiosDevoluciones)
+    fd.append('envios', envios)
+    fd.append('banner_envios', bannerEnvios)
+    fd.append('etiqueta_envio_gratis', etiquetaEnvioGratis)
+    fd.append('etiqueta_envio_dia', etiquetaEnvioDia)
+    fd.append('guia_talles', JSON.stringify(guiaTallas))
     if (archivo) fd.append('logo', archivo)
     const res = await fetch('/api/negocio', { method: 'PATCH', body: fd })
     const data = await res.json()
@@ -204,6 +232,79 @@ export default function NegocioPage() {
               placeholder="Ej: Av. Siempreviva 742, CABA"
             />
           </div>
+        </div>
+
+        {/* Envíos */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5 space-y-4">
+          <div>
+            <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-200">Envíos</h2>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Texto de la sección &quot;Envíos&quot; en el pie de página de la tienda</p>
+          </div>
+          <textarea
+            value={envios}
+            onChange={e => setEnvios(e.target.value)}
+            rows={4}
+            className="input resize-none"
+          />
+
+          <div className="pt-2 border-t border-gray-100 dark:border-slate-700">
+            <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Banner de envíos</label>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mb-2">Frase que corre en un cartel animado en el header y el footer de la tienda. Dejar vacío para ocultarlo.</p>
+            <input
+              type="text"
+              value={bannerEnvios}
+              onChange={e => setBannerEnvios(e.target.value)}
+              className="input"
+              placeholder="Envíos a todo el país · Envío en el día en CABA"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-100 dark:border-slate-700">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Etiqueta &quot;envío gratis&quot;</label>
+              <input
+                type="text"
+                value={etiquetaEnvioGratis}
+                onChange={e => setEtiquetaEnvioGratis(e.target.value)}
+                className="input"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Etiqueta &quot;envío en el día&quot;</label>
+              <input
+                type="text"
+                value={etiquetaEnvioDia}
+                onChange={e => setEtiquetaEnvioDia(e.target.value)}
+                className="input"
+              />
+            </div>
+            <p className="text-xs text-gray-400 dark:text-slate-500 col-span-2 -mt-1">
+              Se muestran como cartelito en la ficha de cada producto que actives con el toggle correspondiente en su edición (Stock)
+            </p>
+          </div>
+        </div>
+
+        {/* Guía de talles */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5 space-y-3">
+          <div>
+            <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-200">Guía de talles</h2>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Tabla que se muestra al clickear &quot;Guía de talles&quot; en el pie de página de la tienda</p>
+          </div>
+          <GuiaTallasEditor guiaTallas={guiaTallas} onChange={setGuiaTallas} />
+        </div>
+
+        {/* Cambios y devoluciones */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5 space-y-3">
+          <div>
+            <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-200">Cambios y devoluciones</h2>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Texto que se muestra al clickear &quot;Cambios y devoluciones&quot; en el pie de página de la tienda</p>
+          </div>
+          <textarea
+            value={cambiosDevoluciones}
+            onChange={e => setCambiosDevoluciones(e.target.value)}
+            rows={4}
+            className="input resize-none"
+          />
         </div>
 
         {/* Margen objetivo */}

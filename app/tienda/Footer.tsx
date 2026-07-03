@@ -3,11 +3,16 @@
 import { useState } from 'react'
 import { useTienda } from './TiendaShell'
 import WhatsAppIcon from './WhatsAppIcon'
+import InfoModal from './InfoModal'
+import BannerEnvios from './BannerEnvios'
+
+type ModalAyuda = 'talles' | 'cambios' | 'envios' | null
 
 export default function Footer() {
   const { negocio } = useTienda()
   const [email, setEmail] = useState('')
   const [estado, setEstado] = useState<'idle' | 'enviando' | 'ok' | 'error'>('idle')
+  const [modalAyuda, setModalAyuda] = useState<ModalAyuda>(null)
 
   const suscribirse = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,6 +30,8 @@ export default function Footer() {
 
   return (
     <footer className="bg-white border-t border-stone-200 mt-16">
+      <BannerEnvios />
+
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         {/* Newsletter — primero en mobile */}
         <div className="order-first lg:order-last">
@@ -56,8 +63,21 @@ export default function Footer() {
         <div>
           <p className="text-xs font-semibold text-stone-400 uppercase tracking-wide mb-3">Ayuda</p>
           <ul className="space-y-2 text-sm text-stone-500">
-            <li>Guía de talles</li>
-            <li>Cambios y devoluciones</li>
+            <li>
+              <button type="button" onClick={() => setModalAyuda('talles')} className="hover:text-stone-800 transition-colors">
+                Guía de talles
+              </button>
+            </li>
+            <li>
+              <button type="button" onClick={() => setModalAyuda('cambios')} className="hover:text-stone-800 transition-colors">
+                Cambios y devoluciones
+              </button>
+            </li>
+            <li>
+              <button type="button" onClick={() => setModalAyuda('envios')} className="hover:text-stone-800 transition-colors">
+                Envíos
+              </button>
+            </li>
           </ul>
         </div>
 
@@ -110,6 +130,43 @@ export default function Footer() {
           <span className="text-xs text-stone-400">{negocio.nombre}</span>
         </div>
       </div>
+
+      {modalAyuda === 'talles' && (
+        <InfoModal titulo="Guía de talles" onClose={() => setModalAyuda(null)}>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr>
+                  {negocio.guiaTallas.columnas.map((c, i) => (
+                    <th key={i} className="text-left font-semibold text-stone-700 pb-2 pr-4 border-b border-stone-200">{c}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {negocio.guiaTallas.filas.map((fila, fi) => (
+                  <tr key={fi}>
+                    {fila.map((celda, ci) => (
+                      <td key={ci} className="py-2 pr-4 text-stone-600 border-b border-stone-100">{celda}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </InfoModal>
+      )}
+
+      {modalAyuda === 'cambios' && (
+        <InfoModal titulo="Cambios y devoluciones" onClose={() => setModalAyuda(null)}>
+          <p className="text-sm text-stone-600 whitespace-pre-line">{negocio.cambiosDevoluciones}</p>
+        </InfoModal>
+      )}
+
+      {modalAyuda === 'envios' && (
+        <InfoModal titulo="Envíos" onClose={() => setModalAyuda(null)}>
+          <p className="text-sm text-stone-600 whitespace-pre-line">{negocio.envios}</p>
+        </InfoModal>
+      )}
     </footer>
   )
 }

@@ -13,7 +13,7 @@ const AHORA_MS = Date.now()
 
 export type ProductoCardData = Pick<
   ProductoBase,
-  'id' | 'nombre' | 'foto_url' | 'fotos_urls' | 'precio_venta' | 'precio_anterior' | 'categoria' | 'subcategoria' | 'stock' | 'creado_en'
+  'id' | 'nombre' | 'foto_url' | 'fotos_urls' | 'precio_venta' | 'precio_anterior' | 'categoria' | 'subcategoria' | 'stock' | 'creado_en' | 'envio_gratis' | 'envio_dia'
 > & { producto_talles: { talle: string; color: string; stock: number }[] }
 
 export default function ProductoCard({
@@ -118,6 +118,21 @@ export default function ProductoCard({
                 </span>
               )
             })}
+          </div>
+        )}
+
+        {(p.envio_gratis || p.envio_dia) && (
+          <div className="flex flex-wrap gap-1 mb-2">
+            {p.envio_gratis && (
+              <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700">
+                {negocio.etiquetaEnvioGratis}
+              </span>
+            )}
+            {p.envio_dia && (
+              <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700">
+                {negocio.etiquetaEnvioDia}
+              </span>
+            )}
           </div>
         )}
 

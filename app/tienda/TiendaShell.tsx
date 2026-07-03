@@ -2,6 +2,14 @@
 
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import type { InteresItem } from '@/lib/whatsapp'
+import type { GuiaTallas } from '@/lib/types'
+import {
+  GUIA_TALLES_DEFAULT,
+  CAMBIOS_DEVOLUCIONES_DEFAULT,
+  ENVIOS_DEFAULT,
+  ETIQUETA_ENVIO_GRATIS_DEFAULT,
+  ETIQUETA_ENVIO_DIA_DEFAULT,
+} from '@/lib/contenido'
 import Header from './Header'
 import Footer from './Footer'
 import PanelInteres from './PanelInteres'
@@ -20,6 +28,12 @@ interface NegocioCtx {
   cuit: string | null
   direccion: string | null
   diasNuevo: number
+  guiaTallas: GuiaTallas
+  cambiosDevoluciones: string
+  envios: string
+  bannerEnvios: string | null
+  etiquetaEnvioGratis: string
+  etiquetaEnvioDia: string
 }
 
 interface InteresCtx {
@@ -50,6 +64,12 @@ const negocioVacio: NegocioCtx = {
   nombre: '', logoUrl: null, whatsapp: null, instagram: null,
   colorFondo: null, colorTexto: null, razonSocial: null, cuit: null, direccion: null,
   diasNuevo: 14,
+  guiaTallas: GUIA_TALLES_DEFAULT,
+  cambiosDevoluciones: CAMBIOS_DEVOLUCIONES_DEFAULT,
+  envios: ENVIOS_DEFAULT,
+  bannerEnvios: null,
+  etiquetaEnvioGratis: ETIQUETA_ENVIO_GRATIS_DEFAULT,
+  etiquetaEnvioDia: ETIQUETA_ENVIO_DIA_DEFAULT,
 }
 
 const TiendaContext = createContext<TiendaCtx>({

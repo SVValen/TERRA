@@ -15,7 +15,7 @@ export async function PATCH(request: NextRequest) {
   const supabase = createServiceClient()
   const formData = await request.formData()
 
-  const updates: Record<string, string> = {
+  const updates: Record<string, unknown> = {
     actualizado_en: new Date().toISOString(),
   }
 
@@ -66,6 +66,30 @@ export async function PATCH(request: NextRequest) {
 
   const direccion = formData.get('direccion')
   if (direccion !== null) updates.direccion = String(direccion).trim()
+
+  const cambiosDevoluciones = formData.get('cambios_devoluciones')
+  if (cambiosDevoluciones !== null) updates.cambios_devoluciones = String(cambiosDevoluciones).trim()
+
+  const envios = formData.get('envios')
+  if (envios !== null) updates.envios = String(envios).trim()
+
+  const bannerEnvios = formData.get('banner_envios')
+  if (bannerEnvios !== null) updates.banner_envios = String(bannerEnvios).trim()
+
+  const etiquetaEnvioGratis = formData.get('etiqueta_envio_gratis')
+  if (etiquetaEnvioGratis !== null) updates.etiqueta_envio_gratis = String(etiquetaEnvioGratis).trim()
+
+  const etiquetaEnvioDia = formData.get('etiqueta_envio_dia')
+  if (etiquetaEnvioDia !== null) updates.etiqueta_envio_dia = String(etiquetaEnvioDia).trim()
+
+  const guiaTallas = formData.get('guia_talles')
+  if (guiaTallas !== null && guiaTallas !== '') {
+    try {
+      updates.guia_talles = JSON.parse(String(guiaTallas))
+    } catch {
+      return NextResponse.json({ error: 'Guía de talles inválida' }, { status: 400 })
+    }
+  }
 
   const logo = formData.get('logo') as File | null
   if (logo && logo.size > 0) {
