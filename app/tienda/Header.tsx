@@ -33,7 +33,7 @@ export default function Header() {
 
   return (
     <>
-    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-stone-200 shadow-sm">
+    <header className="sticky top-0 z-30 bg-black/95 backdrop-blur-sm border-b border-stone-800 shadow-sm">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           {/* Hamburguesa mobile */}
@@ -42,7 +42,7 @@ export default function Header() {
               type="button"
               onClick={() => setMenuMobileAbierto(true)}
               aria-label="Abrir menú"
-              className="md:hidden w-9 h-9 flex items-center justify-center text-stone-600"
+              className="md:hidden w-9 h-9 flex items-center justify-center text-white"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -61,7 +61,7 @@ export default function Header() {
                 {negocio.nombre.slice(0, 2).toUpperCase()}
               </div>
             )}
-            <span className="font-semibold text-lg tracking-tight" style={{ color: 'var(--tienda-text)' }}>{negocio.nombre}</span>
+            <span className="font-semibold text-lg tracking-tight text-white">{negocio.nombre}</span>
           </Link>
         </div>
 
@@ -78,7 +78,7 @@ export default function Header() {
                 <button
                   type="button"
                   onClick={() => abrirCatalogo(c.nombre)}
-                  className="px-3 py-2 text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors"
+                  className="px-3 py-2 text-sm font-medium text-stone-300 hover:text-white transition-colors"
                 >
                   {c.nombre}
                 </button>
@@ -119,7 +119,7 @@ export default function Header() {
             type="button"
             onClick={() => abrirCatalogo()}
             aria-label="Ver catálogo completo"
-            className="w-9 h-9 flex items-center justify-center text-stone-600 hover:text-stone-900 transition-colors"
+            className="w-9 h-9 flex items-center justify-center text-stone-300 hover:text-white transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -130,7 +130,7 @@ export default function Header() {
             type="button"
             onClick={() => interes.setAbierto(true)}
             aria-label="Ver mi interés"
-            className="relative w-9 h-9 flex items-center justify-center text-stone-600 hover:text-stone-900 transition-colors"
+            className="relative w-9 h-9 flex items-center justify-center text-stone-300 hover:text-white transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21l-7.682-8.318a4.5 4.5 0 010-6.364z" />
