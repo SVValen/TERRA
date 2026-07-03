@@ -5,6 +5,7 @@ import type { InteresItem } from '@/lib/whatsapp'
 import Header from './Header'
 import Footer from './Footer'
 import PanelInteres from './PanelInteres'
+import CatalogoSidebar from './CatalogoSidebar'
 
 const INTERES_STORAGE_KEY = 'sp-interes'
 
@@ -29,9 +30,19 @@ interface InteresCtx {
   setAbierto: (v: boolean) => void
 }
 
+interface CatalogoCtx {
+  abierto: boolean
+  setAbierto: (v: boolean) => void
+  categoriaActiva: string
+  setCategoriaActiva: (v: string) => void
+  subcategoriaActiva: string
+  setSubcategoriaActiva: (v: string) => void
+}
+
 interface TiendaCtx {
   negocio: NegocioCtx
   interes: InteresCtx
+  catalogo: CatalogoCtx
 }
 
 const negocioVacio: NegocioCtx = {
@@ -42,6 +53,11 @@ const negocioVacio: NegocioCtx = {
 const TiendaContext = createContext<TiendaCtx>({
   negocio: negocioVacio,
   interes: { items: [], agregar: () => {}, quitar: () => {}, limpiar: () => {}, abierto: false, setAbierto: () => {} },
+  catalogo: {
+    abierto: false, setAbierto: () => {},
+    categoriaActiva: '', setCategoriaActiva: () => {},
+    subcategoriaActiva: '', setSubcategoriaActiva: () => {},
+  },
 })
 export const useTienda = () => useContext(TiendaContext)
 
@@ -53,6 +69,10 @@ export default function TiendaShell({ children, ...negocio }: Props) {
   const [items, setItems] = useState<InteresItem[]>([])
   const [abierto, setAbierto] = useState(false)
   const cargado = useRef(false)
+
+  const [catalogoAbierto, setCatalogoAbierto] = useState(false)
+  const [categoriaActiva, setCategoriaActiva] = useState('')
+  const [subcategoriaActiva, setSubcategoriaActiva] = useState('')
 
   useEffect(() => {
     Promise.resolve().then(() => {
@@ -81,8 +101,14 @@ export default function TiendaShell({ children, ...negocio }: Props) {
 
   const limpiar = () => setItems([])
 
+  const catalogo: CatalogoCtx = {
+    abierto: catalogoAbierto, setAbierto: setCatalogoAbierto,
+    categoriaActiva, setCategoriaActiva,
+    subcategoriaActiva, setSubcategoriaActiva,
+  }
+
   return (
-    <TiendaContext.Provider value={{ negocio, interes: { items, agregar, quitar, limpiar, abierto, setAbierto } }}>
+    <TiendaContext.Provider value={{ negocio, interes: { items, agregar, quitar, limpiar, abierto, setAbierto }, catalogo }}>
       <div
         className="min-h-screen bg-stone-50 flex flex-col"
         style={{
@@ -96,6 +122,7 @@ export default function TiendaShell({ children, ...negocio }: Props) {
         </main>
         <Footer />
         <PanelInteres />
+        <CatalogoSidebar />
       </div>
     </TiendaContext.Provider>
   )

@@ -42,7 +42,7 @@ export default function ProductCarousel({
         <div
           ref={scrollRef}
           className="flex gap-3 sm:gap-4 overflow-x-auto pb-1 scrollbar-none"
-          style={{ scrollSnapType: 'x mandatory' }}
+          style={{ scrollSnapType: 'x mandatory', justifyContent: 'safe center' }}
         >
           {productos.map(p => (
             <div
