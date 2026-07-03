@@ -9,6 +9,9 @@ export default function NegocioPage() {
   const [whatsapp, setWhatsapp] = useState('')
   const [margen, setMargen] = useState('30')
   const [colorPrimario, setColorPrimario] = useState('#C9A574')
+  const [colorFondo, setColorFondo] = useState('#FAFAF9')
+  const [colorTexto, setColorTexto] = useState('#1C1917')
+  const [instagram, setInstagram] = useState('')
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [archivo, setArchivo] = useState<File | null>(null)
@@ -22,6 +25,9 @@ export default function NegocioPage() {
       setWhatsapp(d.whatsapp ?? '')
       setMargen(String(d.margen_objetivo ?? 30))
       setColorPrimario(d.color_primario ?? '#C9A574')
+      setColorFondo(d.color_fondo ?? '#FAFAF9')
+      setColorTexto(d.color_texto ?? '#1C1917')
+      setInstagram(d.instagram ?? '')
       setLogoUrl(d.logo_url ?? null)
     })
   }, [])
@@ -42,6 +48,9 @@ export default function NegocioPage() {
     fd.append('whatsapp', whatsapp)
     fd.append('margen_objetivo', margen)
     fd.append('color_primario', colorPrimario)
+    fd.append('color_fondo', colorFondo)
+    fd.append('color_texto', colorTexto)
+    fd.append('instagram', instagram)
     if (archivo) fd.append('logo', archivo)
     const res = await fetch('/api/negocio', { method: 'PATCH', body: fd })
     const data = await res.json()
@@ -108,21 +117,40 @@ export default function NegocioPage() {
           />
         </div>
 
-        {/* WhatsApp */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5">
-          <label className="block text-sm font-semibold text-gray-700 dark:text-slate-200 mb-1">WhatsApp de contacto</label>
-          <p className="text-xs text-gray-400 dark:text-slate-500 mb-3">Se usa en la tienda online para el botón "Consultar"</p>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 text-sm">+</span>
-            <input
-              type="text"
-              value={whatsapp}
-              onChange={e => setWhatsapp(e.target.value)}
-              className="input pl-7"
-              placeholder="5491112345678"
-            />
+        {/* Contacto */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5 space-y-5">
+          <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-200 -mb-1">Contacto</h2>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-1">WhatsApp</label>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mb-3">Se usa en la tienda online para el botón &quot;Consultar&quot;</p>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 text-sm">+</span>
+              <input
+                type="text"
+                value={whatsapp}
+                onChange={e => setWhatsapp(e.target.value)}
+                className="input pl-7"
+                placeholder="5491112345678"
+              />
+            </div>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mt-1.5">Incluí el código de país sin el +. Ej: 5491112345678</p>
           </div>
-          <p className="text-xs text-gray-400 dark:text-slate-500 mt-1.5">Incluí el código de país sin el +. Ej: 5491112345678</p>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-1">Instagram</label>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mb-3">Aparece como link en el pie de página de la tienda</p>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 text-sm">@</span>
+              <input
+                type="text"
+                value={instagram}
+                onChange={e => setInstagram(e.target.value.replace(/^@/, ''))}
+                className="input pl-7"
+                placeholder="miusuario"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Margen objetivo */}
@@ -153,24 +181,72 @@ export default function NegocioPage() {
         </div>
 
         {/* Paleta de color */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5">
-          <label className="block text-sm font-semibold text-gray-700 dark:text-slate-200 mb-1">Color de la tienda</label>
-          <p className="text-xs text-gray-400 dark:text-slate-500 mb-3">Se usa en botones, acentos y detalles del panel y la tienda pública</p>
-          <div className="flex items-center gap-3">
-            <input
-              type="color"
-              value={colorPrimario}
-              onChange={e => setColorPrimario(e.target.value)}
-              className="w-12 h-10 rounded-lg border border-gray-200 dark:border-slate-600 cursor-pointer bg-transparent"
-            />
-            <div className="w-32">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5 space-y-5">
+          <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-200 -mb-1">Colores</h2>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-1">Color de acento</label>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mb-3">Botones y detalles del panel y la tienda pública</p>
+            <div className="flex items-center gap-3">
               <input
-                type="text"
+                type="color"
                 value={colorPrimario}
                 onChange={e => setColorPrimario(e.target.value)}
-                className="input uppercase"
-                placeholder="#C9A574"
+                className="w-12 h-10 rounded-lg border border-gray-200 dark:border-slate-600 cursor-pointer bg-transparent"
               />
+              <div className="w-32">
+                <input
+                  type="text"
+                  value={colorPrimario}
+                  onChange={e => setColorPrimario(e.target.value)}
+                  className="input uppercase"
+                  placeholder="#C9A574"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-1">Fondo de la tienda pública</label>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mb-3">Color de fondo detrás de los productos en /tienda</p>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                value={colorFondo}
+                onChange={e => setColorFondo(e.target.value)}
+                className="w-12 h-10 rounded-lg border border-gray-200 dark:border-slate-600 cursor-pointer bg-transparent"
+              />
+              <div className="w-32">
+                <input
+                  type="text"
+                  value={colorFondo}
+                  onChange={e => setColorFondo(e.target.value)}
+                  className="input uppercase"
+                  placeholder="#FAFAF9"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-1">Texto de la tienda pública</label>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mb-3">Color de nombres, títulos y precios en /tienda</p>
+            <div className="flex items-center gap-3">
+              <input
+                type="color"
+                value={colorTexto}
+                onChange={e => setColorTexto(e.target.value)}
+                className="w-12 h-10 rounded-lg border border-gray-200 dark:border-slate-600 cursor-pointer bg-transparent"
+              />
+              <div className="w-32">
+                <input
+                  type="text"
+                  value={colorTexto}
+                  onChange={e => setColorTexto(e.target.value)}
+                  className="input uppercase"
+                  placeholder="#1C1917"
+                />
+              </div>
             </div>
           </div>
         </div>

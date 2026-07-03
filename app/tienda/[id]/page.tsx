@@ -116,7 +116,7 @@ export default async function ProductoTiendaPage({ params }: { params: Promise<{
             </p>
           )}
 
-          <h1 className="text-2xl sm:text-3xl font-bold text-stone-900 leading-tight mb-4">
+          <h1 className="text-2xl sm:text-3xl font-bold leading-tight mb-4" style={{ color: 'var(--tienda-text)' }}>
             {producto.nombre}
           </h1>
 
@@ -125,7 +125,7 @@ export default async function ProductoTiendaPage({ params }: { params: Promise<{
           )}
 
           <div className="mb-6">
-            <p className="text-3xl font-bold text-stone-900">
+            <p className="text-3xl font-bold" style={{ color: 'var(--tienda-text)' }}>
               ${producto.precio_venta.toLocaleString('es-AR')}
             </p>
           </div>

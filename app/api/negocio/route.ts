@@ -36,6 +36,25 @@ export async function PATCH(request: NextRequest) {
     updates.color_primario = String(colorPrimario)
   }
 
+  const colorFondo = formData.get('color_fondo')
+  if (colorFondo !== null && colorFondo !== '') {
+    if (!isValidHexColor(String(colorFondo))) {
+      return NextResponse.json({ error: 'Color de fondo inválido, debe ser un hex de 6 dígitos' }, { status: 400 })
+    }
+    updates.color_fondo = String(colorFondo)
+  }
+
+  const colorTexto = formData.get('color_texto')
+  if (colorTexto !== null && colorTexto !== '') {
+    if (!isValidHexColor(String(colorTexto))) {
+      return NextResponse.json({ error: 'Color de texto inválido, debe ser un hex de 6 dígitos' }, { status: 400 })
+    }
+    updates.color_texto = String(colorTexto)
+  }
+
+  const instagram = formData.get('instagram')
+  if (instagram !== null) updates.instagram = String(instagram).trim().replace(/^@/, '')
+
   const logo = formData.get('logo') as File | null
   if (logo && logo.size > 0) {
     if (!ALLOWED_IMAGE_TYPES.includes(logo.type)) {

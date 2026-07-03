@@ -39,8 +39,8 @@ Endpoints `/api/tienda/*` son públicos. Solo exponen productos con `estado = 'd
 ### 5. Panel admin (/admin)
 Rutas protegidas por middleware JWT. Stock (con alta manual y toggle de visibilidad), caja, retiros, métricas, categorías (más las listas configurables de talles y colores en la misma sección), configuración del negocio (logo, nombre, whatsapp, margen objetivo, color de marca).
 
-### 6. Identidad de marca (logo, nombre, color)
-`negocio.nombre`, `negocio.logo_url` y `negocio.color_primario` alimentan: el título e ícono de pestaña de `/admin`, `/tienda` y `/login` (`generateMetadata` en cada layout/página), el logo mostrado en el login y en los headers, y la variable CSS `--accent` (con `--accent-dark` derivado automáticamente) inyectada en `app/layout.tsx` para toda la app. Se configura desde `/admin/negocio`.
+### 6. Identidad de marca (logo, nombre, colores, contacto)
+`negocio.nombre`, `negocio.logo_url` y `negocio.color_primario` alimentan: el título e ícono de pestaña de `/admin`, `/tienda` y `/login` (`generateMetadata` en cada layout/página), el logo mostrado en el login y en los headers, y la variable CSS `--accent` (con `--accent-dark` derivado automáticamente) inyectada en `app/layout.tsx` para toda la app. Además, `negocio.color_fondo` y `negocio.color_texto` personalizan el fondo y el color de los textos principales (nombre de marca, nombre de producto, precio) específicamente en `/tienda`. `negocio.instagram` agrega un link a Instagram en la sección "Contacto" del footer de la tienda, junto al de WhatsApp. Todo se configura desde `/admin/negocio`.
 
 ## Reglas de negocio invariantes
 - `stock` **nunca baja de 0** — se valida contra el stock de la variante (`producto_talles`) antes de descontar en cada venta.

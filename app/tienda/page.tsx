@@ -220,7 +220,7 @@ function ProductCard({ producto: p, whatsapp, nombreTienda }: { producto: Produc
 
       <div className="p-3 sm:p-4">
         <Link href={`/tienda/${p.id}`}>
-          <p className="font-semibold text-stone-900 text-sm leading-snug line-clamp-2 mb-1.5 hover:text-amber-800 transition-colors">
+          <p className="font-semibold text-sm leading-snug line-clamp-2 mb-1.5 hover:text-amber-800 transition-colors" style={{ color: 'var(--tienda-text)' }}>
             {p.nombre}
           </p>
         </Link>
@@ -247,7 +247,7 @@ function ProductCard({ producto: p, whatsapp, nombreTienda }: { producto: Produc
         )}
 
         <div className="flex items-center justify-between mt-2">
-          <p className="text-base font-bold text-stone-900">
+          <p className="text-base font-bold" style={{ color: 'var(--tienda-text)' }}>
             ${p.precio_venta.toLocaleString('es-AR')}
           </p>
           {waUrl ? (

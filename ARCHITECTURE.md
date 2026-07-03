@@ -16,9 +16,11 @@
 
 ### Identidad de marca
 - `lib/color.ts` — `darkenHex()` (deriva `--accent-dark` a partir de `--accent`), `isValidHexColor()` (valida `#RRGGBB`)
-- `app/layout.tsx` — Server Component raíz; fetcha `negocio.color_primario` e inyecta `<style>:root{--accent;--accent-dark}</style>` en `<head>`, aplicando la paleta a toda la app (admin, tienda, login)
+- `app/layout.tsx` — Server Component raíz; fetcha `negocio.color_primario` e inyecta `<style>:root{--accent;--accent-dark}</style>` en `<head>`, aplicando el color de acento a toda la app (admin, tienda, login)
 - `app/login/page.tsx` — Server Component; `generateMetadata()` con nombre/logo del negocio; delega el formulario a `LoginForm.tsx`
 - `app/login/LoginForm.tsx` — Client Component; muestra el logo real del negocio (o iniciales del nombre como fallback) en vez de un ícono fijo
+- `app/tienda/layout.tsx` — además de nombre/logo/whatsapp, fetcha `color_fondo`, `color_texto` e `instagram` y los pasa a `TiendaShell`
+- `app/tienda/TiendaShell.tsx` — aplica `color_fondo` como `background` inline del wrapper (fallback a `bg-stone-50`) y expone `--tienda-text` (fallback `#1c1917`) como variable CSS que consumen los textos principales (nombre de marca, nombre de producto, precio) en `page.tsx` y `[id]/page.tsx`; el footer suma una sección "Contacto" con links de WhatsApp e Instagram (`https://instagram.com/{instagram}`)
 
 ### Tipos compartidos
 - `lib/types.ts` — `Producto` (incluye `activo: boolean`, `descripcion: string | null`), `ProductoTalle` (incluye `color: string`), `Venta`, `Categoria`, `Talle`, `Color`, `Retiro`, `BotSesion`, `BotPaso`, `DatosParciales`; fuente de verdad de todas las entidades
@@ -36,13 +38,13 @@
 - `app/admin/stock/nuevo/page.tsx` — alta de producto desde cero (nombre, descripción, categoría, talles/colores múltiples con stock por combinación, costo/precio); crea el producto vía `POST /api/productos` y redirige a `/admin/stock/[id]` para cargar fotos
 - `app/admin/stock/[id]/page.tsx` — detalle de producto: edición (incluye descripción), registro de ventas (modal con un único selector de variante talle+color), gestión de fotos, checkbox `activo`
 - `app/admin/categorias/page.tsx` — gestión de categorías/subcategorías, y (secciones nuevas) listas planas de **talles** y **colores** disponibles para cargar stock, vía el componente compartido `ListaSimple.tsx`
-- `app/admin/negocio/page.tsx` — config del negocio: nombre, logo, whatsapp, margen objetivo, color de marca (`color_primario`, input `type="color"` + hex)
+- `app/admin/negocio/page.tsx` — config del negocio: nombre, logo, contacto (whatsapp + instagram), margen objetivo, colores (`color_primario` de acento, `color_fondo` y `color_texto` de la tienda pública — todos `input type="color"` + hex)
 
 ### APIs protegidas (`/api/*`)
 - `app/api/productos/route.ts` — GET lista con filtros; POST crea producto desde el panel web (`origen: 'web'`, `estado: 'disponible'`, `activo: true`, `descripcion`) e inserta sus `producto_talles` (talle + color + stock por fila)
 - `app/api/productos/[id]/fotos/route.ts` — POST sube foto a Storage y appends a `fotos_urls`; DELETE elimina de array y Storage, actualiza `foto_url` al siguiente disponible
 - `app/api/ventas/route.ts` — POST venta: requiere `talle` (y opcionalmente `color`, `''` si no aplica), descuenta el `stock` de esa variante talle+color en `producto_talles`, recalcula `productos.stock` como suma de todas las variantes, marca `vendido` solo si el total llega a 0
-- `app/api/negocio/route.ts` — GET/PATCH config del negocio (incluye `whatsapp`, `margen_objetivo`, `color_primario` — validado con `isValidHexColor()`)
+- `app/api/negocio/route.ts` — GET/PATCH config del negocio (incluye `whatsapp`, `instagram` (sin `@`), `margen_objetivo`, `color_primario`/`color_fondo`/`color_texto` — validados con `isValidHexColor()`)
 - `app/api/categorias/route.ts` y `[id]/route.ts` — CRUD categorías con subcategorías como array
 - `app/api/talles/route.ts` y `[id]/route.ts`, `app/api/colores/route.ts` y `[id]/route.ts` — CRUD simple (mismo patrón que categorías, sin subcategorías) de las listas configurables de talles y colores
 
@@ -117,6 +119,7 @@ En tienda pública la URL del producto se construye con `getBaseUrl()`:
 - Migración de visibilidad ya aplicada (`ALTER TABLE productos ADD COLUMN activo boolean NOT NULL DEFAULT true`) en TERRA y SHOWROOM
 - Migración de descripción + color ya aplicada (`ALTER TABLE productos ADD COLUMN descripcion text`; tablas `talles`/`colores`; `ALTER TABLE producto_talles ADD COLUMN color text NOT NULL DEFAULT ''` + swap de constraint UNIQUE a `(producto_id, talle, color)`; `ALTER TABLE ventas ADD COLUMN color text`) en TERRA y SHOWROOM
 - Migración de color de marca **pendiente de correr**: `ALTER TABLE negocio ADD COLUMN color_primario text;` en TERRA y SHOWROOM
+- Migración de fondo/texto/instagram **pendiente de correr**: `ALTER TABLE negocio ADD COLUMN color_fondo text; ALTER TABLE negocio ADD COLUMN color_texto text; ALTER TABLE negocio ADD COLUMN instagram text;` en TERRA y SHOWROOM
 - Limpieza pendiente tras período de verificación: `ALTER TABLE productos DROP COLUMN talle` (columna vieja escalar, ya no se usa)
 
 ### Deuda técnica conocida
