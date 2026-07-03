@@ -26,6 +26,7 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
   const [precioVenta, setPrecioVenta] = useState('')
   const [margenObjetivo, setMargenObjetivo] = useState<number | null>(null)
   const [estado, setEstado] = useState('')
+  const [activo, setActivo] = useState(true)
 
   // Modal venta
   const [modalVenta, setModalVenta] = useState(false)
@@ -57,6 +58,7 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
       setCosto(String(p.costo))
       setPrecioVenta(String(p.precio_venta))
       setEstado(p.estado)
+      setActivo(p.activo)
       setLoading(false)
     })
   }, [id])
@@ -73,6 +75,7 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
         costo: parseFloat(costo),
         precio_venta: parseFloat(precioVenta),
         estado,
+        activo,
         talles: talles.filter(t => t.talle.trim()),
       }),
     })
@@ -395,6 +398,18 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
               <option value="vendido">Vendido</option>
             </select>
           </FormField>
+
+          <label className="flex items-center gap-2.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={activo}
+              onChange={e => setActivo(e.target.checked)}
+              className="w-4 h-4 rounded accent-amber-500"
+            />
+            <span className="text-sm text-gray-700 dark:text-slate-300">
+              {activo ? 'Visible en la tienda pública' : 'Oculto — solo vos lo ves en el panel'}
+            </span>
+          </label>
 
           <div className="flex flex-col gap-2 pt-2">
             <button

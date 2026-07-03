@@ -38,6 +38,18 @@ export default function StockPage() {
   const vendidos = productos.filter(p => p.estado === 'vendido').length
   const hayFiltros = filtroEstado || filtroCategoria || filtroSubcategoria || busqueda
 
+  const toggleActivo = async (id: string, activo: boolean) => {
+    setProductos(prev => prev.map(p => p.id === id ? { ...p, activo } : p))
+    const res = await fetch(`/api/productos/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ activo }),
+    })
+    if (!res.ok) {
+      setProductos(prev => prev.map(p => p.id === id ? { ...p, activo: !activo } : p))
+    }
+  }
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-5">
@@ -47,6 +59,13 @@ export default function StockPage() {
             {disponibles} disponibles · {vendidos} vendidos · {productos.length} total
           </p>
         </div>
+        <Link
+          href="/admin/stock/nuevo"
+          className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-900 transition-opacity hover:opacity-90 whitespace-nowrap"
+          style={{ background: 'var(--accent)' }}
+        >
+          + Nuevo producto
+        </Link>
       </div>
 
       <div className="flex flex-wrap gap-2 mb-5">
@@ -109,33 +128,43 @@ export default function StockPage() {
           <p className="text-sm font-medium">
             Sin productos{busqueda ? ` con "${busqueda}"` : filtroCategoria ? ` en "${filtroCategoria}"` : ''}
           </p>
-          <p className="text-xs mt-1">Usá el bot con /cargar para agregar productos</p>
+          <p className="text-xs mt-1">Usá el bot con /cargar o el botón &quot;+ Nuevo producto&quot; para agregar productos</p>
         </div>
       )}
 
       {!loading && productos.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-          {productos.map((p) => <ProductCard key={p.id} producto={p} />)}
+          {productos.map((p) => <ProductCard key={p.id} producto={p} onToggleActivo={toggleActivo} />)}
         </div>
       )}
     </div>
   )
 }
 
-function ProductCard({ producto: p }: { producto: Producto }) {
+function ProductCard({ producto: p, onToggleActivo }: { producto: Producto; onToggleActivo: (id: string, activo: boolean) => void }) {
   const margen = p.costo > 0
     ? Math.round((p.precio_venta - p.costo) / p.precio_venta * 100)
     : null
 
   return (
     <Link href={`/admin/stock/${p.id}`} className="group block">
-      <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden hover:shadow-lg hover:border-gray-300 dark:hover:border-slate-600 transition-all duration-200">
+      <div className={`bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden hover:shadow-lg hover:border-gray-300 dark:hover:border-slate-600 transition-all duration-200 ${p.activo === false ? 'opacity-50' : ''}`}>
         <div className="aspect-square bg-gray-50 dark:bg-slate-700 relative overflow-hidden">
           {p.foto_url ? (
             <Image src={p.foto_url} alt={p.nombre} fill className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw" />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-4xl text-gray-200 dark:text-slate-600">📷</div>
           )}
+          <button
+            type="button"
+            onClick={e => { e.preventDefault(); e.stopPropagation(); onToggleActivo(p.id, !p.activo) }}
+            title={p.activo === false ? 'Oculto en la tienda — click para mostrar' : 'Visible en la tienda — click para ocultar'}
+            className={`absolute top-2 left-2 text-xs px-2 py-0.5 rounded-full font-medium shadow-sm transition-colors ${
+              p.activo === false ? 'bg-gray-700 text-white' : 'bg-white/90 text-gray-600 hover:bg-white'
+            }`}
+          >
+            {p.activo === false ? 'Oculto' : 'Visible'}
+          </button>
           <div className="absolute top-2 right-2">
             <EstadoBadge estado={p.estado} />
           </div>

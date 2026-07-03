@@ -19,6 +19,7 @@ export interface Producto {
   precio_venta: number
   stock: number
   estado: ProductoEstado
+  activo: boolean
   foto_url: string | null
   fotos_urls: string[]
   origen: ProductoOrigen

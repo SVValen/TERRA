@@ -10,6 +10,7 @@ async function getProducto(id: string) {
     .select('id, nombre, foto_url, fotos_urls, precio_venta, categoria, subcategoria, stock, producto_talles(talle, stock)')
     .eq('id', id)
     .eq('estado', 'disponible')
+    .eq('activo', true)
     .single()
   return data
 }

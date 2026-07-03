@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     .from('productos')
     .select(`id, nombre, foto_url, fotos_urls, precio_venta, categoria, subcategoria, stock, creado_en, ${selectTalles}`)
     .eq('estado', 'disponible')
+    .eq('activo', true)
     .order('creado_en', { ascending: false })
 
   const q = searchParams.get('q')
