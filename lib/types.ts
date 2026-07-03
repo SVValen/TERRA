@@ -29,6 +29,7 @@ export interface Producto {
   activo: boolean
   foto_url: string | null
   fotos_urls: string[]
+  video_url: string | null
   origen: ProductoOrigen
   creado_en: string
   actualizado_en: string

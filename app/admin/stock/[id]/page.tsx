@@ -47,6 +47,10 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
   const [subiendo, setSubiendo] = useState(false)
   const fotoInputRef = useRef<HTMLInputElement>(null)
 
+  // Video
+  const [subiendoVideo, setSubiendoVideo] = useState(false)
+  const videoInputRef = useRef<HTMLInputElement>(null)
+
   useEffect(() => {
     Promise.all([
       fetch(`/api/productos/${id}`).then(r => r.json()),
@@ -163,6 +167,26 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
     if (res.ok) {
       setProducto(prev => prev ? { ...prev, fotos_urls: data.fotos_urls, foto_url: data.foto_url } : prev)
       setFotoActiva(0)
+    }
+  }
+
+  const subirVideo = async (file: File) => {
+    setSubiendoVideo(true)
+    const fd = new FormData()
+    fd.append('video', file)
+    const res = await fetch(`/api/productos/${id}/video`, { method: 'POST', body: fd })
+    const data = await res.json()
+    if (res.ok) {
+      setProducto(prev => prev ? { ...prev, video_url: data.video_url } : prev)
+    }
+    setSubiendoVideo(false)
+  }
+
+  const eliminarVideo = async () => {
+    if (!confirm('¿Eliminar el video de este producto?')) return
+    const res = await fetch(`/api/productos/${id}/video`, { method: 'DELETE' })
+    if (res.ok) {
+      setProducto(prev => prev ? { ...prev, video_url: null } : prev)
     }
   }
 
@@ -285,6 +309,42 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
                 onChange={e => { const f = e.target.files?.[0]; if (f) subirFoto(f); e.target.value = '' }}
               />
             </div>
+          </div>
+
+          {/* Video (se reproduce en el hero de destacados) */}
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-3">
+            <p className="text-xs font-medium text-gray-500 dark:text-slate-400 mb-2">
+              Video (se reproduce en el hero si el producto es destacado)
+            </p>
+            {producto.video_url ? (
+              <div className="space-y-2">
+                <video src={producto.video_url} controls className="w-full rounded-lg max-h-48 bg-black" />
+                <button
+                  onClick={eliminarVideo}
+                  className="text-xs font-medium text-red-500 hover:underline"
+                >
+                  Eliminar video
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => videoInputRef.current?.click()}
+                disabled={subiendoVideo}
+                className="w-full py-3 rounded-lg border-2 border-dashed border-gray-300 dark:border-slate-600 flex items-center justify-center gap-2 text-sm text-gray-400 dark:text-slate-500 hover:border-amber-400 hover:text-amber-500 transition-colors disabled:opacity-50"
+              >
+                {subiendoVideo
+                  ? <div className="w-4 h-4 border-2 border-gray-300 border-t-amber-400 rounded-full animate-spin" />
+                  : <span>+ Agregar video</span>
+                }
+              </button>
+            )}
+            <input
+              ref={videoInputRef}
+              type="file"
+              accept="video/mp4,video/webm,video/quicktime"
+              className="hidden"
+              onChange={e => { const f = e.target.files?.[0]; if (f) subirVideo(f); e.target.value = '' }}
+            />
           </div>
 
           {/* Meta info */}

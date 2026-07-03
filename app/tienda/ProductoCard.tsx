@@ -13,7 +13,7 @@ const AHORA_MS = Date.now()
 
 export type ProductoCardData = Pick<
   ProductoBase,
-  'id' | 'nombre' | 'foto_url' | 'fotos_urls' | 'precio_venta' | 'precio_anterior' | 'categoria' | 'subcategoria' | 'stock' | 'creado_en' | 'envio_gratis' | 'envio_dia'
+  'id' | 'nombre' | 'foto_url' | 'fotos_urls' | 'video_url' | 'precio_venta' | 'precio_anterior' | 'categoria' | 'subcategoria' | 'stock' | 'creado_en' | 'envio_gratis' | 'envio_dia'
 > & { producto_talles: { talle: string; color: string; stock: number }[] }
 
 export default function ProductoCard({

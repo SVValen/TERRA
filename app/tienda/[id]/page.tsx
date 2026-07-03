@@ -3,6 +3,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import FotoCarousel from './FotoCarousel'
 import SelectorVariante from './SelectorVariante'
+import ProductCarousel from '../ProductCarousel'
+import type { ProductoCardData } from '../ProductoCard'
 import { PRODUCTO_TIENDA_FIELDS, getBaseUrl } from '@/lib/tienda'
 
 async function getProducto(id: string) {
@@ -15,6 +17,39 @@ async function getProducto(id: string) {
     .eq('activo', true)
     .single()
   return data
+}
+
+async function getRelacionados(id: string, categoria: string | null): Promise<ProductoCardData[]> {
+  const supabase = createServiceClient()
+  const base = supabase
+    .from('productos')
+    .select(`${PRODUCTO_TIENDA_FIELDS}, producto_talles(talle, color, stock)`)
+    .eq('estado', 'disponible')
+    .eq('activo', true)
+    .neq('id', id)
+    .order('creado_en', { ascending: false })
+    .limit(8)
+
+  const { data: misma } = categoria ? await base.eq('categoria', categoria) : { data: null }
+
+  if (misma && misma.length >= 4) return misma
+
+  const { data: otros } = await supabase
+    .from('productos')
+    .select(`${PRODUCTO_TIENDA_FIELDS}, producto_talles(talle, color, stock)`)
+    .eq('estado', 'disponible')
+    .eq('activo', true)
+    .neq('id', id)
+    .order('creado_en', { ascending: false })
+    .limit(8)
+
+  const combinados = [...(misma ?? [])]
+  const ids = new Set(combinados.map(p => p.id))
+  for (const p of otros ?? []) {
+    if (combinados.length >= 8) break
+    if (!ids.has(p.id)) { combinados.push(p); ids.add(p.id) }
+  }
+  return combinados
 }
 
 async function getNegocio() {
@@ -66,6 +101,7 @@ export default async function ProductoTiendaPage({ params }: { params: Promise<{
   const { id } = await params
 
   const [producto, negocio] = await Promise.all([getProducto(id), getNegocio()])
+  const relacionados = producto ? await getRelacionados(id, producto.categoria) : []
 
   if (!producto) {
     return (
@@ -161,6 +197,15 @@ export default async function ProductoTiendaPage({ params }: { params: Promise<{
             ← Ver más productos
           </Link>
         </div>
+      </div>
+
+      <div className="mt-12">
+        <ProductCarousel
+          titulo="También te puede interesar"
+          productos={relacionados}
+          whatsapp={whatsapp}
+          nombreTienda={nombreTienda}
+        />
       </div>
     </div>
   )

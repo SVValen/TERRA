@@ -37,7 +37,18 @@ export default function HeroDestacados({
 
   return (
     <section className="relative w-full h-[60vh] sm:h-[70vh] bg-stone-100 overflow-hidden">
-      {p.foto_url ? (
+      {p.video_url ? (
+        <video
+          key={p.id}
+          src={p.video_url}
+          poster={p.foto_url ?? undefined}
+          className="absolute inset-0 w-full h-full object-cover"
+          autoPlay
+          muted
+          loop
+          playsInline
+        />
+      ) : p.foto_url ? (
         <Image
           key={p.id}
           src={p.foto_url}
