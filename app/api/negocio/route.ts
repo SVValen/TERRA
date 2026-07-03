@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { isValidHexColor } from '@/lib/color'
 
 const MAX_LOGO_SIZE = 5 * 1024 * 1024 // 5MB
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
@@ -26,6 +27,14 @@ export async function PATCH(request: NextRequest) {
 
   const margen = formData.get('margen_objetivo')
   if (margen !== null && margen !== '') updates.margen_objetivo = String(parseInt(String(margen), 10))
+
+  const colorPrimario = formData.get('color_primario')
+  if (colorPrimario !== null && colorPrimario !== '') {
+    if (!isValidHexColor(String(colorPrimario))) {
+      return NextResponse.json({ error: 'Color inválido, debe ser un hex de 6 dígitos (ej: #C9A574)' }, { status: 400 })
+    }
+    updates.color_primario = String(colorPrimario)
+  }
 
   const logo = formData.get('logo') as File | null
   if (logo && logo.size > 0) {

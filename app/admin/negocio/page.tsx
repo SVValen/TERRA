@@ -8,6 +8,7 @@ export default function NegocioPage() {
   const [nombre, setNombre] = useState('')
   const [whatsapp, setWhatsapp] = useState('')
   const [margen, setMargen] = useState('30')
+  const [colorPrimario, setColorPrimario] = useState('#C9A574')
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [archivo, setArchivo] = useState<File | null>(null)
@@ -20,6 +21,7 @@ export default function NegocioPage() {
       setNombre(d.nombre ?? '')
       setWhatsapp(d.whatsapp ?? '')
       setMargen(String(d.margen_objetivo ?? 30))
+      setColorPrimario(d.color_primario ?? '#C9A574')
       setLogoUrl(d.logo_url ?? null)
     })
   }, [])
@@ -39,6 +41,7 @@ export default function NegocioPage() {
     fd.append('nombre', nombre)
     fd.append('whatsapp', whatsapp)
     fd.append('margen_objetivo', margen)
+    fd.append('color_primario', colorPrimario)
     if (archivo) fd.append('logo', archivo)
     const res = await fetch('/api/negocio', { method: 'PATCH', body: fd })
     const data = await res.json()
@@ -146,6 +149,29 @@ export default function NegocioPage() {
                 </span>
               </p>
             )}
+          </div>
+        </div>
+
+        {/* Paleta de color */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5">
+          <label className="block text-sm font-semibold text-gray-700 dark:text-slate-200 mb-1">Color de la tienda</label>
+          <p className="text-xs text-gray-400 dark:text-slate-500 mb-3">Se usa en botones, acentos y detalles del panel y la tienda pública</p>
+          <div className="flex items-center gap-3">
+            <input
+              type="color"
+              value={colorPrimario}
+              onChange={e => setColorPrimario(e.target.value)}
+              className="w-12 h-10 rounded-lg border border-gray-200 dark:border-slate-600 cursor-pointer bg-transparent"
+            />
+            <div className="w-32">
+              <input
+                type="text"
+                value={colorPrimario}
+                onChange={e => setColorPrimario(e.target.value)}
+                className="input uppercase"
+                placeholder="#C9A574"
+              />
+            </div>
           </div>
         </div>
 

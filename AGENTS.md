@@ -37,7 +37,10 @@ Pasos en secuencia: nombre → descripción (texto libre, "-" para omitir) → c
 Endpoints `/api/tienda/*` son públicos. Solo exponen productos con `estado = 'disponible'` y `activo = true`. Los agotados (`stock = 0`) igual se muestran, grisados. **Nunca exponen `precio_costo`**. WhatsApp URL incluye link al producto con Open Graph.
 
 ### 5. Panel admin (/admin)
-Rutas protegidas por middleware JWT. Stock (con alta manual y toggle de visibilidad), caja, retiros, métricas, categorías (más las listas configurables de talles y colores en la misma sección), configuración del negocio (logo, nombre, whatsapp).
+Rutas protegidas por middleware JWT. Stock (con alta manual y toggle de visibilidad), caja, retiros, métricas, categorías (más las listas configurables de talles y colores en la misma sección), configuración del negocio (logo, nombre, whatsapp, margen objetivo, color de marca).
+
+### 6. Identidad de marca (logo, nombre, color)
+`negocio.nombre`, `negocio.logo_url` y `negocio.color_primario` alimentan: el título e ícono de pestaña de `/admin`, `/tienda` y `/login` (`generateMetadata` en cada layout/página), el logo mostrado en el login y en los headers, y la variable CSS `--accent` (con `--accent-dark` derivado automáticamente) inyectada en `app/layout.tsx` para toda la app. Se configura desde `/admin/negocio`.
 
 ## Reglas de negocio invariantes
 - `stock` **nunca baja de 0** — se valida contra el stock de la variante (`producto_talles`) antes de descontar en cada venta.
