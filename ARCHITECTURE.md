@@ -19,11 +19,21 @@
 - `app/layout.tsx` — Server Component raíz; fetcha `negocio.color_primario` e inyecta `<style>:root{--accent;--accent-dark}</style>` en `<head>`, aplicando el color de acento a toda la app (admin, tienda, login)
 - `app/login/page.tsx` — Server Component; `generateMetadata()` con nombre/logo del negocio; delega el formulario a `LoginForm.tsx`
 - `app/login/LoginForm.tsx` — Client Component; muestra el logo real del negocio (o iniciales del nombre como fallback) en vez de un ícono fijo
-- `app/tienda/layout.tsx` — además de nombre/logo/whatsapp, fetcha `color_fondo`, `color_texto` e `instagram` y los pasa a `TiendaShell`
-- `app/tienda/TiendaShell.tsx` — aplica `color_fondo` como `background` inline del wrapper (fallback a `bg-stone-50`) y expone `--tienda-text` (fallback `#1c1917`) como variable CSS que consumen los textos principales (nombre de marca, nombre de producto, precio) en `page.tsx` y `[id]/page.tsx`; el footer suma una sección "Contacto" con links de WhatsApp e Instagram (`https://instagram.com/{instagram}`)
+
+### Tienda pública — componentes compartidos
+- `lib/tienda.ts` — `PRODUCTO_TIENDA_FIELDS` (constante con el `.select()` de campos seguros para exponer públicamente, nunca incluye `costo`), `getBaseUrl()` (`NEXT_PUBLIC_BASE_URL` → `VERCEL_URL` → `''`; usada por `[id]/page.tsx` y por cualquier componente que arme URLs de producto)
+- `lib/whatsapp.ts` — `buildProductoWaUrl()` (mensaje de un solo producto, usado por `ProductoCard.tsx` y `SelectorVariante.tsx`) y `buildInteresWaUrl()` (mensaje con varios productos, usado por `PanelInteres.tsx`); ambas devuelven `null` si no hay `whatsapp` configurado
+- `app/tienda/WhatsAppIcon.tsx` — ícono SVG compartido (antes duplicado inline en 4+ lugares)
+- `app/tienda/layout.tsx` — Server Component; fetcha `negocio` completo (nombre, logo, whatsapp, instagram, colores, datos legales) y se lo pasa a `TiendaShell`
+- `app/tienda/TiendaShell.tsx` — Client Component orquestador; define `TiendaContext` (`{ negocio, interes }`, ver más abajo) y renderiza `Header` + `children` + `Footer` + `PanelInteres`; aplica `color_fondo` como `background` inline del wrapper y expone `--tienda-text` como variable CSS
+- `app/tienda/Header.tsx` — sticky; logo+nombre, menú de categorías (fetch a `/api/tienda/categorias`, dropdown on-hover en desktop, acordeón full-screen en mobile detrás de un botón hamburguesa), CTA de WhatsApp, ícono de "Interés" con contador
+- `app/tienda/Footer.tsx` — columnas Ayuda (estática), Institucional (`razon_social`/`cuit`/`direccion`, solo si están completos), Seguinos (WhatsApp + Instagram) y Newsletter (`POST /api/tienda/newsletter`)
+- `app/tienda/PanelInteres.tsx` — drawer lateral (full-screen en mobile) con la lista de productos que la clienta fue agregando desde `SelectorVariante.tsx`; botón "Consultar por WhatsApp" arma un solo mensaje con `buildInteresWaUrl()` y limpia la lista al confirmar
+- `app/tienda/ProductoCard.tsx` — card de producto (extraída de `page.tsx`): imagen con swap a la segunda foto on-hover (desktop), badge "Nuevo" (creado hace menos de 14 días) y "% OFF" (si `precio_anterior > precio_venta`), precio tachado si corresponde
+- `app/tienda/ProductCarousel.tsx` — fila de `ProductoCard` con scroll-snap nativo (sin librería externa) y flechas prev/next en desktop; no renderiza nada si la lista de productos está vacía
 
 ### Tipos compartidos
-- `lib/types.ts` — `Producto` (incluye `activo: boolean`, `descripcion: string | null`), `ProductoTalle` (incluye `color: string`), `Venta`, `Categoria`, `Talle`, `Color`, `Retiro`, `BotSesion`, `BotPaso`, `DatosParciales`; fuente de verdad de todas las entidades
+- `lib/types.ts` — `Producto` (incluye `activo: boolean`, `descripcion: string | null`, `destacado: boolean`, `orden_destacado: number | null`, `precio_anterior: number | null`), `ProductoTalle` (incluye `color: string`), `Negocio` (todos los campos de la tabla `negocio`, incluidos `razon_social`/`cuit`/`direccion`), `Venta`, `Categoria`, `Talle`, `Color`, `Retiro`, `BotSesion`, `BotPaso`, `DatosParciales`; fuente de verdad de todas las entidades
 
 ### Bot de Telegram
 - `app/api/telegram/webhook/route.ts` — cerebro del bot; maneja `manejarPaso()` y `handleCallbackQuery()`; estado de conversación en tabla `bot_sesiones`
@@ -36,30 +46,30 @@
 - `app/admin/Sidebar.tsx` — Client Component; navegación principal; link "Ver tienda" abre `/tienda` en nueva pestaña
 - `app/admin/stock/page.tsx` — listado de productos con filtros; botón "Nuevo producto"; toggle rápido `activo` (visible/oculto en tienda) por tarjeta
 - `app/admin/stock/nuevo/page.tsx` — alta de producto desde cero (nombre, descripción, categoría, talles/colores múltiples con stock por combinación, costo/precio); crea el producto vía `POST /api/productos` y redirige a `/admin/stock/[id]` para cargar fotos
-- `app/admin/stock/[id]/page.tsx` — detalle de producto: edición (incluye descripción), registro de ventas (modal con un único selector de variante talle+color), gestión de fotos, checkbox `activo`
+- `app/admin/stock/[id]/page.tsx` — detalle de producto: edición (incluye descripción), registro de ventas (modal con un único selector de variante talle+color), gestión de fotos, checkbox `activo`, checkbox `destacado` + input `orden_destacado` (solo visible si está tildado), input `precio_anterior` opcional
 - `app/admin/categorias/page.tsx` — gestión de categorías/subcategorías, y (secciones nuevas) listas planas de **talles** y **colores** disponibles para cargar stock, vía el componente compartido `ListaSimple.tsx`
-- `app/admin/negocio/page.tsx` — config del negocio: nombre, logo, contacto (whatsapp + instagram), margen objetivo, colores (`color_primario` de acento, `color_fondo` y `color_texto` de la tienda pública — todos `input type="color"` + hex)
+- `app/admin/negocio/page.tsx` — config del negocio: nombre, logo, contacto (whatsapp + instagram), datos legales (`razon_social`/`cuit`/`direccion`, para el footer), margen objetivo, colores (`color_primario` de acento, `color_fondo` y `color_texto` de la tienda pública — todos `input type="color"` + hex)
 
 ### APIs protegidas (`/api/*`)
 - `app/api/productos/route.ts` — GET lista con filtros; POST crea producto desde el panel web (`origen: 'web'`, `estado: 'disponible'`, `activo: true`, `descripcion`) e inserta sus `producto_talles` (talle + color + stock por fila)
 - `app/api/productos/[id]/fotos/route.ts` — POST sube foto a Storage y appends a `fotos_urls`; DELETE elimina de array y Storage, actualiza `foto_url` al siguiente disponible
 - `app/api/ventas/route.ts` — POST venta: requiere `talle` (y opcionalmente `color`, `''` si no aplica), descuenta el `stock` de esa variante talle+color en `producto_talles`, recalcula `productos.stock` como suma de todas las variantes, marca `vendido` solo si el total llega a 0
-- `app/api/negocio/route.ts` — GET/PATCH config del negocio (incluye `whatsapp`, `instagram` (sin `@`), `margen_objetivo`, `color_primario`/`color_fondo`/`color_texto` — validados con `isValidHexColor()`)
+- `app/api/negocio/route.ts` — GET/PATCH config del negocio (incluye `whatsapp`, `instagram` (sin `@`), `razon_social`/`cuit`/`direccion`, `margen_objetivo`, `color_primario`/`color_fondo`/`color_texto` — validados con `isValidHexColor()`)
 - `app/api/categorias/route.ts` y `[id]/route.ts` — CRUD categorías con subcategorías como array
 - `app/api/talles/route.ts` y `[id]/route.ts`, `app/api/colores/route.ts` y `[id]/route.ts` — CRUD simple (mismo patrón que categorías, sin subcategorías) de las listas configurables de talles y colores
 
 ### Tienda pública (`/tienda`)
-- `app/tienda/layout.tsx` — Server Component; fetcha `negocio` y pasa a TiendaShell
-- `app/tienda/TiendaShell.tsx` — Client Component; React Context `TiendaContext` (whatsapp, nombre); header sticky con logo, footer
-- `app/tienda/page.tsx` — Client Component; catálogo con filtros de categoría/subcategoría/búsqueda; usa `useTienda()` para contexto
-- `app/tienda/[id]/page.tsx` — **Server Component**; `generateMetadata()` con Open Graph/Twitter Card (usa `descripcion` si existe, si no arma un resumen); muestra la `descripcion` del producto; delega el selector interactivo talle/color y la construcción del link de WhatsApp a `SelectorVariante.tsx`
-- `app/tienda/[id]/FotoCarousel.tsx` — Client Component; carrusel interactivo de fotos (useState)
-- `app/tienda/[id]/SelectorVariante.tsx` — Client Component; recibe las variantes (talle, color, stock) del Server Component padre; selección de talle → colores disponibles para ese talle → arma el mensaje de WhatsApp client-side incluyendo la variante elegida. La selección es **opcional**: el botón de WhatsApp nunca se deshabilita, si no se elige nada se manda el mensaje genérico
+- `app/tienda/page.tsx` — Client Component; home + catálogo en una sola ruta: carousels "Destacados"/"Nuevos" arriba, filtros de categoría/subcategoría/búsqueda y grilla "Catálogo completo" debajo; usa `useTienda()` para `negocio`; lee `?categoria=`/`?subcategoria=` de la URL al montar (llegan desde los links del dropdown de `Header.tsx`)
+- `app/tienda/[id]/page.tsx` — **Server Component**; `generateMetadata()` con Open Graph/Twitter Card (usa `descripcion` si existe, si no arma un resumen); muestra la `descripcion` y el `precio_anterior` tachado si corresponde; delega el selector interactivo talle/color, el link de WhatsApp y el botón "Agregar a mi interés" a `SelectorVariante.tsx`
+- `app/tienda/[id]/FotoCarousel.tsx` — Client Component; carrusel interactivo de fotos de UN producto (useState, swipe, zoom) — no confundir con `ProductCarousel.tsx` (fila de productos en el home)
+- `app/tienda/[id]/SelectorVariante.tsx` — Client Component; recibe las variantes (talle, color, stock) del Server Component padre; selección de talle → colores disponibles para ese talle → arma el mensaje de WhatsApp con `buildProductoWaUrl()`. La selección es **opcional**: el botón de WhatsApp nunca se deshabilita, si no se elige nada se manda el mensaje genérico. Botón secundario "Agregar a mi interés" (usa `useTienda().interes.agregar()`) — ambos caminos conviven
 
 ### APIs públicas (`/api/tienda/*`)
 - `app/api/tienda/negocio/route.ts` — GET `nombre, logo_url, whatsapp`; sin auth
-- `app/api/tienda/productos/route.ts` — GET productos `disponible` y `activo = true` (ya no filtra por `stock > 0` — productos agotados se siguen mostrando, grisados en el cliente); incluye `producto_talles(talle, color, stock)` embebido; soporta filtros `q, categoria, subcategoria, talle` (el filtro `talle` usa `producto_talles!inner`); **omite `costo`**
-- `app/api/tienda/productos/[id]/route.ts` — GET producto individual si `estado = disponible` y `activo = true`; incluye `descripcion` y `producto_talles(talle, color, stock)`
+- `app/api/tienda/categorias/route.ts` — GET `id, nombre, subcategorias`; alimenta el dropdown del header
+- `app/api/tienda/productos/route.ts` — GET productos `disponible` y `activo = true` (ya no filtra por `stock > 0` — productos agotados se siguen mostrando, grisados en el cliente); usa `PRODUCTO_TIENDA_FIELDS` + `producto_talles(talle, color, stock)` embebido; soporta filtros `q, categoria, subcategoria, talle` (el filtro `talle` usa `producto_talles!inner`) y `destacado=true` (filtra + ordena por `orden_destacado`); **omite `costo`**
+- `app/api/tienda/productos/[id]/route.ts` — GET producto individual si `estado = disponible` y `activo = true`; usa `PRODUCTO_TIENDA_FIELDS` + `producto_talles(talle, color, stock)`
+- `app/api/tienda/newsletter/route.ts` — POST `{ email }` público; valida formato básico e inserta en `newsletter_suscriptores`; devuelve 200 aunque el email ya exista (no filtra si estaba suscripto)
 
 ---
 
@@ -78,7 +88,10 @@ Middleware valida JWT con `jose` en cada request no-PUBLIC. Las API routes no re
 - Layouts: Server Components → fetchan datos iniciales (negocio)
 - Páginas con estado interactivo: Client Components con `fetch` propio
 - Excepción: `app/tienda/[id]/page.tsx` es Server Component para poder exportar `generateMetadata()`
-- Componentes con interactividad extraídos: `FotoCarousel.tsx`, `TiendaShell.tsx`
+- Componentes con interactividad extraídos: `FotoCarousel.tsx`, `TiendaShell.tsx`, `Header.tsx`, `Footer.tsx`, `PanelInteres.tsx`, `ProductoCard.tsx`, `ProductCarousel.tsx`
+
+### Panel de "Interés" (no es un carrito de compra)
+`TiendaContext.interes` (definido en `TiendaShell.tsx`) mantiene `items: InteresItem[]` persistidos en `localStorage` (clave `sp-interes`, leído/escrito en efectos separados con un ref `cargado` para no pisar el storage antes de la carga inicial). No hay reserva de stock ni checkout: es solo una lista de productos+variante que la clienta arma mientras navega y que se resuelve con un único mensaje de WhatsApp (`buildInteresWaUrl()`) al confirmar desde `PanelInteres.tsx`, que además limpia la lista después de abrir el link.
 
 ### Fotos de productos
 Dos campos en la tabla: `foto_url` (principal/thumbnail, string) y `fotos_urls` (todas las fotos, array). Al borrar una foto: se remueve de `fotos_urls` y `foto_url` se actualiza a `fotos_urls[0]` o null. Storage bucket: `Fotos`.
@@ -106,7 +119,9 @@ En tienda pública la URL del producto se construye con `getBaseUrl()`:
 - **Dos conjuntos de APIs separados** (`/api/` vs `/api/tienda/`): evita condicionamiento en un solo endpoint; hace explícito y auditeable qué datos son públicos.
 - **Bot de Telegram como interfaz primaria de carga**: la dueña carga productos por chat, no por formulario web. Estado de conversación persistido en tabla `bot_sesiones`.
 - **`app/tienda/[id]/page.tsx` como Server Component**: requisito para exportar `generateMetadata()` con OG tags. La interactividad (carrusel) se extrae a `FotoCarousel.tsx`.
-- **React Context en TiendaShell**: `whatsapp` y `nombre` del negocio se fetchan una vez en el layout (Server) y se distribuyen a todos los componentes de la tienda via Context, sin prop drilling.
+- **React Context en TiendaShell**: el negocio completo (`nombre, logoUrl, whatsapp, instagram, colores, datos legales`) se fetcha una vez en el layout (Server) y se distribuye a todos los componentes de la tienda vía un único Context (`{ negocio, interes }`), sin prop drilling. Se mantiene un solo Context (no uno separado para el panel de Interés) porque ambos viven en `TiendaShell.tsx` y siempre se consumen juntos.
+- **Select de productos unificado**: `lib/tienda.ts` centraliza `PRODUCTO_TIENDA_FIELDS`, el string de `.select()` compartido por `app/api/tienda/productos/route.ts`, `app/api/tienda/productos/[id]/route.ts` y `app/tienda/[id]/page.tsx` — antes cada uno mantenía su propio string casi idéntico, agregar un campo nuevo (como `precio_anterior`/`destacado`) requería sincronizar 3 lugares a mano.
+- **Builder de WhatsApp unificado**: `lib/whatsapp.ts` reemplaza los builders de mensaje que antes vivían duplicados e inconsistentes en `page.tsx` (calculaba el origin client-side) y `SelectorVariante.tsx` (recibía la URL ya armada server-side). Ahora todas las URLs de producto se arman server-side y se pasan como prop.
 - **`producto_talles` como tabla hija en vez de columna JSON**: todo el código usa el query builder directo de Supabase JS (`.eq()`, `.gt()`, filtros embebidos); una tabla hija compone naturalmente con eso, mientras que un array JSON hubiera requerido operadores `jsonb` más frágiles sin ORM. El stock total en `productos.stock` se recalcula en los route handlers (no con triggers de DB) para mantener toda la lógica de negocio auditable en TypeScript, consistente con el resto del proyecto.
 
 ---
@@ -120,9 +135,27 @@ En tienda pública la URL del producto se construye con `getBaseUrl()`:
 - Migración de descripción + color ya aplicada (`ALTER TABLE productos ADD COLUMN descripcion text`; tablas `talles`/`colores`; `ALTER TABLE producto_talles ADD COLUMN color text NOT NULL DEFAULT ''` + swap de constraint UNIQUE a `(producto_id, talle, color)`; `ALTER TABLE ventas ADD COLUMN color text`) en TERRA y SHOWROOM
 - Migración de color de marca **pendiente de correr**: `ALTER TABLE negocio ADD COLUMN color_primario text;` en TERRA y SHOWROOM
 - Migración de fondo/texto/instagram **pendiente de correr**: `ALTER TABLE negocio ADD COLUMN color_fondo text; ALTER TABLE negocio ADD COLUMN color_texto text; ALTER TABLE negocio ADD COLUMN instagram text;` en TERRA y SHOWROOM
+- Migración de la tienda estilo Cameo **pendiente de correr** en TERRA y SHOWROOM:
+  ```sql
+  ALTER TABLE productos ADD COLUMN destacado boolean NOT NULL DEFAULT false;
+  ALTER TABLE productos ADD COLUMN orden_destacado integer;
+  ALTER TABLE productos ADD COLUMN precio_anterior numeric;
+
+  CREATE TABLE newsletter_suscriptores (
+    id uuid primary key default gen_random_uuid(),
+    email text NOT NULL UNIQUE,
+    creado_en timestamptz NOT NULL DEFAULT now()
+  );
+
+  ALTER TABLE negocio ADD COLUMN razon_social text;
+  ALTER TABLE negocio ADD COLUMN cuit text;
+  ALTER TABLE negocio ADD COLUMN direccion text;
+  ```
 - Limpieza pendiente tras período de verificación: `ALTER TABLE productos DROP COLUMN talle` (columna vieja escalar, ya no se usa)
 
 ### Deuda técnica conocida
 - No hay RLS en Supabase: si el `SUPABASE_SERVICE_ROLE_KEY` se filtra, hay acceso total a la DB
 - El bot no valida que el `telegram_id` pertenezca a un usuario registrado antes de procesar pasos de carga
 - `app/admin/stock/[id]/page.tsx` es un Client Component pesado — candidato a split Server/Client cuando crezca
+- El contenido de "Guía de talles" y "Cambios y devoluciones" en el footer (`Footer.tsx`) es texto estático hardcodeado, no editable desde el admin — pendiente si se necesita CMS a futuro
+- El dropdown de categorías del header navega con query params (`?categoria=`/`?subcategoria=`) que `page.tsx` lee client-side en un efecto al montar (no hay SSR de los filtros ni sincronización de vuelta a la URL cuando se cambia el filtro desde los pills de la página)

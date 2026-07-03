@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { PRODUCTO_TIENDA_FIELDS } from '@/lib/tienda'
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -7,7 +8,7 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
 
   const { data, error } = await supabase
     .from('productos')
-    .select('id, nombre, descripcion, foto_url, fotos_urls, precio_venta, categoria, subcategoria, stock, creado_en, producto_talles(talle, color, stock)')
+    .select(`${PRODUCTO_TIENDA_FIELDS}, producto_talles(talle, color, stock)`)
     .eq('id', id)
     .eq('estado', 'disponible')
     .eq('activo', true)

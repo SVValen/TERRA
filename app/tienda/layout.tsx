@@ -20,7 +20,7 @@ export default async function TiendaLayout({ children }: { children: ReactNode }
   const supabase = createServiceClient()
   const { data: negocio } = await supabase
     .from('negocio')
-    .select('nombre, logo_url, whatsapp, color_fondo, color_texto, instagram')
+    .select('nombre, logo_url, whatsapp, color_fondo, color_texto, instagram, razon_social, cuit, direccion')
     .eq('id', 1)
     .single()
 
@@ -32,6 +32,9 @@ export default async function TiendaLayout({ children }: { children: ReactNode }
       colorFondo={negocio?.color_fondo ?? null}
       colorTexto={negocio?.color_texto ?? null}
       instagram={negocio?.instagram ?? null}
+      razonSocial={negocio?.razon_social ?? null}
+      cuit={negocio?.cuit ?? null}
+      direccion={negocio?.direccion ?? null}
     >
       {children}
     </TiendaShell>

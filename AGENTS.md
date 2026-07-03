@@ -4,11 +4,13 @@
 ## Descripción
 App de gestión de showroom de indumentaria. Permite a la dueña administrar stock,
 registrar ventas, controlar caja y retiros, y ver métricas del negocio. Incluye
-un catálogo público (/tienda) para que las clientas vean productos disponibles,
-elijan talle/color y consulten por WhatsApp. Los productos se cargan vía bot de
-Telegram o desde el panel web (`/admin/stock/nuevo`), con descripción y stock
-por combinación de talle+color. Las listas de talles y colores disponibles son
-configurables desde el panel (`/admin/categorias`).
+un catálogo público (/tienda) con carousels de destacados/nuevos, menú de
+categorías, panel de "Interés" (no es carrito de compra) y newsletter, para que
+las clientas vean productos disponibles, elijan talle/color y consulten por
+WhatsApp. Los productos se cargan vía bot de Telegram o desde el panel web
+(`/admin/stock/nuevo`), con descripción y stock por combinación de talle+color.
+Las listas de talles y colores disponibles son configurables desde el panel
+(`/admin/categorias`).
 
 ## Stack
 - **Next.js 16.2.9** — App Router, Server + Client Components, `generateMetadata`
@@ -41,6 +43,9 @@ Rutas protegidas por middleware JWT. Stock (con alta manual y toggle de visibili
 
 ### 6. Identidad de marca (logo, nombre, colores, contacto)
 `negocio.nombre`, `negocio.logo_url` y `negocio.color_primario` alimentan: el título e ícono de pestaña de `/admin`, `/tienda` y `/login` (`generateMetadata` en cada layout/página), el logo mostrado en el login y en los headers, y la variable CSS `--accent` (con `--accent-dark` derivado automáticamente) inyectada en `app/layout.tsx` para toda la app. Además, `negocio.color_fondo` y `negocio.color_texto` personalizan el fondo y el color de los textos principales (nombre de marca, nombre de producto, precio) específicamente en `/tienda`. `negocio.instagram` agrega un link a Instagram en la sección "Contacto" del footer de la tienda, junto al de WhatsApp. Todo se configura desde `/admin/negocio`.
+
+### 7. Tienda pública ampliada (estilo Cameo/Tiendanube)
+`/tienda` (home) muestra dos carousels arriba del catálogo — "Destacados" (`productos.destacado = true`, ordenados por `orden_destacado`) y "Nuevos" (últimos por `creado_en`) — seguidos del catálogo completo con los filtros de siempre. El header incluye un menú desplegable de categorías (hover en desktop, acordeón full-screen en mobile) y un ícono de "Interés" con contador. El panel de "Interés" (`PanelInteres.tsx`) es una lista de productos que la clienta arma mientras navega (persistida en `localStorage`, **no es un carrito de compra real** — no hay stock reservado ni checkout) y que se resuelve con **un solo mensaje de WhatsApp** listando todo. Cada card de producto muestra badge "Nuevo" (creado hace menos de 14 días) y "% OFF" (si `precio_anterior > precio_venta`), con la segunda foto del producto on-hover en desktop. El footer suma columnas de Ayuda (estática), Institucional (`razon_social`/`cuit`/`direccion`, solo los que estén completos) y Newsletter (`POST /api/tienda/newsletter` → tabla `newsletter_suscriptores`).
 
 ## Reglas de negocio invariantes
 - `stock` **nunca baja de 0** — se valida contra el stock de la variante (`producto_talles`) antes de descontar en cada venta.

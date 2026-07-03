@@ -1,15 +1,9 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
 import { useTienda } from './TiendaShell'
-import type { Producto as ProductoBase } from '@/lib/types'
-
-type Producto = Pick<
-  ProductoBase,
-  'id' | 'nombre' | 'foto_url' | 'fotos_urls' | 'precio_venta' | 'categoria' | 'subcategoria' | 'stock'
-> & { producto_talles: { talle: string; color: string; stock: number }[] }
+import ProductoCard, { type ProductoCardData } from './ProductoCard'
+import ProductCarousel from './ProductCarousel'
 
 interface Categoria {
   id: string
@@ -18,8 +12,10 @@ interface Categoria {
 }
 
 export default function TiendaPage() {
-  const { whatsapp, nombre } = useTienda()
-  const [productos, setProductos] = useState<Producto[]>([])
+  const { negocio } = useTienda()
+  const [productos, setProductos] = useState<ProductoCardData[]>([])
+  const [destacados, setDestacados] = useState<ProductoCardData[]>([])
+  const [nuevos, setNuevos] = useState<ProductoCardData[]>([])
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [loading, setLoading] = useState(true)
   const [busqueda, setBusqueda] = useState('')
@@ -29,6 +25,15 @@ export default function TiendaPage() {
   useEffect(() => {
     fetch('/api/tienda/categorias').then(r => r.json()).then(setCategorias)
     fetch('/api/tienda/visita', { method: 'POST' })
+    fetch('/api/tienda/productos?destacado=true').then(r => r.json()).then(setDestacados)
+    fetch('/api/tienda/productos').then(r => r.json()).then((data: ProductoCardData[]) => setNuevos(data.slice(0, 10)))
+
+    // Llega desde el dropdown de categorías del header (link con query params)
+    Promise.resolve().then(() => {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('categoria')) setCategoriaActiva(params.get('categoria')!)
+      if (params.get('subcategoria')) setSubcategoriaActiva(params.get('subcategoria')!)
+    })
   }, [])
 
   const cargar = useCallback(async () => {
@@ -49,6 +54,11 @@ export default function TiendaPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+      <ProductCarousel titulo="Destacados" productos={destacados} whatsapp={negocio.whatsapp} nombreTienda={negocio.nombre} />
+      <ProductCarousel titulo="Nuevos" productos={nuevos} whatsapp={negocio.whatsapp} nombreTienda={negocio.nombre} />
+
+      <h2 className="text-lg font-bold mb-4" style={{ color: 'var(--tienda-text)' }}>Catálogo completo</h2>
+
       {/* Búsqueda */}
       <div className="mb-6">
         <div className="relative max-w-md">
@@ -160,118 +170,10 @@ export default function TiendaPage() {
       {!loading && productos.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
           {productos.map(p => (
-            <ProductCard key={p.id} producto={p} whatsapp={whatsapp} nombreTienda={nombre} />
+            <ProductoCard key={p.id} producto={p} whatsapp={negocio.whatsapp} nombreTienda={negocio.nombre} />
           ))}
         </div>
       )}
-    </div>
-  )
-}
-
-function buildWaUrl(whatsapp: string, nombreTienda: string, p: Producto) {
-  const base = typeof window !== 'undefined' ? window.location.origin : ''
-  const link = `${base}/tienda/${p.id}`
-  const tallesConStock = p.producto_talles?.filter(t => t.stock > 0).map(t => t.talle) ?? []
-  const lines = [
-    `Hola *${nombreTienda}*! 👋`,
-    ``,
-    `Me interesa este producto:`,
-    `*${p.nombre}*`,
-    tallesConStock.length > 0 ? `Talle: ${tallesConStock.join('/')}` : '',
-    `Precio: $${p.precio_venta.toLocaleString('es-AR')}`,
-    ``,
-    link,
-  ].filter(l => l !== undefined)
-  return `https://wa.me/${whatsapp}?text=${encodeURIComponent(lines.join('\n'))}`
-}
-
-function ProductCard({ producto: p, whatsapp, nombreTienda }: { producto: Producto; whatsapp: string | null; nombreTienda: string }) {
-  const waUrl = whatsapp ? buildWaUrl(whatsapp, nombreTienda, p) : null
-
-  const sinStock = p.stock === 0
-
-  return (
-    <div className={`group bg-white rounded-2xl overflow-hidden border border-stone-100 hover:border-stone-200 hover:shadow-lg transition-all duration-300 ${sinStock ? 'opacity-60' : ''}`}>
-      <Link href={`/tienda/${p.id}`} className="block">
-        <div className="aspect-square bg-stone-50 relative overflow-hidden">
-          {p.foto_url ? (
-            <Image
-              src={p.foto_url}
-              alt={p.nombre}
-              fill
-              className={`object-cover group-hover:scale-105 transition-transform duration-500 ${sinStock ? 'grayscale' : ''}`}
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-5xl text-stone-200">📷</div>
-          )}
-          {p.fotos_urls?.length > 1 && (
-            <div className="absolute bottom-2 right-2 bg-black/40 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium">
-              +{p.fotos_urls.length - 1}
-            </div>
-          )}
-          {sinStock && (
-            <div className="absolute top-2 left-2 bg-stone-800/80 text-white text-[10px] px-2 py-0.5 rounded-full font-medium">
-              Sin stock
-            </div>
-          )}
-        </div>
-      </Link>
-
-      <div className="p-3 sm:p-4">
-        <Link href={`/tienda/${p.id}`}>
-          <p className="font-semibold text-sm leading-snug line-clamp-2 mb-1.5 hover:text-amber-800 transition-colors" style={{ color: 'var(--tienda-text)' }}>
-            {p.nombre}
-          </p>
-        </Link>
-
-        {(p.categoria || p.subcategoria) && (
-          <p className="text-xs text-stone-400 mb-1.5">
-            {[p.categoria, p.subcategoria].filter(Boolean).join(' · ')}
-          </p>
-        )}
-
-        {p.producto_talles && p.producto_talles.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-2">
-            {p.producto_talles.map(t => (
-              <span
-                key={t.talle}
-                className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full ${
-                  t.stock > 0 ? 'text-stone-600 bg-stone-100' : 'text-stone-300 bg-stone-50 line-through'
-                }`}
-              >
-                {t.talle}
-              </span>
-            ))}
-          </div>
-        )}
-
-        <div className="flex items-center justify-between mt-2">
-          <p className="text-base font-bold" style={{ color: 'var(--tienda-text)' }}>
-            ${p.precio_venta.toLocaleString('es-AR')}
-          </p>
-          {waUrl ? (
-            <a
-              href={waUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => fetch('/api/tienda/click-wa', { method: 'POST' })}
-              className="text-xs font-semibold px-3 py-1.5 rounded-full text-white transition-colors"
-              style={{ background: '#25D366' }}
-            >
-              Consultar
-            </a>
-          ) : (
-            <Link
-              href={`/tienda/${p.id}`}
-              className="text-xs font-semibold px-3 py-1.5 rounded-full text-slate-900 transition-opacity"
-              style={{ background: 'var(--accent)' }}
-            >
-              Ver más
-            </Link>
-          )}
-        </div>
-      </div>
     </div>
   )
 }

@@ -3,12 +3,13 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import FotoCarousel from './FotoCarousel'
 import SelectorVariante from './SelectorVariante'
+import { PRODUCTO_TIENDA_FIELDS, getBaseUrl } from '@/lib/tienda'
 
 async function getProducto(id: string) {
   const supabase = createServiceClient()
   const { data } = await supabase
     .from('productos')
-    .select('id, nombre, descripcion, foto_url, fotos_urls, precio_venta, categoria, subcategoria, stock, producto_talles(talle, color, stock)')
+    .select(`${PRODUCTO_TIENDA_FIELDS}, producto_talles(talle, color, stock)`)
     .eq('id', id)
     .eq('estado', 'disponible')
     .eq('activo', true)
@@ -20,12 +21,6 @@ async function getNegocio() {
   const supabase = createServiceClient()
   const { data } = await supabase.from('negocio').select('nombre, whatsapp').eq('id', 1).single()
   return data
-}
-
-function getBaseUrl() {
-  if (process.env.NEXT_PUBLIC_BASE_URL) return process.env.NEXT_PUBLIC_BASE_URL
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
-  return ''
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -124,10 +119,15 @@ export default async function ProductoTiendaPage({ params }: { params: Promise<{
             <p className="text-sm text-stone-600 mb-4 whitespace-pre-line">{producto.descripcion}</p>
           )}
 
-          <div className="mb-6">
+          <div className="mb-6 flex items-baseline gap-2.5">
             <p className="text-3xl font-bold" style={{ color: 'var(--tienda-text)' }}>
               ${producto.precio_venta.toLocaleString('es-AR')}
             </p>
+            {producto.precio_anterior && producto.precio_anterior > producto.precio_venta && (
+              <p className="text-lg text-stone-400 line-through">
+                ${producto.precio_anterior.toLocaleString('es-AR')}
+              </p>
+            )}
           </div>
 
           {producto.stock > 1 && (
@@ -147,8 +147,10 @@ export default async function ProductoTiendaPage({ params }: { params: Promise<{
           )}
 
           <SelectorVariante
+            productoId={id}
             variantes={producto.producto_talles ?? []}
             nombre={producto.nombre}
+            foto={producto.foto_url}
             precioVenta={producto.precio_venta}
             whatsapp={whatsapp}
             nombreTienda={nombreTienda}

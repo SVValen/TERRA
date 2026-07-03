@@ -30,6 +30,9 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
   const [margenObjetivo, setMargenObjetivo] = useState<number | null>(null)
   const [estado, setEstado] = useState('')
   const [activo, setActivo] = useState(true)
+  const [destacado, setDestacado] = useState(false)
+  const [ordenDestacado, setOrdenDestacado] = useState('')
+  const [precioAnterior, setPrecioAnterior] = useState('')
 
   // Modal venta
   const [modalVenta, setModalVenta] = useState(false)
@@ -67,6 +70,9 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
       setPrecioVenta(String(p.precio_venta))
       setEstado(p.estado)
       setActivo(p.activo)
+      setDestacado(p.destacado)
+      setOrdenDestacado(p.orden_destacado != null ? String(p.orden_destacado) : '')
+      setPrecioAnterior(p.precio_anterior != null ? String(p.precio_anterior) : '')
       setLoading(false)
     })
   }, [id])
@@ -85,6 +91,9 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
         precio_venta: parseFloat(precioVenta),
         estado,
         activo,
+        destacado,
+        orden_destacado: destacado && ordenDestacado ? parseInt(ordenDestacado, 10) : null,
+        precio_anterior: precioAnterior ? parseFloat(precioAnterior) : null,
         talles: talles.filter(t => t.talle.trim()),
       }),
     })
@@ -422,6 +431,19 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
             </FormField>
           </div>
 
+          <FormField label="Precio anterior (opcional)">
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 text-sm">$</span>
+              <input
+                type="number"
+                value={precioAnterior}
+                onChange={e => setPrecioAnterior(e.target.value)}
+                placeholder="Dejar vacío si no hay descuento"
+                className="input pl-7"
+              />
+            </div>
+          </FormField>
+
           <FormField label="Estado">
             <select value={estado} onChange={e => setEstado(e.target.value)} className="input">
               <option value="disponible">Disponible</option>
@@ -441,6 +463,30 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
               {activo ? 'Visible en la tienda pública' : 'Oculto — solo vos lo ves en el panel'}
             </span>
           </label>
+
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={destacado}
+                onChange={e => setDestacado(e.target.checked)}
+                className="w-4 h-4 rounded accent-amber-500"
+              />
+              <span className="text-sm text-gray-700 dark:text-slate-300">Destacado (aparece en el carrousel de home)</span>
+            </label>
+            {destacado && (
+              <div className="w-20 shrink-0">
+                <input
+                  type="number"
+                  value={ordenDestacado}
+                  onChange={e => setOrdenDestacado(e.target.value)}
+                  placeholder="Orden"
+                  min="0"
+                  className="input"
+                />
+              </div>
+            )}
+          </div>
 
           <div className="flex flex-col gap-2 pt-2">
             <button

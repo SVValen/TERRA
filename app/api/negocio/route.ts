@@ -55,6 +55,15 @@ export async function PATCH(request: NextRequest) {
   const instagram = formData.get('instagram')
   if (instagram !== null) updates.instagram = String(instagram).trim().replace(/^@/, '')
 
+  const razonSocial = formData.get('razon_social')
+  if (razonSocial !== null) updates.razon_social = String(razonSocial).trim()
+
+  const cuit = formData.get('cuit')
+  if (cuit !== null) updates.cuit = String(cuit).trim()
+
+  const direccion = formData.get('direccion')
+  if (direccion !== null) updates.direccion = String(direccion).trim()
+
   const logo = formData.get('logo') as File | null
   if (logo && logo.size > 0) {
     if (!ALLOWED_IMAGE_TYPES.includes(logo.type)) {

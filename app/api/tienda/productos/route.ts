@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { PRODUCTO_TIENDA_FIELDS } from '@/lib/tienda'
 
 export async function GET(request: NextRequest) {
   const supabase = createServiceClient()
@@ -10,10 +11,16 @@ export async function GET(request: NextRequest) {
 
   let query = supabase
     .from('productos')
-    .select(`id, nombre, foto_url, fotos_urls, precio_venta, categoria, subcategoria, stock, creado_en, ${selectTalles}`)
+    .select(`${PRODUCTO_TIENDA_FIELDS}, ${selectTalles}`)
     .eq('estado', 'disponible')
     .eq('activo', true)
-    .order('creado_en', { ascending: false })
+
+  const destacado = searchParams.get('destacado')
+  if (destacado === 'true') {
+    query = query.eq('destacado', true).order('orden_destacado', { ascending: true, nullsFirst: false })
+  } else {
+    query = query.order('creado_en', { ascending: false })
+  }
 
   const q = searchParams.get('q')
   if (q) query = query.ilike('nombre', `%${q}%`)

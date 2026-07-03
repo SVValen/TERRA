@@ -19,6 +19,9 @@ export interface Producto {
   talle: string | null
   costo: number
   precio_venta: number
+  precio_anterior: number | null
+  destacado: boolean
+  orden_destacado: number | null
   stock: number
   estado: ProductoEstado
   activo: boolean
@@ -59,6 +62,22 @@ export interface Color {
   id: string
   nombre: string
   creado_en: string
+}
+
+export interface Negocio {
+  id: number
+  nombre: string
+  logo_url: string | null
+  whatsapp: string | null
+  instagram: string | null
+  color_primario: string | null
+  color_fondo: string | null
+  color_texto: string | null
+  margen_objetivo: number | null
+  razon_social: string | null
+  cuit: string | null
+  direccion: string | null
+  actualizado_en: string
 }
 
 export interface Retiro {

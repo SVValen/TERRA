@@ -12,6 +12,9 @@ export default function NegocioPage() {
   const [colorFondo, setColorFondo] = useState('#FAFAF9')
   const [colorTexto, setColorTexto] = useState('#1C1917')
   const [instagram, setInstagram] = useState('')
+  const [razonSocial, setRazonSocial] = useState('')
+  const [cuit, setCuit] = useState('')
+  const [direccion, setDireccion] = useState('')
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
   const [archivo, setArchivo] = useState<File | null>(null)
@@ -28,6 +31,9 @@ export default function NegocioPage() {
       setColorFondo(d.color_fondo ?? '#FAFAF9')
       setColorTexto(d.color_texto ?? '#1C1917')
       setInstagram(d.instagram ?? '')
+      setRazonSocial(d.razon_social ?? '')
+      setCuit(d.cuit ?? '')
+      setDireccion(d.direccion ?? '')
       setLogoUrl(d.logo_url ?? null)
     })
   }, [])
@@ -51,6 +57,9 @@ export default function NegocioPage() {
     fd.append('color_fondo', colorFondo)
     fd.append('color_texto', colorTexto)
     fd.append('instagram', instagram)
+    fd.append('razon_social', razonSocial)
+    fd.append('cuit', cuit)
+    fd.append('direccion', direccion)
     if (archivo) fd.append('logo', archivo)
     const res = await fetch('/api/negocio', { method: 'PATCH', body: fd })
     const data = await res.json()
@@ -150,6 +159,47 @@ export default function NegocioPage() {
                 placeholder="miusuario"
               />
             </div>
+          </div>
+        </div>
+
+        {/* Datos legales */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5 space-y-4">
+          <div>
+            <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-200">Datos legales</h2>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Se muestran en el pie de página de la tienda (los que completes)</p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Razón social</label>
+            <input
+              type="text"
+              value={razonSocial}
+              onChange={e => setRazonSocial(e.target.value)}
+              className="input"
+              placeholder="Ej: Juana Pérez"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">CUIT</label>
+            <input
+              type="text"
+              value={cuit}
+              onChange={e => setCuit(e.target.value)}
+              className="input"
+              placeholder="20-12345678-9"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Dirección</label>
+            <input
+              type="text"
+              value={direccion}
+              onChange={e => setDireccion(e.target.value)}
+              className="input"
+              placeholder="Ej: Av. Siempreviva 742, CABA"
+            />
           </div>
         </div>
 
