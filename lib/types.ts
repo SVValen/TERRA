@@ -80,6 +80,12 @@ export interface Negocio {
   color_primario: string | null
   color_fondo: string | null
   color_texto: string | null
+  color_header_fondo: string | null
+  color_header_texto: string | null
+  color_banner_fondo: string | null
+  color_banner_texto: string | null
+  color_boton_fondo: string | null
+  color_boton_texto: string | null
   margen_objetivo: number | null
   dias_nuevo: number | null
   razon_social: string | null

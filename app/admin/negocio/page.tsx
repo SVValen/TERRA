@@ -22,6 +22,12 @@ export default function NegocioPage() {
   const [colorPrimario, setColorPrimario] = useState('#C9A574')
   const [colorFondo, setColorFondo] = useState('#FAFAF9')
   const [colorTexto, setColorTexto] = useState('#1C1917')
+  const [colorHeaderFondo, setColorHeaderFondo] = useState('#FFFFFF')
+  const [colorHeaderTexto, setColorHeaderTexto] = useState('#1C1917')
+  const [colorBannerFondo, setColorBannerFondo] = useState('#FAFAF9')
+  const [colorBannerTexto, setColorBannerTexto] = useState('#1C1917')
+  const [colorBotonFondo, setColorBotonFondo] = useState('#C9A574')
+  const [colorBotonTexto, setColorBotonTexto] = useState('#0F172A')
   const [instagram, setInstagram] = useState('')
   const [razonSocial, setRazonSocial] = useState('')
   const [cuit, setCuit] = useState('')
@@ -48,6 +54,12 @@ export default function NegocioPage() {
       setColorPrimario(d.color_primario ?? '#C9A574')
       setColorFondo(d.color_fondo ?? '#FAFAF9')
       setColorTexto(d.color_texto ?? '#1C1917')
+      setColorHeaderFondo(d.color_header_fondo ?? '#FFFFFF')
+      setColorHeaderTexto(d.color_header_texto ?? '#1C1917')
+      setColorBannerFondo(d.color_banner_fondo ?? '#FAFAF9')
+      setColorBannerTexto(d.color_banner_texto ?? '#1C1917')
+      setColorBotonFondo(d.color_boton_fondo ?? '#C9A574')
+      setColorBotonTexto(d.color_boton_texto ?? '#0F172A')
       setInstagram(d.instagram ?? '')
       setRazonSocial(d.razon_social ?? '')
       setCuit(d.cuit ?? '')
@@ -81,6 +93,12 @@ export default function NegocioPage() {
     fd.append('color_primario', colorPrimario)
     fd.append('color_fondo', colorFondo)
     fd.append('color_texto', colorTexto)
+    fd.append('color_header_fondo', colorHeaderFondo)
+    fd.append('color_header_texto', colorHeaderTexto)
+    fd.append('color_banner_fondo', colorBannerFondo)
+    fd.append('color_banner_texto', colorBannerTexto)
+    fd.append('color_boton_fondo', colorBotonFondo)
+    fd.append('color_boton_texto', colorBotonTexto)
     fd.append('instagram', instagram)
     fd.append('razon_social', razonSocial)
     fd.append('cuit', cuit)
@@ -357,74 +375,42 @@ export default function NegocioPage() {
         </div>
 
         {/* Paleta de color */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5">
-          <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-200 mb-4">Colores</h2>
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5 space-y-5">
+          <div>
+            <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-200">Colores</h2>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Fondo y texto configurables por separado para cada elemento de la tienda pública</p>
+          </div>
 
-          <div className="grid sm:grid-cols-3 gap-5">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-1">Color de acento</label>
-              <p className="text-xs text-gray-400 dark:text-slate-500 mb-3">Botones y detalles del panel y la tienda pública</p>
-              <div className="flex items-center gap-3">
-                <input
-                  type="color"
-                  value={colorPrimario}
-                  onChange={e => setColorPrimario(e.target.value)}
-                  className="w-12 h-10 rounded-lg border border-gray-200 dark:border-slate-600 cursor-pointer bg-transparent"
-                />
-                <div className="flex-1">
-                  <input
-                    type="text"
-                    value={colorPrimario}
-                    onChange={e => setColorPrimario(e.target.value)}
-                    className="input uppercase"
-                    placeholder="#C9A574"
-                  />
-                </div>
-              </div>
+          <div>
+            <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-3">General</p>
+            <div className="grid sm:grid-cols-3 gap-5">
+              <ColorField label="Color de acento" hint="Panel admin, login y detalles varios" value={colorPrimario} onChange={setColorPrimario} placeholder="#C9A574" />
+              <ColorField label="Fondo general" hint="Fondo detrás de los productos en /tienda" value={colorFondo} onChange={setColorFondo} placeholder="#FAFAF9" />
+              <ColorField label="Texto general" hint="Nombres, títulos y precios en /tienda" value={colorTexto} onChange={setColorTexto} placeholder="#1C1917" />
             </div>
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-1">Fondo de la tienda</label>
-              <p className="text-xs text-gray-400 dark:text-slate-500 mb-3">Color de fondo detrás de los productos en /tienda</p>
-              <div className="flex items-center gap-3">
-                <input
-                  type="color"
-                  value={colorFondo}
-                  onChange={e => setColorFondo(e.target.value)}
-                  className="w-12 h-10 rounded-lg border border-gray-200 dark:border-slate-600 cursor-pointer bg-transparent"
-                />
-                <div className="flex-1">
-                  <input
-                    type="text"
-                    value={colorFondo}
-                    onChange={e => setColorFondo(e.target.value)}
-                    className="input uppercase"
-                    placeholder="#FAFAF9"
-                  />
-                </div>
-              </div>
+          <div className="pt-4 border-t border-gray-100 dark:border-slate-700">
+            <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-3">Header</p>
+            <div className="grid sm:grid-cols-2 gap-5">
+              <ColorField label="Fondo" value={colorHeaderFondo} onChange={setColorHeaderFondo} placeholder="#FFFFFF" />
+              <ColorField label="Texto" value={colorHeaderTexto} onChange={setColorHeaderTexto} placeholder="#1C1917" />
             </div>
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-1">Texto de la tienda</label>
-              <p className="text-xs text-gray-400 dark:text-slate-500 mb-3">Color de nombres, títulos y precios en /tienda</p>
-              <div className="flex items-center gap-3">
-                <input
-                  type="color"
-                  value={colorTexto}
-                  onChange={e => setColorTexto(e.target.value)}
-                  className="w-12 h-10 rounded-lg border border-gray-200 dark:border-slate-600 cursor-pointer bg-transparent"
-                />
-                <div className="flex-1">
-                  <input
-                    type="text"
-                    value={colorTexto}
-                    onChange={e => setColorTexto(e.target.value)}
-                    className="input uppercase"
-                    placeholder="#1C1917"
-                  />
-                </div>
-              </div>
+          <div className="pt-4 border-t border-gray-100 dark:border-slate-700">
+            <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-3">Banner de envíos</p>
+            <div className="grid sm:grid-cols-2 gap-5">
+              <ColorField label="Fondo" value={colorBannerFondo} onChange={setColorBannerFondo} placeholder="#FAFAF9" />
+              <ColorField label="Texto" value={colorBannerTexto} onChange={setColorBannerTexto} placeholder="#1C1917" />
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-gray-100 dark:border-slate-700">
+            <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide mb-3">Botones</p>
+            <div className="grid sm:grid-cols-2 gap-5">
+              <ColorField label="Fondo" value={colorBotonFondo} onChange={setColorBotonFondo} placeholder="#C9A574" />
+              <ColorField label="Texto" value={colorBotonTexto} onChange={setColorBotonTexto} placeholder="#0F172A" />
             </div>
           </div>
         </div>
@@ -446,6 +432,44 @@ export default function NegocioPage() {
           {guardando ? 'Guardando...' : 'Guardar cambios'}
         </button>
       </form>
+    </div>
+  )
+}
+
+function ColorField({
+  label,
+  hint,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string
+  hint?: string
+  value: string
+  onChange: (v: string) => void
+  placeholder: string
+}) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-1">{label}</label>
+      {hint && <p className="text-xs text-gray-400 dark:text-slate-500 mb-3">{hint}</p>}
+      <div className="flex items-center gap-3">
+        <input
+          type="color"
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          className="w-12 h-10 rounded-lg border border-gray-200 dark:border-slate-600 cursor-pointer bg-transparent"
+        />
+        <div className="flex-1">
+          <input
+            type="text"
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            className="input uppercase"
+            placeholder={placeholder}
+          />
+        </div>
+      </div>
     </div>
   )
 }

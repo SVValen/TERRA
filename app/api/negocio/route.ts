@@ -6,6 +6,13 @@ import { isValidHexColor } from '@/lib/color'
 const MAX_LOGO_SIZE = 5 * 1024 * 1024 // 5MB
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 
+const CAMPOS_COLOR = [
+  'color_primario', 'color_fondo', 'color_texto',
+  'color_header_fondo', 'color_header_texto',
+  'color_banner_fondo', 'color_banner_texto',
+  'color_boton_fondo', 'color_boton_texto',
+]
+
 export async function GET() {
   const supabase = createServiceClient()
   const { data } = await supabase.from('negocio').select('*').eq('id', 1).single()
@@ -32,28 +39,13 @@ export async function PATCH(request: NextRequest) {
   const diasNuevo = formData.get('dias_nuevo')
   if (diasNuevo !== null && diasNuevo !== '') updates.dias_nuevo = String(parseInt(String(diasNuevo), 10))
 
-  const colorPrimario = formData.get('color_primario')
-  if (colorPrimario !== null && colorPrimario !== '') {
-    if (!isValidHexColor(String(colorPrimario))) {
-      return NextResponse.json({ error: 'Color inválido, debe ser un hex de 6 dígitos (ej: #C9A574)' }, { status: 400 })
+  for (const campo of CAMPOS_COLOR) {
+    const valor = formData.get(campo)
+    if (valor === null || valor === '') continue
+    if (!isValidHexColor(String(valor))) {
+      return NextResponse.json({ error: `Color inválido en "${campo}", debe ser un hex de 6 dígitos (ej: #C9A574)` }, { status: 400 })
     }
-    updates.color_primario = String(colorPrimario)
-  }
-
-  const colorFondo = formData.get('color_fondo')
-  if (colorFondo !== null && colorFondo !== '') {
-    if (!isValidHexColor(String(colorFondo))) {
-      return NextResponse.json({ error: 'Color de fondo inválido, debe ser un hex de 6 dígitos' }, { status: 400 })
-    }
-    updates.color_fondo = String(colorFondo)
-  }
-
-  const colorTexto = formData.get('color_texto')
-  if (colorTexto !== null && colorTexto !== '') {
-    if (!isValidHexColor(String(colorTexto))) {
-      return NextResponse.json({ error: 'Color de texto inválido, debe ser un hex de 6 dígitos' }, { status: 400 })
-    }
-    updates.color_texto = String(colorTexto)
+    updates[campo] = String(valor)
   }
 
   const instagram = formData.get('instagram')

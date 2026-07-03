@@ -28,8 +28,8 @@ export default function TiendaPage() {
           <button
             type="button"
             onClick={() => catalogo.setAbierto(true)}
-            className="px-6 py-3 rounded-full text-sm font-semibold text-slate-900 transition-opacity hover:opacity-90"
-            style={{ background: 'var(--accent)' }}
+            className="px-6 py-3 rounded-full text-sm font-semibold transition-opacity hover:opacity-90"
+            style={{ background: 'var(--tienda-boton-bg)', color: 'var(--tienda-boton-text)' }}
           >
             Ver catálogo completo
           </button>

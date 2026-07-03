@@ -29,6 +29,8 @@ export default async function TiendaLayout({ children }: { children: ReactNode }
     .from('negocio')
     .select(`
       nombre, logo_url, whatsapp, color_fondo, color_texto, instagram,
+      color_header_fondo, color_header_texto, color_banner_fondo, color_banner_texto,
+      color_boton_fondo, color_boton_texto,
       razon_social, cuit, direccion, dias_nuevo,
       guia_talles, cambios_devoluciones, envios, banner_envios,
       etiqueta_envio_gratis, etiqueta_envio_dia
@@ -43,6 +45,12 @@ export default async function TiendaLayout({ children }: { children: ReactNode }
       whatsapp={negocio?.whatsapp ?? null}
       colorFondo={negocio?.color_fondo ?? null}
       colorTexto={negocio?.color_texto ?? null}
+      colorHeaderFondo={negocio?.color_header_fondo || '#FFFFFF'}
+      colorHeaderTexto={negocio?.color_header_texto || '#1C1917'}
+      colorBannerFondo={negocio?.color_banner_fondo || '#FAFAF9'}
+      colorBannerTexto={negocio?.color_banner_texto || '#1C1917'}
+      colorBotonFondo={negocio?.color_boton_fondo || '#C9A574'}
+      colorBotonTexto={negocio?.color_boton_texto || '#0F172A'}
       instagram={negocio?.instagram ?? null}
       razonSocial={negocio?.razon_social ?? null}
       cuit={negocio?.cuit ?? null}

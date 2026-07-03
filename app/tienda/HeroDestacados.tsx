@@ -71,8 +71,8 @@ export default function HeroDestacados({
         <div className="flex flex-wrap items-center gap-3">
           <Link
             href={`/tienda/${p.id}`}
-            className="px-5 py-2.5 rounded-full text-sm font-semibold text-slate-900 transition-opacity hover:opacity-90"
-            style={{ background: 'var(--accent)' }}
+            className="px-5 py-2.5 rounded-full text-sm font-semibold transition-opacity hover:opacity-90"
+            style={{ background: 'var(--tienda-boton-bg)', color: 'var(--tienda-boton-text)' }}
           >
             Ver producto
           </Link>

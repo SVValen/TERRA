@@ -95,10 +95,10 @@ export default function CatalogoSidebar() {
                   onClick={() => { setCategoriaActiva(''); setSubcategoriaActiva('') }}
                   className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
                     !categoriaActiva
-                      ? 'text-slate-900 shadow-sm'
+                      ? 'shadow-sm'
                       : 'bg-white text-stone-600 border border-stone-200 hover:border-stone-300'
                   }`}
-                  style={!categoriaActiva ? { background: 'var(--accent)' } : {}}
+                  style={!categoriaActiva ? { background: 'var(--tienda-boton-bg)', color: 'var(--tienda-boton-text)' } : {}}
                 >
                   Todo
                 </button>
@@ -108,10 +108,10 @@ export default function CatalogoSidebar() {
                     onClick={() => { setCategoriaActiva(c.nombre === categoriaActiva ? '' : c.nombre); setSubcategoriaActiva('') }}
                     className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
                       categoriaActiva === c.nombre
-                        ? 'text-slate-900 shadow-sm'
+                        ? 'shadow-sm'
                         : 'bg-white text-stone-600 border border-stone-200 hover:border-stone-300'
                     }`}
-                    style={categoriaActiva === c.nombre ? { background: 'var(--accent)' } : {}}
+                    style={categoriaActiva === c.nombre ? { background: 'var(--tienda-boton-bg)', color: 'var(--tienda-boton-text)' } : {}}
                   >
                     {c.nombre}
                   </button>

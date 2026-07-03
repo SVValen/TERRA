@@ -49,8 +49,8 @@ export default function Footer() {
             <button
               type="submit"
               disabled={estado === 'enviando'}
-              className="shrink-0 px-4 py-2 rounded-lg text-sm font-semibold text-slate-900 disabled:opacity-50 transition-opacity"
-              style={{ background: 'var(--accent)' }}
+              className="shrink-0 px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-50 transition-opacity"
+              style={{ background: 'var(--tienda-boton-bg)', color: 'var(--tienda-boton-text)' }}
             >
               Sumarme
             </button>

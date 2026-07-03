@@ -162,8 +162,8 @@ export default function ProductoCard({
           ) : (
             <Link
               href={`/tienda/${p.id}`}
-              className="shrink-0 text-xs font-semibold px-2.5 py-1.5 rounded-full text-slate-900 transition-opacity"
-              style={{ background: 'var(--accent)' }}
+              className="shrink-0 text-xs font-semibold px-2.5 py-1.5 rounded-full transition-opacity"
+              style={{ background: 'var(--tienda-boton-bg)', color: 'var(--tienda-boton-text)' }}
             >
               Ver más
             </Link>

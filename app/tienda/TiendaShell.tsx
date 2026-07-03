@@ -24,6 +24,12 @@ interface NegocioCtx {
   instagram: string | null
   colorFondo: string | null
   colorTexto: string | null
+  colorHeaderFondo: string
+  colorHeaderTexto: string
+  colorBannerFondo: string
+  colorBannerTexto: string
+  colorBotonFondo: string
+  colorBotonTexto: string
   razonSocial: string | null
   cuit: string | null
   direccion: string | null
@@ -63,6 +69,9 @@ interface TiendaCtx {
 const negocioVacio: NegocioCtx = {
   nombre: '', logoUrl: null, whatsapp: null, instagram: null,
   colorFondo: null, colorTexto: null, razonSocial: null, cuit: null, direccion: null,
+  colorHeaderFondo: '#FFFFFF', colorHeaderTexto: '#1C1917',
+  colorBannerFondo: '#FAFAF9', colorBannerTexto: '#1C1917',
+  colorBotonFondo: '#C9A574', colorBotonTexto: '#0F172A',
   diasNuevo: 14,
   guiaTallas: GUIA_TALLES_DEFAULT,
   cambiosDevoluciones: CAMBIOS_DEVOLUCIONES_DEFAULT,
@@ -136,6 +145,12 @@ export default function TiendaShell({ children, ...negocio }: Props) {
         style={{
           background: negocio.colorFondo || undefined,
           ['--tienda-text' as string]: negocio.colorTexto || '#1c1917',
+          ['--tienda-header-bg' as string]: negocio.colorHeaderFondo,
+          ['--tienda-header-text' as string]: negocio.colorHeaderTexto,
+          ['--tienda-banner-bg' as string]: negocio.colorBannerFondo,
+          ['--tienda-banner-text' as string]: negocio.colorBannerTexto,
+          ['--tienda-boton-bg' as string]: negocio.colorBotonFondo,
+          ['--tienda-boton-text' as string]: negocio.colorBotonTexto,
         }}
       >
         <Header />
