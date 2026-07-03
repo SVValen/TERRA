@@ -136,7 +136,7 @@ export default function ProductoCard({
           </div>
         )}
 
-        <div className="flex items-center justify-between gap-2 mt-auto pt-2">
+        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5 mt-auto pt-2">
           <div className="flex items-baseline gap-1.5 min-w-0">
             <p className="text-base font-bold whitespace-nowrap" style={{ color: 'var(--tienda-text)' }}>
               ${p.precio_venta.toLocaleString('es-AR')}
