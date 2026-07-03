@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
 import { isValidHexColor } from '@/lib/color'
 
@@ -130,5 +131,9 @@ export async function PATCH(request: NextRequest) {
     console.error('[api/negocio PATCH]', error)
     return NextResponse.json({ error: 'Error al guardar configuración' }, { status: 500 })
   }
+
+  revalidatePath('/tienda', 'layout')
+  revalidatePath('/admin', 'layout')
+
   return NextResponse.json(data)
 }

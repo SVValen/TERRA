@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
 
 export async function GET(request: NextRequest) {
@@ -95,6 +96,8 @@ export async function POST(request: NextRequest) {
       actualizado_en: new Date().toISOString(),
     })
     .eq('id', producto_id)
+
+  revalidatePath('/tienda', 'layout')
 
   return NextResponse.json(venta, { status: 201 })
 }

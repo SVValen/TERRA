@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -48,6 +49,9 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  revalidatePath('/tienda', 'layout')
+
   return NextResponse.json(data)
 }
 
@@ -60,5 +64,8 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
 
   const { error } = await supabase.from('productos').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  revalidatePath('/tienda', 'layout')
+
   return new NextResponse(null, { status: 204 })
 }

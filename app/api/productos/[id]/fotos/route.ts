@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
 
 const MAX_SIZE = 10 * 1024 * 1024 // 10MB
@@ -55,6 +56,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     .select('fotos_urls, foto_url')
     .single()
 
+  revalidatePath('/tienda', 'layout')
+
   return NextResponse.json({ url, fotos_urls: updated?.fotos_urls ?? nuevasFotos, foto_url: updated?.foto_url }, { status: 201 })
 }
 
@@ -89,6 +92,8 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   } catch {
     // Error de storage no es crítico — la foto ya fue removida del producto
   }
+
+  revalidatePath('/tienda', 'layout')
 
   return NextResponse.json({ fotos_urls: nuevasFotos, foto_url: nuevaFotoPrincipal })
 }

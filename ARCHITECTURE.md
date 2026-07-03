@@ -116,6 +116,9 @@ En tienda pública la URL del producto se construye con `getBaseUrl()`:
 1. `NEXT_PUBLIC_BASE_URL` (env var de producción — debe configurarse en Vercel)
 2. Fallback: `https://${VERCEL_URL}` (apunta al deployment actual, puede ser preview)
 
+### Revalidación de `/tienda` tras cambios en el admin
+`app/tienda/layout.tsx` y `page.tsx` son estáticos con ISR (Next.js los prerenderiza y los sirve cacheados hasta que algo los revalida) — sin un trigger explícito, un cambio guardado en la base podía tardar minutos (o quedar cacheado indefinidamente si nadie visitaba la página en ese momento) en reflejarse públicamente, aunque el guardado en sí funcionara bien. Por eso todo endpoint de `/api/*` que modifica datos consumidos por `/tienda` llama `revalidatePath('/tienda', 'layout')` al final de un guardado exitoso: `app/api/negocio/route.ts` (PATCH), `app/api/productos/route.ts` (POST), `app/api/productos/[id]/route.ts` (PATCH/DELETE), `app/api/productos/[id]/fotos/route.ts` (POST/DELETE), `app/api/ventas/route.ts` (POST). Cualquier endpoint nuevo que toque `productos`, `producto_talles` o `negocio` debe sumar esta misma línea.
+
 ---
 
 ## Decisiones de arquitectura

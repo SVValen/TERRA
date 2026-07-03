@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
 
 export async function GET(request: NextRequest) {
@@ -69,6 +70,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ id: producto.id, tallesError: errorTalles.message }, { status: 201 })
     }
   }
+
+  revalidatePath('/tienda', 'layout')
 
   return NextResponse.json({ id: producto.id }, { status: 201 })
 }
