@@ -24,5 +24,13 @@ export const BANNER_ENVIOS_DEFAULT = 'Envíos a todo el país · Envío en el d�
 
 export const TEXTO_DESTACADO_DEFAULT = 'NUEVA COLECCIÓN'
 
+export const MISION_DEFAULT =
+  'Elevar el streetwear a una forma de arte estructural. Fusionamos la utilidad urbana con la ' +
+  'alta costura para crear prendas que funcionen como una extensión de la identidad individual.'
+
+export const VISION_DEFAULT =
+  'Convertirnos en el epicentro de la disrupción visual. Visualizamos un mundo donde la ropa no ' +
+  'sea solo cobertura, sino un sistema de expresión personal que desafíe el status quo.'
+
 export const ETIQUETA_ENVIO_GRATIS_DEFAULT = 'Envío gratis'
 export const ETIQUETA_ENVIO_DIA_DEFAULT = 'Envío en el día'

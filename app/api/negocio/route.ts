@@ -72,6 +72,12 @@ export async function PATCH(request: NextRequest) {
   const textoDestacado = formData.get('texto_destacado')
   if (textoDestacado !== null) updates.texto_destacado = String(textoDestacado).trim()
 
+  const misionTexto = formData.get('mision_texto')
+  if (misionTexto !== null) updates.mision_texto = String(misionTexto).trim()
+
+  const visionTexto = formData.get('vision_texto')
+  if (visionTexto !== null) updates.vision_texto = String(visionTexto).trim()
+
   const etiquetaEnvioGratis = formData.get('etiqueta_envio_gratis')
   if (etiquetaEnvioGratis !== null) updates.etiqueta_envio_gratis = String(etiquetaEnvioGratis).trim()
 
@@ -87,34 +93,46 @@ export async function PATCH(request: NextRequest) {
     }
   }
 
-  const logo = formData.get('logo') as File | null
-  if (logo && logo.size > 0) {
-    if (!ALLOWED_IMAGE_TYPES.includes(logo.type)) {
+  async function subirImagen(campo: string, slug: string, columnaUrl: string) {
+    const archivo = formData.get(campo) as File | null
+    if (!archivo || archivo.size === 0) return null
+
+    if (!ALLOWED_IMAGE_TYPES.includes(archivo.type)) {
       return NextResponse.json({ error: 'Tipo de archivo no permitido' }, { status: 400 })
     }
-    if (logo.size > MAX_LOGO_SIZE) {
-      return NextResponse.json({ error: 'El logo no puede superar 5MB' }, { status: 400 })
+    if (archivo.size > MAX_LOGO_SIZE) {
+      return NextResponse.json({ error: 'La imagen no puede superar 5MB' }, { status: 400 })
     }
 
-    const arrayBuffer = await logo.arrayBuffer()
+    const arrayBuffer = await archivo.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
-    const ext = logo.name.split('.').pop() ?? 'jpg'
-    const path = `negocio/logo.${ext}`
+    const ext = archivo.name.split('.').pop() ?? 'jpg'
+    const path = `negocio/${slug}.${ext}`
 
     await supabase.storage.from('Fotos').remove([path])
 
     const { error } = await supabase.storage
       .from('Fotos')
-      .upload(path, buffer, { contentType: logo.type, upsert: true })
+      .upload(path, buffer, { contentType: archivo.type, upsert: true })
 
     if (error) {
       console.error('[api/negocio PATCH] storage error:', error)
-      return NextResponse.json({ error: 'Error al subir el logo' }, { status: 500 })
+      return NextResponse.json({ error: 'Error al subir la imagen' }, { status: 500 })
     }
 
     const { data: urlData } = supabase.storage.from('Fotos').getPublicUrl(path)
-    updates.logo_url = `${urlData.publicUrl}?t=${Date.now()}`
+    updates[columnaUrl] = `${urlData.publicUrl}?t=${Date.now()}`
+    return null
   }
+
+  const errorLogo = await subirImagen('logo', 'logo', 'logo_url')
+  if (errorLogo) return errorLogo
+
+  const errorMision = await subirImagen('mision_imagen', 'mision', 'mision_imagen_url')
+  if (errorMision) return errorMision
+
+  const errorVision = await subirImagen('vision_imagen', 'vision', 'vision_imagen_url')
+  if (errorVision) return errorVision
 
   const { data, error } = await supabase
     .from('negocio')

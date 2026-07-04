@@ -11,6 +11,8 @@ import {
   ETIQUETA_ENVIO_GRATIS_DEFAULT,
   ETIQUETA_ENVIO_DIA_DEFAULT,
   TEXTO_DESTACADO_DEFAULT,
+  MISION_DEFAULT,
+  VISION_DEFAULT,
 } from '@/lib/contenido'
 import GuiaTallasEditor from './GuiaTallasEditor'
 
@@ -39,6 +41,16 @@ export default function NegocioPage() {
   const [etiquetaEnvioGratis, setEtiquetaEnvioGratis] = useState(ETIQUETA_ENVIO_GRATIS_DEFAULT)
   const [etiquetaEnvioDia, setEtiquetaEnvioDia] = useState(ETIQUETA_ENVIO_DIA_DEFAULT)
   const [textoDestacado, setTextoDestacado] = useState(TEXTO_DESTACADO_DEFAULT)
+  const [misionTexto, setMisionTexto] = useState(MISION_DEFAULT)
+  const [visionTexto, setVisionTexto] = useState(VISION_DEFAULT)
+  const [misionImagenUrl, setMisionImagenUrl] = useState<string | null>(null)
+  const [visionImagenUrl, setVisionImagenUrl] = useState<string | null>(null)
+  const [misionPreview, setMisionPreview] = useState<string | null>(null)
+  const [visionPreview, setVisionPreview] = useState<string | null>(null)
+  const [misionArchivo, setMisionArchivo] = useState<File | null>(null)
+  const [visionArchivo, setVisionArchivo] = useState<File | null>(null)
+  const misionInputRef = useRef<HTMLInputElement>(null)
+  const visionInputRef = useRef<HTMLInputElement>(null)
   const [guiaTallas, setGuiaTallas] = useState<GuiaTallas>(GUIA_TALLES_DEFAULT)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
@@ -72,6 +84,10 @@ export default function NegocioPage() {
       setEtiquetaEnvioGratis(d.etiqueta_envio_gratis ?? ETIQUETA_ENVIO_GRATIS_DEFAULT)
       setEtiquetaEnvioDia(d.etiqueta_envio_dia ?? ETIQUETA_ENVIO_DIA_DEFAULT)
       setTextoDestacado(d.texto_destacado ?? TEXTO_DESTACADO_DEFAULT)
+      setMisionTexto(d.mision_texto ?? MISION_DEFAULT)
+      setVisionTexto(d.vision_texto ?? VISION_DEFAULT)
+      setMisionImagenUrl(d.mision_imagen_url ?? null)
+      setVisionImagenUrl(d.vision_imagen_url ?? null)
       setGuiaTallas(d.guia_talles ?? GUIA_TALLES_DEFAULT)
       setLogoUrl(d.logo_url ?? null)
     })
@@ -82,6 +98,20 @@ export default function NegocioPage() {
     if (!file) return
     setArchivo(file)
     setPreview(URL.createObjectURL(file))
+  }
+
+  const onMisionFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setMisionArchivo(file)
+    setMisionPreview(URL.createObjectURL(file))
+  }
+
+  const onVisionFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setVisionArchivo(file)
+    setVisionPreview(URL.createObjectURL(file))
   }
 
   const guardar = async (e: React.FormEvent) => {
@@ -112,6 +142,10 @@ export default function NegocioPage() {
     fd.append('etiqueta_envio_gratis', etiquetaEnvioGratis)
     fd.append('etiqueta_envio_dia', etiquetaEnvioDia)
     fd.append('texto_destacado', textoDestacado)
+    fd.append('mision_texto', misionTexto)
+    fd.append('vision_texto', visionTexto)
+    if (misionArchivo) fd.append('mision_imagen', misionArchivo)
+    if (visionArchivo) fd.append('vision_imagen', visionArchivo)
     fd.append('guia_talles', JSON.stringify(guiaTallas))
     if (archivo) fd.append('logo', archivo)
     const res = await fetch('/api/negocio', { method: 'PATCH', body: fd })
@@ -120,6 +154,12 @@ export default function NegocioPage() {
       setLogoUrl(data.logo_url ?? logoUrl)
       setPreview(null)
       setArchivo(null)
+      setMisionImagenUrl(data.mision_imagen_url ?? misionImagenUrl)
+      setVisionImagenUrl(data.vision_imagen_url ?? visionImagenUrl)
+      setMisionPreview(null)
+      setVisionPreview(null)
+      setMisionArchivo(null)
+      setVisionArchivo(null)
       setMsg({ tipo: 'ok', texto: 'Cambios guardados correctamente' })
       router.refresh()
     } else {
@@ -325,6 +365,48 @@ export default function NegocioPage() {
           />
         </div>
 
+        {/* Misión y Visión */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5 space-y-5">
+          <div>
+            <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-200">Misión y Visión</h2>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Sección con texto e imagen que se muestra en el home de la tienda</p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <label className="block text-xs font-medium text-gray-500 dark:text-slate-400">Misión — texto</label>
+              <textarea
+                value={misionTexto}
+                onChange={e => setMisionTexto(e.target.value)}
+                rows={4}
+                className="input resize-none"
+              />
+              <ImagenField
+                label="Misión — imagen"
+                preview={misionPreview ?? misionImagenUrl}
+                onClick={() => misionInputRef.current?.click()}
+              />
+              <input ref={misionInputRef} type="file" accept="image/*" className="hidden" onChange={onMisionFileChange} />
+            </div>
+
+            <div className="space-y-3">
+              <label className="block text-xs font-medium text-gray-500 dark:text-slate-400">Visión — texto</label>
+              <textarea
+                value={visionTexto}
+                onChange={e => setVisionTexto(e.target.value)}
+                rows={4}
+                className="input resize-none"
+              />
+              <ImagenField
+                label="Visión — imagen"
+                preview={visionPreview ?? visionImagenUrl}
+                onClick={() => visionInputRef.current?.click()}
+              />
+              <input ref={visionInputRef} type="file" accept="image/*" className="hidden" onChange={onVisionFileChange} />
+            </div>
+          </div>
+        </div>
+
         {/* Guía de talles */}
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5 space-y-3">
           <div>
@@ -451,6 +533,39 @@ export default function NegocioPage() {
           {guardando ? 'Guardando...' : 'Guardar cambios'}
         </button>
       </form>
+    </div>
+  )
+}
+
+function ImagenField({
+  label,
+  preview,
+  onClick,
+}: {
+  label: string
+  preview: string | null
+  onClick: () => void
+}) {
+  return (
+    <div>
+      <div className="flex items-center gap-3">
+        <div
+          className="w-16 h-16 rounded-lg border-2 border-dashed border-gray-200 dark:border-slate-600 overflow-hidden flex items-center justify-center bg-gray-50 dark:bg-slate-700 shrink-0 cursor-pointer hover:border-amber-400 transition-colors"
+          onClick={onClick}
+        >
+          {preview
+            ? <img src={preview} alt={label} className="w-full h-full object-cover" />
+            : <span className="text-2xl text-gray-300 dark:text-slate-500">🖼️</span>
+          }
+        </div>
+        <button
+          type="button"
+          onClick={onClick}
+          className="px-3 py-1.5 text-xs font-medium border border-gray-200 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 transition-colors"
+        >
+          {preview ? 'Cambiar imagen' : 'Subir imagen'}
+        </button>
+      </div>
     </div>
   )
 }

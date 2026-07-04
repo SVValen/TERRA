@@ -100,6 +100,10 @@ export interface Negocio {
   etiqueta_envio_gratis: string | null
   etiqueta_envio_dia: string | null
   texto_destacado: string | null
+  mision_texto: string | null
+  mision_imagen_url: string | null
+  vision_texto: string | null
+  vision_imagen_url: string | null
   actualizado_en: string
 }
 
