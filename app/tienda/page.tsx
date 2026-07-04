@@ -3,23 +3,30 @@
 import { useEffect, useState } from 'react'
 import { useTienda } from './TiendaShell'
 import { type ProductoCardData } from './ProductoCard'
+import type { Anuncio } from '@/lib/types'
 import ProductCarousel from './ProductCarousel'
 import HeroDestacados from './HeroDestacados'
+import HeroAnuncios from './HeroAnuncios'
 
 export default function TiendaPage() {
   const { negocio, catalogo } = useTienda()
   const [destacados, setDestacados] = useState<ProductoCardData[]>([])
   const [nuevos, setNuevos] = useState<ProductoCardData[]>([])
+  const [anuncios, setAnuncios] = useState<Anuncio[]>([])
 
   useEffect(() => {
     fetch('/api/tienda/visita', { method: 'POST' })
     fetch('/api/tienda/productos?destacado=true').then(r => r.json()).then(setDestacados)
     fetch('/api/tienda/productos').then(r => r.json()).then((data: ProductoCardData[]) => setNuevos(data.slice(0, 10)))
+    fetch('/api/tienda/anuncios').then(r => r.json()).then(setAnuncios)
   }, [])
 
   return (
     <div>
-      <HeroDestacados productos={destacados} whatsapp={negocio.whatsapp} nombreTienda={negocio.nombre} />
+      {anuncios.length > 0
+        ? <HeroAnuncios anuncios={anuncios} />
+        : <HeroDestacados productos={destacados} whatsapp={negocio.whatsapp} nombreTienda={negocio.nombre} />
+      }
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
         <ProductCarousel titulo="Nuevos" productos={nuevos} whatsapp={negocio.whatsapp} nombreTienda={negocio.nombre} />

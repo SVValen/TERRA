@@ -137,7 +137,7 @@ export default async function ProductoTiendaPage({ params }: { params: Promise<{
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
         {/* Carrusel de fotos */}
-        <FotoCarousel fotos={fotos} nombre={producto.nombre} />
+        <FotoCarousel fotos={fotos} nombre={producto.nombre} videoUrl={producto.video_url} />
 
         {/* Info */}
         <div className="flex flex-col">

@@ -34,11 +34,12 @@
 - `app/tienda/PanelInteres.tsx` — drawer lateral (full-screen en mobile) con la lista de productos que la clienta fue agregando desde `SelectorVariante.tsx`; botón "Consultar por WhatsApp" arma un solo mensaje con `buildInteresWaUrl()` y limpia la lista al confirmar
 - `app/tienda/CatalogoSidebar.tsx` — panel lateral (full-screen en mobile, `sm:w-[85%] lg:w-[70%]` en desktop) oculto por defecto; contiene la búsqueda, pills de categoría/subcategoría, contador y grilla de `ProductoCard` que antes vivían inline en `page.tsx`; solo fetchea categorías/productos mientras `catalogo.abierto` es `true`; se abre desde `Header.tsx` o desde el botón "Ver catálogo completo" del home
 - `app/tienda/HeroDestacados.tsx` — banner full-width (rompe el `max-w-6xl`) con los productos `destacado = true`, uno a pantalla ancha por vez (imagen de fondo + degradé + nombre/precio/CTAs), flechas y dots si hay más de uno; no renderiza nada si no hay destacados. Si el producto tiene `video_url` cargado, reproduce el video (`autoPlay muted loop playsInline`, con `foto_url` como `poster`) en vez de la imagen estática
+- `app/tienda/HeroAnuncios.tsx` — banner full-width con la misma estructura visual que `HeroDestacados.tsx` pero alimentado por la tabla `anuncios` (no productos): imagen o video + título/subtítulo opcionales + link opcional (interno con `Link` o externo con `<a target="_blank">`); `app/tienda/page.tsx` lo renderiza en vez de `HeroDestacados` cuando hay al menos un anuncio activo (fallback al hero de destacados si no hay ninguno)
 - `app/tienda/ProductoCard.tsx` — card de producto (extraída de `page.tsx`): imagen con swap a la segunda foto on-hover (desktop), badge "Nuevo" (creado hace menos de `negocio.diasNuevo` días — configurable desde `/admin/negocio`, default 14) y "% OFF" (si `precio_anterior > precio_venta`), precio tachado si corresponde, etiquetas de envío (`producto.envio_gratis`/`envio_dia`, con el texto configurable `negocio.etiquetaEnvioGratis`/`etiquetaEnvioDia`)
 - `app/tienda/ProductCarousel.tsx` — fila de `ProductoCard` con scroll-snap nativo (sin librería externa) y flechas prev/next en desktop; `justify-content: safe center` centra las cards cuando entran todas sin scroll (pocos productos) sin romper el scroll cuando desbordan; no renderiza nada si la lista de productos está vacía. Reutilizado en `app/tienda/[id]/page.tsx` para la sección "También te puede interesar"
 
 ### Tipos compartidos
-- `lib/types.ts` — `Producto` (incluye `activo: boolean`, `descripcion: string | null`, `destacado: boolean`, `orden_destacado: number | null`, `precio_anterior: number | null`, `envio_gratis: boolean`, `envio_dia: boolean`), `ProductoTalle` (incluye `color: string`), `GuiaTallas` (`{ columnas: string[]; filas: string[][] }`, tabla genérica editable), `Negocio` (todos los campos de la tabla `negocio`, incluidos `razon_social`/`cuit`/`direccion`/`guia_talles`/`cambios_devoluciones`/`envios`/`banner_envios`/`etiqueta_envio_gratis`/`etiqueta_envio_dia` y los 6 pares de color por elemento `color_header_fondo`/`color_header_texto`/`color_banner_fondo`/`color_banner_texto`/`color_boton_fondo`/`color_boton_texto`), `Venta`, `Categoria`, `Talle`, `Color`, `Retiro`, `BotSesion`, `BotPaso`, `DatosParciales`; fuente de verdad de todas las entidades
+- `lib/types.ts` — `Producto` (incluye `activo: boolean`, `descripcion: string | null`, `destacado: boolean`, `orden_destacado: number | null`, `precio_anterior: number | null`, `envio_gratis: boolean`, `envio_dia: boolean`), `ProductoTalle` (incluye `color: string`), `GuiaTallas` (`{ columnas: string[]; filas: string[][] }`, tabla genérica editable), `Negocio` (todos los campos de la tabla `negocio`, incluidos `razon_social`/`cuit`/`direccion`/`guia_talles`/`cambios_devoluciones`/`envios`/`banner_envios`/`etiqueta_envio_gratis`/`etiqueta_envio_dia` y los 6 pares de color por elemento `color_header_fondo`/`color_header_texto`/`color_banner_fondo`/`color_banner_texto`/`color_boton_fondo`/`color_boton_texto`), `Anuncio` (`media_url`, `media_tipo: 'imagen' | 'video'`, `titulo`/`subtitulo`/`link_url` opcionales, `orden`, `activo`), `Venta`, `Categoria`, `Talle`, `Color`, `Retiro`, `BotSesion`, `BotPaso`, `DatosParciales`; fuente de verdad de todas las entidades
 
 ### Bot de Telegram
 - `app/api/telegram/webhook/route.ts` — cerebro del bot; maneja `manejarPaso()` y `handleCallbackQuery()`; estado de conversación en tabla `bot_sesiones`
@@ -55,6 +56,7 @@
 - `app/admin/categorias/page.tsx` — gestión de categorías/subcategorías, y (secciones nuevas) listas planas de **talles** y **colores** disponibles para cargar stock, vía el componente compartido `ListaSimple.tsx`
 - `app/admin/negocio/page.tsx` — config del negocio: nombre, logo, contacto (whatsapp + instagram), datos legales (`razon_social`/`cuit`/`direccion`, para el footer), margen objetivo, días para el badge "Nuevo" (`dias_nuevo`, default 14), envíos (texto libre, banner animado, etiquetas de "envío gratis"/"envío en el día"), guía de talles (tabla editable vía `GuiaTallasEditor.tsx`) y cambios/devoluciones (texto libre). Sección "Colores" con 4 grupos independientes (General: acento/fondo/texto; Header; Banner de envíos; Botones), cada uno con su propio par fondo+texto (`input type="color"` + hex vía el subcomponente `ColorField`)
 - `app/admin/negocio/GuiaTallasEditor.tsx` — editor de tabla genérica controlado (`GuiaTallas`): agrega/elimina columnas (con reindexado de todas las filas) y filas, cada celda es un `<input>` — sin límite de columnas ni filas
+- `app/admin/anuncios/page.tsx` — CRUD de la tabla `anuncios`: formulario para subir una imagen o video + título/subtítulo/link opcionales vía `POST /api/anuncios`, listado con thumbnail, input numérico de `orden`, toggle `activo`/`inactivo` y borrado; no tiene fetch inicial en Server Component (todo vía `fetch` client-side, mismo patrón que el resto del admin)
 
 ### APIs protegidas (`/api/*`)
 - `app/api/productos/route.ts` — GET lista con filtros; POST crea producto desde el panel web (`origen: 'web'`, `estado: 'disponible'`, `activo: true`, `descripcion`) e inserta sus `producto_talles` (talle + color + stock por fila)
@@ -64,11 +66,13 @@
 - `app/api/negocio/route.ts` — GET/PATCH config del negocio (incluye `whatsapp`, `instagram` (sin `@`), `razon_social`/`cuit`/`direccion`, `margen_objetivo`, `dias_nuevo` (umbral del badge "Nuevo" en la tienda), los 9 campos de color (`CAMPOS_COLOR`, un loop único que valida con `isValidHexColor()` en vez de un bloque `if` repetido por campo), `cambios_devoluciones`/`envios`/`banner_envios`/`etiqueta_envio_gratis`/`etiqueta_envio_dia` (texto libre) y `guia_talles` (recibido como JSON string en el `FormData`, parseado con `JSON.parse` y guardado tal cual en la columna `jsonb` — por eso `updates` es `Record<string, unknown>` y no `Record<string, string>`); revalida `/tienda` y `/admin` (`revalidatePath`) tras un guardado exitoso
 - `app/api/categorias/route.ts` y `[id]/route.ts` — CRUD categorías con subcategorías como array
 - `app/api/talles/route.ts` y `[id]/route.ts`, `app/api/colores/route.ts` y `[id]/route.ts` — CRUD simple (mismo patrón que categorías, sin subcategorías) de las listas configurables de talles y colores
+- `app/api/anuncios/route.ts` — GET lista completa (activos e inactivos) ordenada por `orden`; POST sube el archivo (imagen o video, detecta `media_tipo` por `content-type`) al bucket `Fotos` bajo `anuncios/` y crea la fila
+- `app/api/anuncios/[id]/route.ts` — PATCH actualiza `titulo`/`subtitulo`/`link_url`/`orden`/`activo`; DELETE borra la fila y el archivo del Storage
 
 ### Tienda pública (`/tienda`)
-- `app/tienda/page.tsx` — Client Component; home: `HeroDestacados` full-width arriba de todo, seguido (dentro del contenedor `max-w-6xl`) del carrousel "Nuevos" y un botón "Ver catálogo completo" que abre `CatalogoSidebar` vía contexto; ya no tiene búsqueda/filtros/grilla inline (se movieron a `CatalogoSidebar.tsx`)
-- `app/tienda/[id]/page.tsx` — **Server Component**; `generateMetadata()` con Open Graph/Twitter Card (usa `descripcion` si existe, si no arma un resumen); muestra la `descripcion` y el `precio_anterior` tachado si corresponde; delega el selector interactivo talle/color, el link de WhatsApp y el botón "Agregar a mi interés" a `SelectorVariante.tsx`; debajo del detalle, `getRelacionados()` trae hasta 8 productos de la misma `categoria` (excluyendo el actual, `disponible` + `activo`) y si no llega a 4 completa con los más recientes de cualquier categoría, renderizados con el mismo `ProductCarousel` del home bajo el título "También te puede interesar"
-- `app/tienda/[id]/FotoCarousel.tsx` — Client Component; carrusel interactivo de fotos de UN producto (useState, swipe, zoom) — no confundir con `ProductCarousel.tsx` (fila de productos en el home)
+- `app/tienda/page.tsx` — Client Component; home: fetchea `/api/tienda/anuncios` y `/api/tienda/productos?destacado=true` en paralelo — si hay anuncios activos renderiza `HeroAnuncios`, si no `HeroDestacados` (nunca los dos a la vez), seguido (dentro del contenedor `max-w-6xl`) del carrousel "Nuevos" y un botón "Ver catálogo completo" que abre `CatalogoSidebar` vía contexto; ya no tiene búsqueda/filtros/grilla inline (se movieron a `CatalogoSidebar.tsx`)
+- `app/tienda/[id]/page.tsx` — **Server Component**; `generateMetadata()` con Open Graph/Twitter Card (usa `descripcion` si existe, si no arma un resumen); muestra la `descripcion` y el `precio_anterior` tachado si corresponde; pasa `producto.video_url` a `FotoCarousel` para que el video del producto sea navegable junto a las fotos; delega el selector interactivo talle/color, el link de WhatsApp y el botón "Agregar a mi interés" a `SelectorVariante.tsx`; debajo del detalle, `getRelacionados()` trae hasta 8 productos de la misma `categoria` (excluyendo el actual, `disponible` + `activo`) y si no llega a 4 completa con los más recientes de cualquier categoría, renderizados con el mismo `ProductCarousel` del home bajo el título "También te puede interesar"
+- `app/tienda/[id]/FotoCarousel.tsx` — Client Component; carrusel interactivo de fotos de UN producto (useState, swipe, zoom) — no confundir con `ProductCarousel.tsx` (fila de productos en el home). Acepta un `videoUrl` opcional que se antepone a las fotos como primer slide (`<video controls>`, sin zoom/pan); la navegación del lightbox de zoom está acotada solo a las fotos (índices propios, offset por el slide de video) para que "siguiente"/"anterior" dentro del lightbox nunca aterrice en el video
 - `app/tienda/[id]/SelectorVariante.tsx` — Client Component; recibe las variantes (talle, color, stock) del Server Component padre; selección de talle → colores disponibles para ese talle → arma el mensaje de WhatsApp con `buildProductoWaUrl()`. La selección es **opcional**: el botón de WhatsApp nunca se deshabilita, si no se elige nada se manda el mensaje genérico. Botón secundario "Agregar a mi interés" (usa `useTienda().interes.agregar()`) — ambos caminos conviven
 
 ### APIs públicas (`/api/tienda/*`)
@@ -76,6 +80,7 @@
 - `app/api/tienda/categorias/route.ts` — GET `id, nombre, subcategorias`; alimenta el dropdown del header
 - `app/api/tienda/productos/route.ts` — GET productos `disponible` y `activo = true` (ya no filtra por `stock > 0` — productos agotados se siguen mostrando, grisados en el cliente); usa `PRODUCTO_TIENDA_FIELDS` + `producto_talles(talle, color, stock)` embebido; soporta filtros `q, categoria, subcategoria, talle` (el filtro `talle` usa `producto_talles!inner`) y `destacado=true` (filtra + ordena por `orden_destacado`); **omite `costo`**
 - `app/api/tienda/productos/[id]/route.ts` — GET producto individual si `estado = disponible` y `activo = true`; usa `PRODUCTO_TIENDA_FIELDS` + `producto_talles(talle, color, stock)`
+- `app/api/tienda/anuncios/route.ts` — GET anuncios con `activo = true` ordenados por `orden`; alimenta `HeroAnuncios.tsx` en el home
 - `app/api/tienda/newsletter/route.ts` — POST `{ email }` público; valida formato básico e inserta en `newsletter_suscriptores`; devuelve 200 aunque el email ya exista (no filtra si estaba suscripto)
 
 ---
@@ -188,6 +193,20 @@ En tienda pública la URL del producto se construye con `getBaseUrl()`:
   ALTER TABLE negocio ADD COLUMN color_boton_texto text;
   ```
 - Migración de video de producto **pendiente de correr** en TERRA y SHOWROOM: `ALTER TABLE productos ADD COLUMN video_url text;`
+- Migración de anuncios de la tienda **pendiente de correr** en TERRA y SHOWROOM:
+  ```sql
+  CREATE TABLE anuncios (
+    id uuid primary key default gen_random_uuid(),
+    media_url text NOT NULL,
+    media_tipo text NOT NULL CHECK (media_tipo IN ('imagen', 'video')),
+    titulo text,
+    subtitulo text,
+    link_url text,
+    orden integer NOT NULL DEFAULT 0,
+    activo boolean NOT NULL DEFAULT true,
+    creado_en timestamptz NOT NULL DEFAULT now()
+  );
+  ```
 - Limpieza pendiente tras período de verificación: `ALTER TABLE productos DROP COLUMN talle` (columna vieja escalar, ya no se usa)
 
 ### Deuda técnica conocida

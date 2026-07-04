@@ -102,6 +102,20 @@ export interface Negocio {
   actualizado_en: string
 }
 
+export type AnuncioMediaTipo = 'imagen' | 'video'
+
+export interface Anuncio {
+  id: string
+  media_url: string
+  media_tipo: AnuncioMediaTipo
+  titulo: string | null
+  subtitulo: string | null
+  link_url: string | null
+  orden: number
+  activo: boolean
+  creado_en: string
+}
+
 export interface Retiro {
   id: string
   monto: number

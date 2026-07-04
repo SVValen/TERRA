@@ -3,37 +3,54 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 
-export default function FotoCarousel({ fotos, nombre }: { fotos: string[]; nombre: string }) {
+type Slide = { url: string; tipo: 'foto' | 'video' }
+
+export default function FotoCarousel({ fotos, nombre, videoUrl }: { fotos: string[]; nombre: string; videoUrl?: string | null }) {
+  const slides: Slide[] = [
+    ...(videoUrl ? [{ url: videoUrl, tipo: 'video' as const }] : []),
+    ...fotos.map(url => ({ url, tipo: 'foto' as const })),
+  ]
+
   const [activa, setActiva] = useState(0)
   const [lightboxAbierto, setLightboxAbierto] = useState(false)
-  const foto = fotos[activa] ?? null
+  const slide = slides[activa] ?? null
 
-  const siguiente = () => setActiva(i => (i + 1) % fotos.length)
-  const anterior = () => setActiva(i => (i - 1 + fotos.length) % fotos.length)
+  const offset = videoUrl ? 1 : 0
+
+  const siguiente = () => setActiva(i => (i + 1) % slides.length)
+  const anterior = () => setActiva(i => (i - 1 + slides.length) % slides.length)
   const seleccionar = (i: number) => setActiva(i)
+
+  const fotoSiguiente = () => setActiva(offset + ((activa - offset + 1) % fotos.length))
+  const fotoAnterior = () => setActiva(offset + ((activa - offset - 1 + fotos.length) % fotos.length))
+  const fotoSeleccionar = (i: number) => setActiva(i + offset)
 
   return (
     <div className="space-y-3">
       <div className="aspect-square bg-stone-100 rounded-3xl overflow-hidden shadow-sm relative group">
-        {foto ? (
-          <button
-            type="button"
-            onClick={() => setLightboxAbierto(true)}
-            className="absolute inset-0 w-full h-full cursor-zoom-in"
-            aria-label="Ampliar foto"
-          >
-            <Image src={foto} alt={nombre} fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" priority />
-          </button>
+        {slide ? (
+          slide.tipo === 'video' ? (
+            <video src={slide.url} controls playsInline className="absolute inset-0 w-full h-full object-cover bg-black" />
+          ) : (
+            <button
+              type="button"
+              onClick={() => setLightboxAbierto(true)}
+              className="absolute inset-0 w-full h-full cursor-zoom-in"
+              aria-label="Ampliar foto"
+            >
+              <Image src={slide.url} alt={nombre} fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" priority />
+            </button>
+          )
         ) : (
           <div className="w-full h-full flex items-center justify-center text-7xl text-stone-200">📷</div>
         )}
 
-        {fotos.length > 1 && (
+        {slides.length > 1 && (
           <>
             <button
               type="button"
               onClick={anterior}
-              aria-label="Foto anterior"
+              aria-label="Anterior"
               className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 backdrop-blur flex items-center justify-center text-stone-700 shadow opacity-0 group-hover:opacity-100 transition-opacity"
             >
               ‹
@@ -41,44 +58,51 @@ export default function FotoCarousel({ fotos, nombre }: { fotos: string[]; nombr
             <button
               type="button"
               onClick={siguiente}
-              aria-label="Foto siguiente"
+              aria-label="Siguiente"
               className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 backdrop-blur flex items-center justify-center text-stone-700 shadow opacity-0 group-hover:opacity-100 transition-opacity"
             >
               ›
             </button>
             <div className="absolute bottom-2 right-2 bg-black/40 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium">
-              {activa + 1}/{fotos.length}
+              {activa + 1}/{slides.length}
             </div>
           </>
         )}
       </div>
 
-      {fotos.length > 1 && (
+      {slides.length > 1 && (
         <div className="flex gap-2 overflow-x-auto pb-1">
-          {fotos.map((url, i) => (
+          {slides.map((s, i) => (
             <button
-              key={url}
+              key={s.url}
               onClick={() => setActiva(i)}
               style={{ width: 72, height: 72 }}
               className={`shrink-0 rounded-xl overflow-hidden border-2 transition-all relative ${
                 i === activa ? 'border-amber-400 shadow-md' : 'border-transparent opacity-60 hover:opacity-90'
               }`}
             >
-              <Image src={url} alt="" fill className="object-cover" sizes="72px" />
+              {s.tipo === 'video' ? (
+                <>
+                  <video src={s.url} className="w-full h-full object-cover" muted />
+                  <span className="absolute inset-0 flex items-center justify-center text-white text-lg bg-black/20">▶</span>
+                </>
+              ) : (
+                <Image src={s.url} alt="" fill className="object-cover" sizes="72px" />
+              )}
             </button>
           ))}
         </div>
       )}
 
-      {lightboxAbierto && (
+      {lightboxAbierto && slide?.tipo === 'foto' && (
         <Lightbox
           fotos={fotos}
           nombre={nombre}
-          activa={activa}
+          activa={activa - offset}
           onCerrar={() => setLightboxAbierto(false)}
-          onSiguiente={siguiente}
-          onAnterior={anterior}
-          onSeleccionar={seleccionar}
+          onSiguiente={fotoSiguiente}
+          onAnterior={fotoAnterior}
+          onSeleccionar={fotoSeleccionar}
         />
       )}
     </div>

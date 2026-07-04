@@ -11,6 +11,7 @@ const nav = [
   { href: '/admin/retiros',    label: 'Retiros',    icon: '💸' },
   { href: '/admin/metricas',   label: 'Métricas',   icon: '📊' },
   { href: '/admin/categorias', label: 'Categorías', icon: '🏷️' },
+  { href: '/admin/anuncios',   label: 'Anuncios',   icon: '📣' },
   { href: '/admin/negocio',    label: 'Mi negocio', icon: '🏪' },
 ]
 
