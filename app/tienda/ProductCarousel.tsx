@@ -28,11 +28,11 @@ export default function ProductCarousel({
   }
 
   return (
-    <section className="mb-10">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-bold" style={{ color: 'var(--tienda-text)' }}>{titulo}</h2>
+    <section className="mb-16">
+      <div className="flex items-end justify-between mb-8">
+        <h2 className="text-2xl sm:text-3xl uppercase tracking-tighter" style={{ color: 'var(--tienda-text)', fontFamily: 'var(--font-anton)' }}>{titulo}</h2>
         {verTodoHref && (
-          <Link href={verTodoHref} className="text-sm text-stone-400 hover:text-stone-700 transition-colors">
+          <Link href={verTodoHref} className="font-mono text-xs uppercase underline underline-offset-4 text-white/50 hover:text-red-600 transition-colors">
             Ver todo
           </Link>
         )}
@@ -41,13 +41,13 @@ export default function ProductCarousel({
       <div className="relative group/carousel">
         <div
           ref={scrollRef}
-          className="flex gap-3 sm:gap-4 overflow-x-auto pb-1 scrollbar-none"
+          className="flex gap-6 sm:gap-8 overflow-x-auto pb-1 scrollbar-none"
           style={{ scrollSnapType: 'x mandatory', justifyContent: 'safe center' }}
         >
           {productos.map(p => (
             <div
               key={p.id}
-              className="shrink-0 w-[45%] sm:w-[30%] lg:w-[22%]"
+              className="shrink-0 w-[55%] sm:w-[30%] lg:w-[22%]"
               style={{ scrollSnapAlign: 'start' }}
             >
               <ProductoCard producto={p} whatsapp={whatsapp} nombreTienda={nombreTienda} />
@@ -59,7 +59,7 @@ export default function ProductCarousel({
           type="button"
           onClick={() => desplazar(-1)}
           aria-label="Anterior"
-          className="hidden sm:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 w-9 h-9 items-center justify-center rounded-full bg-white shadow-md border border-stone-200 opacity-0 group-hover/carousel:opacity-100 transition-opacity"
+          className="hidden sm:flex absolute left-0 top-[35%] -translate-y-1/2 -translate-x-3 w-10 h-10 items-center justify-center bg-black text-white border border-white/30 opacity-0 group-hover/carousel:opacity-100 hover:bg-red-600 hover:border-red-600 transition-all"
         >
           ←
         </button>
@@ -67,7 +67,7 @@ export default function ProductCarousel({
           type="button"
           onClick={() => desplazar(1)}
           aria-label="Siguiente"
-          className="hidden sm:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 w-9 h-9 items-center justify-center rounded-full bg-white shadow-md border border-stone-200 opacity-0 group-hover/carousel:opacity-100 transition-opacity"
+          className="hidden sm:flex absolute right-0 top-[35%] -translate-y-1/2 translate-x-3 w-10 h-10 items-center justify-center bg-black text-white border border-white/30 opacity-0 group-hover/carousel:opacity-100 hover:bg-red-600 hover:border-red-600 transition-all"
         >
           →
         </button>

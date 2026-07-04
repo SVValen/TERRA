@@ -48,41 +48,41 @@ export default function ProductoCard({
 
   return (
     <div
-      className={`group h-full flex flex-col bg-white rounded-2xl overflow-hidden border border-stone-100 hover:border-stone-200 hover:shadow-lg transition-all duration-300 ${sinStock ? 'opacity-60' : ''}`}
+      className={`group h-full flex flex-col bg-transparent ${sinStock ? 'opacity-50' : ''}`}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
       <Link href={`/tienda/${p.id}`} className="block">
-        <div className="aspect-square bg-stone-50 relative overflow-hidden">
+        <div className="aspect-square bg-white/5 relative overflow-hidden">
           {p.foto_url ? (
             <Image
               src={hover && segundaFoto ? segundaFoto : p.foto_url}
               alt={p.nombre}
               fill
-              className={`object-cover transition-transform duration-500 ${!hover ? 'group-hover:scale-105' : ''} ${sinStock ? 'grayscale' : ''}`}
+              className={`object-cover grayscale group-hover:grayscale-0 transition-all duration-500 ${sinStock ? 'grayscale' : ''}`}
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-5xl text-stone-200">📷</div>
+            <div className="w-full h-full flex items-center justify-center text-5xl text-white/10">📷</div>
           )}
           {p.fotos_urls?.length > 1 && (
-            <div className="absolute bottom-2 right-2 bg-black/40 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium">
+            <div className="absolute bottom-2 right-2 bg-black/60 text-white font-mono text-[10px] px-1.5 py-0.5">
               +{p.fotos_urls.length - 1}
             </div>
           )}
           <div className="absolute top-2 left-2 flex flex-col gap-1 items-start">
             {sinStock && (
-              <span className="bg-stone-800/80 text-white text-[10px] px-2 py-0.5 rounded-full font-medium">
+              <span className="bg-white/90 text-black font-mono text-[10px] px-2 py-0.5 uppercase font-bold">
                 Sin stock
               </span>
             )}
             {!sinStock && esNuevo && (
-              <span className="bg-emerald-600 text-white text-[10px] px-2 py-0.5 rounded-full font-medium">
+              <span className="bg-white text-black font-mono text-[10px] px-2 py-0.5 uppercase font-bold">
                 Nuevo
               </span>
             )}
             {!sinStock && tieneDescuento && (
-              <span className="bg-red-600 text-white text-[10px] px-2 py-0.5 rounded-full font-medium">
+              <span className="bg-red-600 text-white font-mono text-[10px] px-2 py-0.5 uppercase font-bold">
                 {porcentajeOff}% OFF
               </span>
             )}
@@ -90,15 +90,15 @@ export default function ProductoCard({
         </div>
       </Link>
 
-      <div className="p-3 sm:p-4 flex flex-col flex-1">
+      <div className="pt-4 flex flex-col flex-1">
         <Link href={`/tienda/${p.id}`}>
-          <p className="font-semibold text-sm leading-snug line-clamp-2 min-h-[2.6em] mb-1.5 hover:text-amber-800 transition-colors" style={{ color: 'var(--tienda-text)' }}>
+          <p className="font-body-md text-sm uppercase leading-snug line-clamp-2 min-h-[2.6em] mb-1.5 hover:text-red-600 transition-colors" style={{ color: 'var(--tienda-text)' }}>
             {p.nombre}
           </p>
         </Link>
 
         {(p.categoria || p.subcategoria) && (
-          <p className="text-xs text-stone-400 mb-1.5 line-clamp-1">
+          <p className="font-mono text-[10px] uppercase text-white/40 mb-1.5 line-clamp-1">
             {[p.categoria, p.subcategoria].filter(Boolean).join(' · ')}
           </p>
         )}
@@ -110,8 +110,8 @@ export default function ProductoCard({
               return (
                 <span
                   key={t.talle}
-                  className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full ${
-                    stockTalle > 0 ? 'text-stone-600 bg-stone-100' : 'text-stone-300 bg-stone-50 line-through'
+                  className={`inline-block font-mono text-[10px] px-1.5 py-0.5 border ${
+                    stockTalle > 0 ? 'text-white/70 border-white/20' : 'text-white/20 border-white/10 line-through'
                   }`}
                 >
                   {t.talle}
@@ -124,12 +124,12 @@ export default function ProductoCard({
         {(p.envio_gratis || p.envio_dia) && (
           <div className="flex flex-wrap gap-1 mb-2">
             {p.envio_gratis && (
-              <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700">
+              <span className="inline-block font-mono text-[9px] font-bold uppercase px-1.5 py-0.5 border border-red-600 text-red-600">
                 {negocio.etiquetaEnvioGratis}
               </span>
             )}
             {p.envio_dia && (
-              <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700">
+              <span className="inline-block font-mono text-[9px] font-bold uppercase px-1.5 py-0.5 border border-red-600 text-red-600">
                 {negocio.etiquetaEnvioDia}
               </span>
             )}
@@ -138,11 +138,11 @@ export default function ProductoCard({
 
         <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5 mt-auto pt-2">
           <div className="flex items-baseline gap-1.5 min-w-0">
-            <p className="text-base font-bold whitespace-nowrap" style={{ color: 'var(--tienda-text)' }}>
+            <p className="font-mono text-sm font-bold whitespace-nowrap" style={{ color: 'var(--tienda-text)' }}>
               ${p.precio_venta.toLocaleString('es-AR')}
             </p>
             {tieneDescuento && (
-              <p className="text-xs text-stone-400 line-through whitespace-nowrap">
+              <p className="font-mono text-xs text-white/40 line-through whitespace-nowrap">
                 ${p.precio_anterior!.toLocaleString('es-AR')}
               </p>
             )}
@@ -153,7 +153,7 @@ export default function ProductoCard({
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => fetch('/api/tienda/click-wa', { method: 'POST' })}
-              className="shrink-0 flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-full text-white transition-colors"
+              className="shrink-0 flex items-center gap-1 font-mono text-[10px] font-bold uppercase px-2.5 py-1.5 text-white transition-colors"
               style={{ background: '#25D366' }}
             >
               <WhatsAppIcon className="w-3.5 h-3.5" />
@@ -162,7 +162,7 @@ export default function ProductoCard({
           ) : (
             <Link
               href={`/tienda/${p.id}`}
-              className="shrink-0 text-xs font-semibold px-2.5 py-1.5 rounded-full transition-opacity"
+              className="shrink-0 font-mono text-[10px] font-bold uppercase px-2.5 py-1.5 transition-colors hover:bg-red-600 hover:text-white"
               style={{ background: 'var(--tienda-boton-bg)', color: 'var(--tienda-boton-text)' }}
             >
               Ver más

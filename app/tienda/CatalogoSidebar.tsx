@@ -47,15 +47,15 @@ export default function CatalogoSidebar() {
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
-      <div className="absolute inset-0 bg-black/40" onClick={() => setAbierto(false)} />
-      <div className="relative w-full sm:w-[85%] lg:w-[70%] h-full bg-white flex flex-col shadow-xl">
-        <div className="h-16 flex items-center justify-between px-4 sm:px-6 border-b border-stone-200 shrink-0">
-          <span className="font-semibold text-stone-900">Catálogo completo</span>
+      <div className="absolute inset-0 bg-black/70" onClick={() => setAbierto(false)} />
+      <div className="relative w-full sm:w-[85%] lg:w-[70%] h-full bg-black border-l border-white/20 flex flex-col">
+        <div className="h-16 flex items-center justify-between px-4 sm:px-6 border-b border-white/20 shrink-0">
+          <span className="font-mono text-xs uppercase tracking-widest text-white">Catálogo completo</span>
           <button
             type="button"
             onClick={() => setAbierto(false)}
             aria-label="Cerrar"
-            className="w-9 h-9 flex items-center justify-center text-stone-600"
+            className="w-9 h-9 flex items-center justify-center text-white/60 hover:text-red-600"
           >
             ✕
           </button>
@@ -63,9 +63,9 @@ export default function CatalogoSidebar() {
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           {/* Búsqueda */}
-          <div className="mb-6">
+          <div className="mb-8">
             <div className="relative max-w-md">
-              <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <input
@@ -74,12 +74,12 @@ export default function CatalogoSidebar() {
                 onChange={e => { setBusqueda(e.target.value); setSubcategoriaActiva('') }}
                 placeholder="Buscar productos..."
                 autoFocus
-                className="w-full pl-11 pr-4 py-3 rounded-2xl border border-stone-200 bg-white text-stone-900 placeholder-stone-400 text-sm focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition-all shadow-sm"
+                className="w-full pl-11 pr-4 py-3 border border-white/20 bg-transparent text-white placeholder-white/30 font-mono text-xs uppercase focus:outline-none focus:border-red-600 transition-colors"
               />
               {busqueda && (
                 <button
                   onClick={() => setBusqueda('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 text-lg leading-none"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white text-lg leading-none"
                 >
                   ×
                 </button>
@@ -89,14 +89,14 @@ export default function CatalogoSidebar() {
 
           {/* Filtro categorías */}
           {categorias.length > 0 && (
-            <div className="mb-4">
+            <div className="mb-6">
               <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
                 <button
                   onClick={() => { setCategoriaActiva(''); setSubcategoriaActiva('') }}
-                  className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  className={`shrink-0 px-4 py-2 font-mono text-xs uppercase font-bold transition-all ${
                     !categoriaActiva
-                      ? 'shadow-sm'
-                      : 'bg-white text-stone-600 border border-stone-200 hover:border-stone-300'
+                      ? ''
+                      : 'bg-transparent text-white/60 border border-white/20 hover:border-white/50'
                   }`}
                   style={!categoriaActiva ? { background: 'var(--tienda-boton-bg)', color: 'var(--tienda-boton-text)' } : {}}
                 >
@@ -106,10 +106,10 @@ export default function CatalogoSidebar() {
                   <button
                     key={c.id}
                     onClick={() => { setCategoriaActiva(c.nombre === categoriaActiva ? '' : c.nombre); setSubcategoriaActiva('') }}
-                    className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    className={`shrink-0 px-4 py-2 font-mono text-xs uppercase font-bold transition-all ${
                       categoriaActiva === c.nombre
-                        ? 'shadow-sm'
-                        : 'bg-white text-stone-600 border border-stone-200 hover:border-stone-300'
+                        ? ''
+                        : 'bg-transparent text-white/60 border border-white/20 hover:border-white/50'
                     }`}
                     style={categoriaActiva === c.nombre ? { background: 'var(--tienda-boton-bg)', color: 'var(--tienda-boton-text)' } : {}}
                   >
@@ -124,10 +124,10 @@ export default function CatalogoSidebar() {
                     <button
                       key={s}
                       onClick={() => setSubcategoriaActiva(s === subcategoriaActiva ? '' : s)}
-                      className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
+                      className={`shrink-0 px-3 py-1.5 font-mono text-[10px] uppercase transition-all border ${
                         subcategoriaActiva === s
-                          ? 'bg-stone-800 text-white border-stone-800'
-                          : 'bg-white text-stone-500 border-stone-200 hover:border-stone-400'
+                          ? 'bg-white text-black border-white'
+                          : 'bg-transparent text-white/50 border-white/20 hover:border-white/50'
                       }`}
                     >
                       {s}
@@ -140,7 +140,7 @@ export default function CatalogoSidebar() {
 
           {/* Contador */}
           {!loading && (
-            <p className="text-xs text-stone-400 mb-5">
+            <p className="font-mono text-[10px] uppercase text-white/40 mb-6">
               {productos.length} {productos.length === 1 ? 'producto' : 'productos'}
               {categoriaActiva ? ` en ${categoriaActiva}` : ''}
               {busqueda ? ` · "${busqueda}"` : ''}
@@ -148,22 +148,22 @@ export default function CatalogoSidebar() {
           )}
 
           {loading && (
-            <div className="flex items-center justify-center gap-3 py-24 text-stone-400">
-              <div className="w-5 h-5 border-2 border-stone-200 border-t-amber-400 rounded-full animate-spin" />
-              <span className="text-sm">Cargando...</span>
+            <div className="flex items-center justify-center gap-3 py-24 text-white/40">
+              <div className="w-5 h-5 border-2 border-white/20 border-t-red-600 rounded-full animate-spin" />
+              <span className="font-mono text-xs uppercase">Cargando...</span>
             </div>
           )}
 
           {!loading && productos.length === 0 && (
             <div className="text-center py-24">
               <p className="text-4xl mb-4">🛍️</p>
-              <p className="text-stone-600 font-medium">
+              <p className="font-mono text-xs uppercase text-white/60">
                 {busqueda ? `Sin resultados para "${busqueda}"` : 'Sin productos disponibles'}
               </p>
               {(busqueda || categoriaActiva) && (
                 <button
                   onClick={() => { setBusqueda(''); setCategoriaActiva(''); setSubcategoriaActiva('') }}
-                  className="mt-3 text-sm text-amber-700 hover:text-amber-900 underline underline-offset-2"
+                  className="mt-3 font-mono text-xs uppercase text-red-600 underline underline-offset-4"
                 >
                   Ver todos
                 </button>
@@ -172,7 +172,7 @@ export default function CatalogoSidebar() {
           )}
 
           {!loading && productos.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
               {productos.map(p => (
                 <ProductoCard key={p.id} producto={p} whatsapp={negocio.whatsapp} nombreTienda={negocio.nombre} />
               ))}

@@ -34,18 +34,18 @@ export default function Header() {
   return (
     <>
     <header
-      className="sticky top-0 z-30 backdrop-blur-sm border-b border-stone-200 shadow-sm"
-      style={{ background: 'var(--tienda-header-bg)' }}
+      className="sticky top-0 z-30 border-b"
+      style={{ background: 'var(--tienda-header-bg)', borderColor: 'var(--tienda-header-text)' }}
     >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
           {/* Hamburguesa mobile */}
           {categorias.length > 0 && (
             <button
               type="button"
               onClick={() => setMenuMobileAbierto(true)}
               aria-label="Abrir menú"
-              className="md:hidden w-9 h-9 flex items-center justify-center hover:opacity-70 transition-opacity"
+              className="md:hidden w-9 h-9 flex items-center justify-center hover:text-red-600 transition-colors"
               style={{ color: 'var(--tienda-header-text)' }}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -56,22 +56,27 @@ export default function Header() {
 
           <Link href="/" className="flex items-center gap-3">
             {negocio.logoUrl ? (
-              <Image src={negocio.logoUrl} alt={negocio.nombre} width={36} height={36} className="rounded-xl object-cover shadow-sm" />
+              <Image src={negocio.logoUrl} alt={negocio.nombre} width={36} height={36} className="object-contain" />
             ) : (
               <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold text-slate-900 shadow-sm"
-                style={{ background: 'var(--accent)' }}
+                className="w-9 h-9 flex items-center justify-center text-sm font-bold border"
+                style={{ color: 'var(--tienda-header-text)', borderColor: 'var(--tienda-header-text)' }}
               >
                 {negocio.nombre.slice(0, 2).toUpperCase()}
               </div>
             )}
-            <span className="font-semibold text-lg tracking-tight" style={{ color: 'var(--tienda-header-text)' }}>{negocio.nombre}</span>
+            <span
+              className="text-xl uppercase tracking-tighter"
+              style={{ color: 'var(--tienda-header-text)', fontFamily: 'var(--font-anton)' }}
+            >
+              {negocio.nombre}
+            </span>
           </Link>
         </div>
 
         {/* Menú de categorías desktop */}
         {categorias.length > 0 && (
-          <nav className="hidden md:flex items-center gap-1 flex-1 justify-center">
+          <nav className="hidden md:flex items-center gap-8 flex-1 justify-center">
             {categorias.map(c => (
               <div
                 key={c.id}
@@ -82,19 +87,19 @@ export default function Header() {
                 <button
                   type="button"
                   onClick={() => abrirCatalogo(c.nombre)}
-                  className="px-3 py-2 text-sm font-medium hover:opacity-70 transition-opacity"
+                  className="font-mono text-xs uppercase tracking-tighter hover:text-red-600 transition-colors pb-1 border-b-2 border-transparent"
                   style={{ color: 'var(--tienda-header-text)' }}
                 >
                   {c.nombre}
                 </button>
                 {categoriaHover === c.id && c.subcategorias.length > 0 && (
-                  <div className="absolute top-full left-0 bg-white border border-stone-200 rounded-xl shadow-lg py-2 min-w-[180px] z-40">
+                  <div className="absolute top-full left-0 bg-black border border-white/20 shadow-lg py-2 min-w-[180px] z-40">
                     {c.subcategorias.map(s => (
                       <button
                         key={s}
                         type="button"
                         onClick={() => abrirCatalogo(c.nombre, s)}
-                        className="block w-full text-left px-4 py-1.5 text-sm text-stone-600 hover:bg-stone-50 hover:text-stone-900 transition-colors"
+                        className="block w-full text-left px-4 py-1.5 font-mono text-xs uppercase text-white/60 hover:bg-white/10 hover:text-white transition-colors"
                       >
                         {s}
                       </button>
@@ -112,7 +117,7 @@ export default function Header() {
               href={`https://wa.me/${negocio.whatsapp}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-white transition-colors"
+              className="hidden sm:flex items-center gap-2 px-4 py-2 font-mono text-xs uppercase tracking-tighter text-white transition-colors"
               style={{ background: '#25D366' }}
             >
               <WhatsAppIcon />
@@ -124,7 +129,7 @@ export default function Header() {
             type="button"
             onClick={() => abrirCatalogo()}
             aria-label="Ver catálogo completo"
-            className="w-9 h-9 flex items-center justify-center hover:opacity-70 transition-opacity"
+            className="w-9 h-9 flex items-center justify-center hover:text-red-600 transition-colors"
             style={{ color: 'var(--tienda-header-text)' }}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -136,7 +141,7 @@ export default function Header() {
             type="button"
             onClick={() => interes.setAbierto(true)}
             aria-label="Ver mi interés"
-            className="relative w-9 h-9 flex items-center justify-center hover:opacity-70 transition-opacity"
+            className="relative w-9 h-9 flex items-center justify-center hover:text-red-600 transition-colors"
             style={{ color: 'var(--tienda-header-text)' }}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -144,8 +149,8 @@ export default function Header() {
             </svg>
             {interes.items.length > 0 && (
               <span
-                className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-white text-[10px] font-bold flex items-center justify-center"
-                style={{ background: 'var(--accent)' }}
+                className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 text-white text-[10px] font-bold flex items-center justify-center"
+                style={{ background: 'var(--tienda-accent, #FF0000)' }}
               >
                 {interes.items.length}
               </span>
@@ -158,26 +163,26 @@ export default function Header() {
 
     {/* Panel mobile de categorías — fuera del <header> (sticky) para que el fixed no quede atrapado en su containing block en Safari/iOS */}
     {menuMobileAbierto && (
-        <div className="md:hidden fixed inset-0 z-40 bg-white flex flex-col">
-          <div className="h-16 flex items-center justify-between px-4 border-b border-stone-200 shrink-0">
-            <span className="font-semibold text-stone-900">Categorías</span>
+        <div className="md:hidden fixed inset-0 z-40 bg-black flex flex-col">
+          <div className="h-16 flex items-center justify-between px-4 border-b border-white/20 shrink-0">
+            <span className="font-mono text-xs uppercase tracking-tighter text-white">Categorías</span>
             <button
               type="button"
               onClick={() => setMenuMobileAbierto(false)}
               aria-label="Cerrar menú"
-              className="w-9 h-9 flex items-center justify-center text-stone-600"
+              className="w-9 h-9 flex items-center justify-center text-white"
             >
               ✕
             </button>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-1">
             {categorias.map(c => (
-              <div key={c.id} className="border-b border-stone-100">
+              <div key={c.id} className="border-b border-white/10">
                 <div className="w-full flex items-center justify-between py-3">
                   <button
                     type="button"
                     onClick={() => abrirCatalogo(c.nombre)}
-                    className="text-left text-sm font-medium text-stone-800"
+                    className="text-left font-mono text-xs uppercase tracking-tighter text-white"
                   >
                     {c.nombre}
                   </button>
@@ -186,7 +191,7 @@ export default function Header() {
                       type="button"
                       onClick={() => setCategoriaMobileAbierta(categoriaMobileAbierta === c.id ? null : c.id)}
                       aria-label="Mostrar subcategorías"
-                      className="text-stone-400 w-8 h-8 flex items-center justify-center"
+                      className="text-white/40 w-8 h-8 flex items-center justify-center"
                     >
                       {categoriaMobileAbierta === c.id ? '−' : '+'}
                     </button>
@@ -199,7 +204,7 @@ export default function Header() {
                         key={s}
                         type="button"
                         onClick={() => abrirCatalogo(c.nombre, s)}
-                        className="block w-full text-left py-1.5 text-sm text-stone-500"
+                        className="block w-full text-left py-1.5 font-mono text-xs uppercase text-white/50"
                       >
                         {s}
                       </button>

@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import type { InteresItem } from '@/lib/whatsapp'
 import type { GuiaTallas } from '@/lib/types'
+import { anton, jetbrainsMono } from '@/lib/fonts'
 import {
   GUIA_TALLES_DEFAULT,
   CAMBIOS_DEVOLUCIONES_DEFAULT,
@@ -68,10 +69,10 @@ interface TiendaCtx {
 
 const negocioVacio: NegocioCtx = {
   nombre: '', logoUrl: null, whatsapp: null, instagram: null,
-  colorFondo: null, colorTexto: null, razonSocial: null, cuit: null, direccion: null,
-  colorHeaderFondo: '#FFFFFF', colorHeaderTexto: '#1C1917',
-  colorBannerFondo: '#FAFAF9', colorBannerTexto: '#1C1917',
-  colorBotonFondo: '#C9A574', colorBotonTexto: '#0F172A',
+  colorFondo: '#131313', colorTexto: '#e2e2e2', razonSocial: null, cuit: null, direccion: null,
+  colorHeaderFondo: '#131313', colorHeaderTexto: '#e2e2e2',
+  colorBannerFondo: '#e2e2e2', colorBannerTexto: '#131313',
+  colorBotonFondo: '#e2e2e2', colorBotonTexto: '#131313',
   diasNuevo: 14,
   guiaTallas: GUIA_TALLES_DEFAULT,
   cambiosDevoluciones: CAMBIOS_DEVOLUCIONES_DEFAULT,
@@ -141,16 +142,19 @@ export default function TiendaShell({ children, ...negocio }: Props) {
   return (
     <TiendaContext.Provider value={{ negocio, interes: { items, agregar, quitar, limpiar, abierto, setAbierto }, catalogo }}>
       <div
-        className="min-h-screen bg-stone-50 flex flex-col"
+        className={`${anton.variable} ${jetbrainsMono.variable} min-h-screen bg-black flex flex-col selection:bg-red-600 selection:text-white`}
         style={{
-          background: negocio.colorFondo || undefined,
-          ['--tienda-text' as string]: negocio.colorTexto || '#1c1917',
+          background: negocio.colorFondo || '#131313',
+          ['--tienda-text' as string]: negocio.colorTexto || '#e2e2e2',
           ['--tienda-header-bg' as string]: negocio.colorHeaderFondo,
           ['--tienda-header-text' as string]: negocio.colorHeaderTexto,
           ['--tienda-banner-bg' as string]: negocio.colorBannerFondo,
           ['--tienda-banner-text' as string]: negocio.colorBannerTexto,
           ['--tienda-boton-bg' as string]: negocio.colorBotonFondo,
           ['--tienda-boton-text' as string]: negocio.colorBotonTexto,
+          ['--tienda-accent' as string]: '#FF0000',
+          ['--font-mono' as string]: 'var(--font-jetbrains)',
+          color: negocio.colorTexto || '#e2e2e2',
         }}
       >
         <Header />

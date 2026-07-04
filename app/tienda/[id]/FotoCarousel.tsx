@@ -26,8 +26,8 @@ export default function FotoCarousel({ fotos, nombre, videoUrl }: { fotos: strin
   const fotoSeleccionar = (i: number) => setActiva(i + offset)
 
   return (
-    <div className="space-y-3">
-      <div className="aspect-square bg-stone-100 rounded-3xl overflow-hidden shadow-sm relative group">
+    <div className="space-y-2">
+      <div className="aspect-square bg-white/5 overflow-hidden relative group">
         {slide ? (
           slide.tipo === 'video' ? (
             <video src={slide.url} controls playsInline className="absolute inset-0 w-full h-full object-cover bg-black" />
@@ -42,7 +42,7 @@ export default function FotoCarousel({ fotos, nombre, videoUrl }: { fotos: strin
             </button>
           )
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-7xl text-stone-200">📷</div>
+          <div className="w-full h-full flex items-center justify-center text-7xl text-white/10">📷</div>
         )}
 
         {slides.length > 1 && (
@@ -51,7 +51,7 @@ export default function FotoCarousel({ fotos, nombre, videoUrl }: { fotos: strin
               type="button"
               onClick={anterior}
               aria-label="Anterior"
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 backdrop-blur flex items-center justify-center text-stone-700 shadow opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-black/70 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
             >
               ‹
             </button>
@@ -59,11 +59,11 @@ export default function FotoCarousel({ fotos, nombre, videoUrl }: { fotos: strin
               type="button"
               onClick={siguiente}
               aria-label="Siguiente"
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 backdrop-blur flex items-center justify-center text-stone-700 shadow opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-black/70 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
             >
               ›
             </button>
-            <div className="absolute bottom-2 right-2 bg-black/40 text-white text-[10px] px-1.5 py-0.5 rounded-full font-medium">
+            <div className="absolute bottom-2 right-2 bg-black/70 text-white font-mono text-[10px] px-1.5 py-0.5">
               {activa + 1}/{slides.length}
             </div>
           </>
@@ -71,14 +71,13 @@ export default function FotoCarousel({ fotos, nombre, videoUrl }: { fotos: strin
       </div>
 
       {slides.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <div className="grid grid-cols-4 gap-2">
           {slides.map((s, i) => (
             <button
               key={s.url}
               onClick={() => setActiva(i)}
-              style={{ width: 72, height: 72 }}
-              className={`shrink-0 rounded-xl overflow-hidden border-2 transition-all relative ${
-                i === activa ? 'border-amber-400 shadow-md' : 'border-transparent opacity-60 hover:opacity-90'
+              className={`aspect-square overflow-hidden border transition-all relative ${
+                i === activa ? 'border-red-600' : 'border-transparent opacity-50 hover:opacity-90'
               }`}
             >
               {s.tipo === 'video' ? (
@@ -87,7 +86,7 @@ export default function FotoCarousel({ fotos, nombre, videoUrl }: { fotos: strin
                   <span className="absolute inset-0 flex items-center justify-center text-white text-lg bg-black/20">▶</span>
                 </>
               ) : (
-                <Image src={s.url} alt="" fill className="object-cover" sizes="72px" />
+                <Image src={s.url} alt="" fill className="object-cover" sizes="150px" />
               )}
             </button>
           ))}

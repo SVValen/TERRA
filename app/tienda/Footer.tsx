@@ -10,71 +10,31 @@ type ModalAyuda = 'talles' | 'cambios' | 'envios' | null
 
 export default function Footer() {
   const { negocio } = useTienda()
-  const [email, setEmail] = useState('')
-  const [estado, setEstado] = useState<'idle' | 'enviando' | 'ok' | 'error'>('idle')
   const [modalAyuda, setModalAyuda] = useState<ModalAyuda>(null)
-
-  const suscribirse = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setEstado('enviando')
-    const res = await fetch('/api/tienda/newsletter', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
-    })
-    setEstado(res.ok ? 'ok' : 'error')
-    if (res.ok) setEmail('')
-  }
 
   const datosLegales = [negocio.razonSocial, negocio.cuit, negocio.direccion].filter(Boolean)
 
   return (
-    <footer className="border-t border-stone-200 mt-16" style={{ background: 'var(--tienda-header-bg)' }}>
+    <footer className="border-t mt-16" style={{ background: 'var(--tienda-header-bg)', borderColor: 'var(--tienda-header-text)' }}>
       <BannerEnvios />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        {/* Newsletter — primero en mobile */}
-        <div className="order-first lg:order-last">
-          <p className="text-xs font-semibold uppercase tracking-wide mb-3 opacity-50" style={{ color: 'var(--tienda-header-text)' }}>Newsletter</p>
-          <p className="text-sm mb-3 opacity-70" style={{ color: 'var(--tienda-header-text)' }}>Enterate de las novedades y lanzamientos.</p>
-          <form onSubmit={suscribirse} className="flex gap-2">
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="tu@email.com"
-              className="input"
-            />
-            <button
-              type="submit"
-              disabled={estado === 'enviando'}
-              className="shrink-0 px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-50 transition-opacity"
-              style={{ background: 'var(--tienda-boton-bg)', color: 'var(--tienda-boton-text)' }}
-            >
-              Sumarme
-            </button>
-          </form>
-          {estado === 'ok' && <p className="text-xs text-emerald-600 mt-2">¡Listo! Ya estás suscripta.</p>}
-          {estado === 'error' && <p className="text-xs text-red-500 mt-2">No pudimos suscribirte, probá de nuevo.</p>}
-        </div>
-
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
         {/* Ayuda */}
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide mb-3 opacity-50" style={{ color: 'var(--tienda-header-text)' }}>Ayuda</p>
-          <ul className="space-y-2 text-sm">
+          <p className="font-mono text-xs uppercase tracking-widest mb-4 opacity-50" style={{ color: 'var(--tienda-header-text)' }}>Ayuda</p>
+          <ul className="space-y-2 font-mono text-xs uppercase">
             <li>
-              <button type="button" onClick={() => setModalAyuda('talles')} className="opacity-70 hover:opacity-100 transition-opacity" style={{ color: 'var(--tienda-header-text)' }}>
+              <button type="button" onClick={() => setModalAyuda('talles')} className="opacity-70 hover:opacity-100 hover:text-red-600 transition-colors" style={{ color: 'var(--tienda-header-text)' }}>
                 Guía de talles
               </button>
             </li>
             <li>
-              <button type="button" onClick={() => setModalAyuda('cambios')} className="opacity-70 hover:opacity-100 transition-opacity" style={{ color: 'var(--tienda-header-text)' }}>
+              <button type="button" onClick={() => setModalAyuda('cambios')} className="opacity-70 hover:opacity-100 hover:text-red-600 transition-colors" style={{ color: 'var(--tienda-header-text)' }}>
                 Cambios y devoluciones
               </button>
             </li>
             <li>
-              <button type="button" onClick={() => setModalAyuda('envios')} className="opacity-70 hover:opacity-100 transition-opacity" style={{ color: 'var(--tienda-header-text)' }}>
+              <button type="button" onClick={() => setModalAyuda('envios')} className="opacity-70 hover:opacity-100 hover:text-red-600 transition-colors" style={{ color: 'var(--tienda-header-text)' }}>
                 Envíos
               </button>
             </li>
@@ -84,8 +44,8 @@ export default function Footer() {
         {/* Institucional */}
         {datosLegales.length > 0 && (
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide mb-3 opacity-50" style={{ color: 'var(--tienda-header-text)' }}>Institucional</p>
-            <ul className="space-y-1 text-sm opacity-70" style={{ color: 'var(--tienda-header-text)' }}>
+            <p className="font-mono text-xs uppercase tracking-widest mb-4 opacity-50" style={{ color: 'var(--tienda-header-text)' }}>Institucional</p>
+            <ul className="space-y-1 font-mono text-xs uppercase opacity-70" style={{ color: 'var(--tienda-header-text)' }}>
               {negocio.razonSocial && <li>{negocio.razonSocial}</li>}
               {negocio.cuit && <li>CUIT: {negocio.cuit}</li>}
               {negocio.direccion && <li>{negocio.direccion}</li>}
@@ -95,14 +55,14 @@ export default function Footer() {
 
         {/* Seguinos */}
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide mb-3 opacity-50" style={{ color: 'var(--tienda-header-text)' }}>Seguinos</p>
+          <p className="font-mono text-xs uppercase tracking-widest mb-4 opacity-50" style={{ color: 'var(--tienda-header-text)' }}>Seguinos</p>
           <div className="flex flex-col gap-2">
             {negocio.whatsapp && (
               <a
                 href={`https://wa.me/${negocio.whatsapp}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-sm opacity-70 hover:opacity-100 transition-opacity"
+                className="flex items-center gap-1.5 font-mono text-xs uppercase opacity-70 hover:opacity-100 hover:text-red-600 transition-colors"
                 style={{ color: 'var(--tienda-header-text)' }}
               >
                 <WhatsAppIcon />
@@ -114,7 +74,7 @@ export default function Footer() {
                 href={`https://instagram.com/${negocio.instagram}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-sm opacity-70 hover:opacity-100 transition-opacity"
+                className="flex items-center gap-1.5 font-mono text-xs uppercase opacity-70 hover:opacity-100 hover:text-red-600 transition-colors"
                 style={{ color: 'var(--tienda-header-text)' }}
               >
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -127,20 +87,28 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-stone-100 py-4 px-4 sm:px-6">
-        <div className="max-w-6xl mx-auto flex items-center gap-2.5">
-          <span className="text-xs opacity-50" style={{ color: 'var(--tienda-header-text)' }}>{negocio.nombre}</span>
+      <div className="border-t py-5 px-4 sm:px-6" style={{ borderColor: 'var(--tienda-header-text)', opacity: 1 }}>
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-2.5">
+          <span
+            className="text-lg uppercase tracking-tighter"
+            style={{ color: 'var(--tienda-header-text)', fontFamily: 'var(--font-anton)' }}
+          >
+            {negocio.nombre}
+          </span>
+          <span className="font-mono text-[10px] uppercase opacity-40" style={{ color: 'var(--tienda-header-text)' }}>
+            © {new Date().getFullYear()} {negocio.nombre}. All rights reserved.
+          </span>
         </div>
       </div>
 
       {modalAyuda === 'talles' && (
         <InfoModal titulo="Guía de talles" onClose={() => setModalAyuda(null)}>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full font-mono text-xs">
               <thead>
                 <tr>
                   {negocio.guiaTallas.columnas.map((c, i) => (
-                    <th key={i} className="text-left font-semibold text-stone-700 pb-2 pr-4 border-b border-stone-200">{c}</th>
+                    <th key={i} className="text-left uppercase text-white/70 pb-2 pr-4 border-b border-white/20">{c}</th>
                   ))}
                 </tr>
               </thead>
@@ -148,7 +116,7 @@ export default function Footer() {
                 {negocio.guiaTallas.filas.map((fila, fi) => (
                   <tr key={fi}>
                     {fila.map((celda, ci) => (
-                      <td key={ci} className="py-2 pr-4 text-stone-600 border-b border-stone-100">{celda}</td>
+                      <td key={ci} className="py-2 pr-4 text-white/60 border-b border-white/10">{celda}</td>
                     ))}
                   </tr>
                 ))}
@@ -160,13 +128,13 @@ export default function Footer() {
 
       {modalAyuda === 'cambios' && (
         <InfoModal titulo="Cambios y devoluciones" onClose={() => setModalAyuda(null)}>
-          <p className="text-sm text-stone-600 whitespace-pre-line">{negocio.cambiosDevoluciones}</p>
+          <p className="text-sm text-white/70 whitespace-pre-line">{negocio.cambiosDevoluciones}</p>
         </InfoModal>
       )}
 
       {modalAyuda === 'envios' && (
         <InfoModal titulo="Envíos" onClose={() => setModalAyuda(null)}>
-          <p className="text-sm text-stone-600 whitespace-pre-line">{negocio.envios}</p>
+          <p className="text-sm text-white/70 whitespace-pre-line">{negocio.envios}</p>
         </InfoModal>
       )}
     </footer>

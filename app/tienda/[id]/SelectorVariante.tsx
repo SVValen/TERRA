@@ -73,9 +73,9 @@ export default function SelectorVariante({
   return (
     <div>
       {talles.length > 0 && (
-        <div className="mb-4">
-          <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-2">Talle</p>
-          <div className="flex flex-wrap gap-2">
+        <div className="mb-6">
+          <p className="font-mono text-xs uppercase text-white/50 mb-2">Talle</p>
+          <div className="grid grid-cols-4 gap-2">
             {talles.map(t => {
               const sinStock = stockPorTalle(t) === 0
               return (
@@ -83,12 +83,12 @@ export default function SelectorVariante({
                   key={t}
                   type="button"
                   onClick={() => seleccionarTalle(t)}
-                  className={`inline-block px-4 py-1.5 font-semibold text-sm rounded-full transition-colors ${
+                  className={`py-3 font-mono text-sm border transition-colors ${
                     sinStock
-                      ? 'bg-stone-50 text-stone-300 line-through'
+                      ? 'border-white/10 text-white/20 line-through cursor-not-allowed'
                       : talleSel === t
-                        ? 'bg-stone-800 text-white'
-                        : 'bg-stone-100 text-stone-800 hover:bg-stone-200'
+                        ? 'bg-white text-black border-white'
+                        : 'border-white/30 text-white hover:bg-white hover:text-black'
                   }`}
                 >
                   {t}
@@ -100,20 +100,20 @@ export default function SelectorVariante({
       )}
 
       {talleSel && coloresDelTalle.length > 0 && (
-        <div className="mb-4">
-          <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide mb-2">Color</p>
+        <div className="mb-6">
+          <p className="font-mono text-xs uppercase text-white/50 mb-2">Color</p>
           <div className="flex flex-wrap gap-2">
             {coloresDelTalle.map(v => (
               <button
                 key={v.color}
                 type="button"
                 onClick={() => { setColorSel(v.color); setAgregado(false) }}
-                className={`inline-block px-4 py-1.5 font-semibold text-sm rounded-full transition-colors ${
+                className={`px-4 py-2 font-mono text-xs uppercase border transition-colors ${
                   v.stock === 0
-                    ? 'bg-stone-50 text-stone-300 line-through'
+                    ? 'border-white/10 text-white/20 line-through'
                     : colorSel === v.color
-                      ? 'bg-stone-800 text-white'
-                      : 'bg-stone-100 text-stone-800 hover:bg-stone-200'
+                      ? 'bg-white text-black border-white'
+                      : 'border-white/30 text-white hover:bg-white hover:text-black'
                 }`}
               >
                 {v.color}
@@ -124,27 +124,27 @@ export default function SelectorVariante({
       )}
 
       {varianteElegida && (
-        <p className="text-xs text-stone-400 mb-2">
+        <p className="font-mono text-[10px] uppercase text-white/40 mb-2">
           {varianteElegida.stock > 0
             ? `Stock de esta variante: ${varianteElegida.stock}`
             : 'Esta variante está sin stock'}
         </p>
       )}
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-3 mt-4">
         {waUrl ? (
           <a
             href={waUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl text-white font-semibold text-base transition-opacity hover:opacity-90"
+            className="flex items-center justify-center gap-3 w-full py-5 text-white font-mono text-sm font-bold uppercase tracking-tighter transition-opacity hover:opacity-90"
             style={{ background: '#25D366' }}
           >
             <WhatsAppIcon className="w-5 h-5" />
             Consultar por WhatsApp
           </a>
         ) : (
-          <div className="w-full py-4 rounded-2xl text-center text-sm text-stone-400 bg-stone-100">
+          <div className="w-full py-5 text-center font-mono text-xs uppercase text-white/40 bg-white/5">
             Contactate con {nombreTienda} para consultar disponibilidad
           </div>
         )}
@@ -153,7 +153,7 @@ export default function SelectorVariante({
           type="button"
           onClick={agregarAInteres}
           disabled={agregado}
-          className="w-full py-3 rounded-2xl border border-stone-200 text-sm font-semibold text-stone-700 hover:bg-stone-50 transition-colors disabled:opacity-60"
+          className="w-full py-4 border border-white/30 font-mono text-xs font-bold uppercase tracking-tighter text-white hover:bg-white hover:text-black transition-colors disabled:opacity-40"
         >
           {agregado ? '✓ Agregado a mi interés' : 'Agregar a mi interés'}
         </button>
