@@ -127,6 +127,10 @@ En tienda pública la URL del producto se construye con `getBaseUrl()`:
 1. `NEXT_PUBLIC_BASE_URL` (env var de producción — debe configurarse en Vercel)
 2. Fallback: `https://${VERCEL_URL}` (apunta al deployment actual, puede ser preview)
 
+### Rate limiting y hardening de endpoints públicos
+`lib/ratelimit.ts` — usa Upstash Redis (`UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN`) si esas env vars están seteadas, para que el límite se comparta entre todas las instancias serverless; si no están configuradas (o la llamada a Redis falla), cae automáticamente a un `Map` en memoria por proceso — funciona sin configuración extra pero deja de ser distribuido. Expone `checkRateLimit(key, max, windowMs)` (async) de bajo nivel y `rateLimitOrNull(request, bucket, max, windowMs)` (agrupa por IP vía `x-forwarded-for`, devuelve un `NextResponse` 429 listo para retornar o `null` si está OK). Aplicado en todos los endpoints públicos que escriben o consultan sin autenticación: `POST /api/auth/login` (10/15min), `POST /api/tienda/newsletter` (5/hora — el más estricto, para no habilitar spam de inserts), `POST /api/tienda/visita` y `/click-wa` (30/min), `POST /api/telegram/webhook` (60/min, además de validar el secret), y las lecturas públicas `GET /api/tienda/{productos,productos/[id],categorias,negocio,anuncios}` (180/min, generoso para no afectar navegación real mientras frena scraping/bots). El secret del webhook de Telegram se compara con `crypto.timingSafeEqual` en vez de `!==` para evitar timing attacks.
+Cabeceras de seguridad en `next.config.ts`: además de `X-Frame-Options`/`X-Content-Type-Options`/`Referrer-Policy`/`Permissions-Policy` (ya existían), se agregó `Strict-Transport-Security` y un `Content-Security-Policy` (`default-src 'self'`, `frame-ancestors 'none'`, `object-src 'none'`, `img-src`/`media-src` habilitando `*.supabase.co` para las fotos/videos servidos directo desde Storage). El CSP usa `'unsafe-inline'` en `script-src`/`style-src` porque Next.js inyecta scripts de hidratación sin nonce y la tienda usa `style={{...}}` inline extensivamente para los colores configurables — es un CSP pragmático, no estricto.
+
 ### Revalidación de `/tienda` tras cambios en el admin
 `app/tienda/layout.tsx` y `page.tsx` son estáticos con ISR (Next.js los prerenderiza y los sirve cacheados hasta que algo los revalida) — sin un trigger explícito, un cambio guardado en la base podía tardar minutos (o quedar cacheado indefinidamente si nadie visitaba la página en ese momento) en reflejarse públicamente, aunque el guardado en sí funcionara bien. Por eso todo endpoint de `/api/*` que modifica datos consumidos por `/tienda` llama `revalidatePath('/tienda', 'layout')` **y también** `revalidatePath('/')` (la home vive en una ruta aparte, ver más abajo) al final de un guardado exitoso: `app/api/negocio/route.ts` (PATCH), `app/api/productos/route.ts` (POST), `app/api/productos/[id]/route.ts` (PATCH/DELETE), `app/api/productos/[id]/fotos/route.ts` (POST/DELETE), `app/api/productos/[id]/video/route.ts` (POST/DELETE), `app/api/ventas/route.ts` (POST), `app/api/anuncios/route.ts` (POST), `app/api/anuncios/[id]/route.ts` (PATCH/DELETE). Cualquier endpoint nuevo que toque `productos`, `producto_talles`, `negocio` o `anuncios` debe sumar ambas líneas.
 
@@ -151,6 +155,25 @@ En tienda pública la URL del producto se construye con `getBaseUrl()`:
 ---
 
 ## Trabajo en curso
+
+### Política del bucket de Storage "Fotos" pendiente de verificar/aplicar en TERRA y SHOWROOM
+Todos los uploads (`/api/productos/*/fotos`, `/video`, `/api/anuncios`) usan el service role key server-side, que **bypasea RLS** — no necesitan que el bucket permita escritura pública. El único acceso público real que hace falta es lectura (para que `/tienda` muestre fotos/videos sin login). Correr en el SQL Editor de Supabase para confirmar que no haya una policy de `insert`/`update`/`delete` abierta a `anon`/`public`:
+```sql
+-- 1. Revisar policies existentes sobre storage.objects
+select policyname, cmd, roles, qual, with_check
+from pg_policies
+where schemaname = 'storage' and tablename = 'objects';
+
+-- 2. Si no existe ya, asegurar RLS habilitado (suele estarlo por defecto)
+alter table storage.objects enable row level security;
+
+-- 3. Policy de lectura pública, acotada al bucket "Fotos" (no todos los buckets)
+create policy "Fotos: lectura publica"
+on storage.objects for select
+to public
+using (bucket_id = 'Fotos');
+```
+Si el paso 1 muestra alguna policy `insert`/`update`/`delete` con rol `anon` o `public` sobre el bucket `Fotos`, hay que borrarla (`drop policy "nombre" on storage.objects;`) — esa sería la única forma en que alguien externo podría subir/borrar archivos sin pasar por las APIs autenticadas.
 
 ### Pendiente de configuración
 - Dominio custom (Donweb → Vercel): DNS sin configurar → `NEXT_PUBLIC_BASE_URL` sin definir en Vercel
@@ -216,6 +239,7 @@ En tienda pública la URL del producto se construye con `getBaseUrl()`:
 
 ### Deuda técnica conocida
 - No hay RLS en Supabase: si el `SUPABASE_SERVICE_ROLE_KEY` se filtra, hay acceso total a la DB
+- El CSP (`next.config.ts`) usa `'unsafe-inline'` en `script-src`/`style-src` — no protege contra XSS si ya se logró inyectar un `<script>` inline. Se evaluó pasar a nonces por-request pero se descartó a propósito: `/tienda` es estática con ISR (ver "Revalidación de `/tienda`" más abajo), y un nonce generado en cada request del middleware no coincidiría con el nonce ya "horneado" en el HTML cacheado, rompiendo scripts/estilos de forma intermitente. Solo sería viable pasando `/tienda` a rendering dinámico, y no vale el trade-off de performance/carga a Supabase que eso implica
 - El bot no valida que el `telegram_id` pertenezca a un usuario registrado antes de procesar pasos de carga
 - `app/admin/stock/[id]/page.tsx` es un Client Component pesado — candidato a split Server/Client cuando crezca
 - El contenido de "Guía de talles" y "Cambios y devoluciones" en el footer (`Footer.tsx`) es texto estático hardcodeado, no editable desde el admin — pendiente si se necesita CMS a futuro

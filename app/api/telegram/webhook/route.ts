@@ -1,5 +1,7 @@
+import { timingSafeEqual } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { rateLimitOrNull } from '@/lib/ratelimit'
 import { sendMessage, answerCallbackQuery, getFile } from '@/lib/telegram/bot'
 import { parseNumero } from '@/lib/telegram/parser'
 import {
@@ -92,9 +94,19 @@ async function avanzarAColoresPendientes(
   await sendMessage(chatId, pregunta)
 }
 
+function secretValido(recibido: string | null): boolean {
+  const esperado = process.env.TELEGRAM_WEBHOOK_SECRET ?? ''
+  const bufRecibido = Buffer.from(recibido ?? '')
+  const bufEsperado = Buffer.from(esperado)
+  if (bufRecibido.length !== bufEsperado.length) return false
+  return timingSafeEqual(bufRecibido, bufEsperado)
+}
+
 export async function POST(request: NextRequest) {
-  const secret = request.headers.get('x-telegram-bot-api-secret-token')
-  if (secret !== process.env.TELEGRAM_WEBHOOK_SECRET) {
+  const limitado = await rateLimitOrNull(request, 'telegram-webhook', 60, 60 * 1000)
+  if (limitado) return limitado
+
+  if (!secretValido(request.headers.get('x-telegram-bot-api-secret-token'))) {
     return new NextResponse('Unauthorized', { status: 401 })
   }
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { PRODUCTO_TIENDA_FIELDS } from '@/lib/tienda'
+import { rateLimitOrNull } from '@/lib/ratelimit'
 
 function isMissingColumnError(error: { code?: string; message?: string } | null) {
   return error?.code === '42703' || /column/i.test(error?.message ?? '')
@@ -21,6 +22,9 @@ async function getCategoriasVisibles(supabase: ReturnType<typeof createServiceCl
 }
 
 export async function GET(request: NextRequest) {
+  const limitado = await rateLimitOrNull(request, 'tienda-productos', 180, 60 * 1000)
+  if (limitado) return limitado
+
   const supabase = createServiceClient()
   const { searchParams } = new URL(request.url)
 

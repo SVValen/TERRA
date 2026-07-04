@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { rateLimitOrNull } from '@/lib/ratelimit'
 
 const EMAIL_RE = /^\S+@\S+\.\S+$/
 
 export async function POST(request: NextRequest) {
+  const limitado = await rateLimitOrNull(request, 'newsletter', 5, 60 * 60 * 1000)
+  if (limitado) return limitado
+
   const { email } = await request.json()
 
   if (typeof email !== 'string' || !EMAIL_RE.test(email.trim())) {

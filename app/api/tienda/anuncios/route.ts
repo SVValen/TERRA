@@ -1,7 +1,11 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { rateLimitOrNull } from '@/lib/ratelimit'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const limitado = await rateLimitOrNull(request, 'tienda-anuncios', 180, 60 * 1000)
+  if (limitado) return limitado
+
   const supabase = createServiceClient()
   const { data } = await supabase
     .from('anuncios')

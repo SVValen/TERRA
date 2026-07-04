@@ -1,11 +1,15 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { rateLimitOrNull } from '@/lib/ratelimit'
 
 function isMissingColumnError(error: { code?: string; message?: string } | null) {
   return error?.code === '42703' || /column/i.test(error?.message ?? '')
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const limitado = await rateLimitOrNull(request, 'tienda-categorias', 180, 60 * 1000)
+  if (limitado) return limitado
+
   const supabase = createServiceClient()
 
   const { data: categoriasData, error: categoriasError } = await supabase

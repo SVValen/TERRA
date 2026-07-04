@@ -1,7 +1,11 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { rateLimitOrNull } from '@/lib/ratelimit'
 
-export async function POST() {
+export async function POST(request: NextRequest) {
+  const limitado = await rateLimitOrNull(request, 'visita', 30, 60 * 1000)
+  if (limitado) return limitado
+
   const supabase = createServiceClient()
   const today = new Date().toISOString().slice(0, 10)
 

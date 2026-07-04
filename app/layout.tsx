@@ -7,8 +7,8 @@ import { darkenHex } from '@/lib/color'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Showroom SP',
-  description: 'Panel de gestión',
+  title: 'Terra Tienda ARG',
+  description: 'Diseño de indumentaria Argentina',
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

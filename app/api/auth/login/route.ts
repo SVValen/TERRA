@@ -1,16 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { verifyPassword, createSession } from '@/lib/auth'
-import { checkRateLimit } from '@/lib/ratelimit'
+import { rateLimitOrNull } from '@/lib/ratelimit'
 
 export async function POST(request: NextRequest) {
-  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
-  if (!checkRateLimit(`login:${ip}`, 10, 15 * 60 * 1000)) {
-    return NextResponse.json(
-      { error: 'Demasiados intentos. Intentá de nuevo en 15 minutos.' },
-      { status: 429 }
-    )
-  }
+  const limitado = await rateLimitOrNull(request, 'login', 10, 15 * 60 * 1000)
+  if (limitado) return limitado
 
   const { telegram_id, password } = await request.json()
 
