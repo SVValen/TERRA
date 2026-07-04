@@ -144,8 +144,11 @@ export default function TiendaShell({ children, ...negocio }: Props) {
       <div
         className={`${anton.variable} ${jetbrainsMono.variable} min-h-screen bg-black flex flex-col selection:bg-red-600 selection:text-white`}
         style={{
-          background: negocio.colorFondo || '#131313',
-          ['--tienda-text' as string]: negocio.colorTexto || '#e2e2e2',
+          // Paleta "Urban Brutalist" fija: no toma color_fondo/color_texto del negocio
+          // (quedaron guardados de la identidad anterior) porque el sistema es monocromático
+          // por diseño, no personalizable en claro/oscuro.
+          background: '#131313',
+          ['--tienda-text' as string]: '#e2e2e2',
           ['--tienda-header-bg' as string]: negocio.colorHeaderFondo,
           ['--tienda-header-text' as string]: negocio.colorHeaderTexto,
           ['--tienda-banner-bg' as string]: negocio.colorBannerFondo,
@@ -154,7 +157,7 @@ export default function TiendaShell({ children, ...negocio }: Props) {
           ['--tienda-boton-text' as string]: negocio.colorBotonTexto,
           ['--tienda-accent' as string]: '#FF0000',
           ['--font-mono' as string]: 'var(--font-jetbrains)',
-          color: negocio.colorTexto || '#e2e2e2',
+          color: '#e2e2e2',
         }}
       >
         <Header />
