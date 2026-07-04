@@ -55,8 +55,8 @@ Desde `/admin/negocio` se edita: la **guía de talles** como tabla genérica (co
 - Producto se marca `vendido` **solo cuando el stock total (suma de variantes) llega exactamente a 0**, no antes.
 - **`precio_costo` nunca se expone** en endpoints públicos (`/api/tienda/*`).
 - Solo productos `disponible` y `activo = true` son visibles en la tienda pública (`activo` es independiente de `estado`: permite ocultar sin tocar stock ni marcar vendido/reservado).
-- Rutas públicas: `/login`, `/api/auth`, `/api/telegram`, `/api/tienda`, `/tienda`. Todo lo demás requiere JWT válido.
-- `/` redirige a `/tienda`.
+- Rutas públicas: `/login`, `/api/auth`, `/api/telegram`, `/api/tienda`, `/tienda`, `/` (home de la tienda). Todo lo demás requiere JWT válido.
+- `/` muestra directamente el home de la tienda (mismo contenido que antes vivía en `/tienda`); `/tienda` (sin más segmentos) redirige a `/` para no duplicar contenido. El resto de las rutas de la tienda (`/tienda/[id]`, etc.) no cambió.
 
 ## Variables de entorno críticas (nunca exponer al cliente)
 - `SUPABASE_SERVICE_ROLE_KEY` — acceso total a DB sin RLS, solo server-side

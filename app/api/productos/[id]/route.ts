@@ -51,6 +51,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   revalidatePath('/tienda', 'layout')
+  revalidatePath('/')
 
   return NextResponse.json(data)
 }
@@ -66,6 +67,7 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   revalidatePath('/tienda', 'layout')
+  revalidatePath('/')
 
   return new NextResponse(null, { status: 204 })
 }

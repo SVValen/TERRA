@@ -54,7 +54,7 @@ export default function Header() {
             </button>
           )}
 
-          <Link href="/tienda" className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3">
             {negocio.logoUrl ? (
               <Image src={negocio.logoUrl} alt={negocio.nombre} width={36} height={36} className="rounded-xl object-cover shadow-sm" />
             ) : (

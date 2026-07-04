@@ -5,8 +5,7 @@ import { useTienda } from './TiendaShell'
 import { type ProductoCardData } from './ProductoCard'
 import type { Anuncio } from '@/lib/types'
 import ProductCarousel from './ProductCarousel'
-import HeroDestacados from './HeroDestacados'
-import HeroAnuncios from './HeroAnuncios'
+import Hero from './Hero'
 
 export default function TiendaPage() {
   const { negocio, catalogo } = useTienda()
@@ -23,10 +22,7 @@ export default function TiendaPage() {
 
   return (
     <div>
-      {anuncios.length > 0
-        ? <HeroAnuncios anuncios={anuncios} />
-        : <HeroDestacados productos={destacados} whatsapp={negocio.whatsapp} nombreTienda={negocio.nombre} />
-      }
+      <Hero anuncios={anuncios} productos={destacados} whatsapp={negocio.whatsapp} nombreTienda={negocio.nombre} />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
         <ProductCarousel titulo="Nuevos" productos={nuevos} whatsapp={negocio.whatsapp} nombreTienda={negocio.nombre} />

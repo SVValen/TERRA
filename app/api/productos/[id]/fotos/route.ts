@@ -57,6 +57,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     .single()
 
   revalidatePath('/tienda', 'layout')
+  revalidatePath('/')
 
   return NextResponse.json({ url, fotos_urls: updated?.fotos_urls ?? nuevasFotos, foto_url: updated?.foto_url }, { status: 201 })
 }
@@ -94,6 +95,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   }
 
   revalidatePath('/tienda', 'layout')
+  revalidatePath('/')
 
   return NextResponse.json({ fotos_urls: nuevasFotos, foto_url: nuevaFotoPrincipal })
 }

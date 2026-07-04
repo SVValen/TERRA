@@ -125,6 +125,7 @@ export async function PATCH(request: NextRequest) {
   }
 
   revalidatePath('/tienda', 'layout')
+  revalidatePath('/')
   revalidatePath('/admin', 'layout')
 
   return NextResponse.json(data)

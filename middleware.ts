@@ -10,12 +10,12 @@ function getSecret() {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  if (PUBLIC.some(p => pathname.startsWith(p))) {
-    return NextResponse.next()
+  if (pathname === '/tienda') {
+    return NextResponse.redirect(new URL('/', request.url))
   }
 
-  if (pathname === '/') {
-    return NextResponse.redirect(new URL('/tienda', request.url))
+  if (pathname === '/' || PUBLIC.some(p => pathname.startsWith(p))) {
+    return NextResponse.next()
   }
 
   if (pathname.startsWith('/_next') || pathname.startsWith('/favicon') || pathname.startsWith('/icon')) {

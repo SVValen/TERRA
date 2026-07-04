@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
 
-const MAX_SIZE = 50 * 1024 * 1024 // 50MB
+const MAX_SIZE = 100 * 1024 * 1024 // 100MB (video Full HD 1920x1080)
 const ALLOWED_TYPES = ['video/mp4', 'video/webm', 'video/quicktime']
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json({ error: 'Tipo de archivo no permitido (mp4, webm o mov)' }, { status: 400 })
   }
   if (file.size > MAX_SIZE) {
-    return NextResponse.json({ error: 'El video no puede superar 50MB' }, { status: 400 })
+    return NextResponse.json({ error: 'El video no puede superar 100MB' }, { status: 400 })
   }
 
   const { data: producto } = await supabase
@@ -57,6 +57,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     .eq('id', id)
 
   revalidatePath('/tienda', 'layout')
+  revalidatePath('/')
 
   return NextResponse.json({ video_url: url }, { status: 201 })
 }
@@ -88,6 +89,7 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
   }
 
   revalidatePath('/tienda', 'layout')
+  revalidatePath('/')
 
   return NextResponse.json({ video_url: null })
 }

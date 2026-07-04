@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import type { Producto, Categoria, Talle, Color } from '@/lib/types'
+import { esFormatoHero, getVideoDimensions } from '@/lib/media'
 
 type TalleForm = { id?: string; talle: string; color: string; stock: number }
 
@@ -171,6 +172,17 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
   }
 
   const subirVideo = async (file: File) => {
+    try {
+      const { width, height } = await getVideoDimensions(file)
+      if (!esFormatoHero(width, height)) {
+        alert(`El video es ${width}x${height} — usá formato Full HD 16:9 (recomendado 1920x1080), se reproduce en el hero de la tienda.`)
+        return
+      }
+    } catch {
+      alert('No se pudo leer el video, probá con otro archivo')
+      return
+    }
+
     setSubiendoVideo(true)
     const fd = new FormData()
     fd.append('video', file)
@@ -314,7 +326,7 @@ export default function ProductoPage({ params }: { params: Promise<{ id: string 
           {/* Video (se reproduce en el hero de destacados) */}
           <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-3">
             <p className="text-xs font-medium text-gray-500 dark:text-slate-400 mb-2">
-              Video (se reproduce en el hero si el producto es destacado)
+              Video (se reproduce en el hero si el producto es destacado) — formato Full HD 1920x1080 (16:9)
             </p>
             {producto.video_url ? (
               <div className="space-y-2">

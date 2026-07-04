@@ -108,7 +108,7 @@ export default async function ProductoTiendaPage({ params }: { params: Promise<{
       <div className="max-w-lg mx-auto px-4 py-24 text-center">
         <p className="text-4xl mb-4">🔍</p>
         <p className="text-stone-600 font-medium mb-4">Producto no disponible</p>
-        <Link href="/tienda" className="text-sm text-amber-700 underline underline-offset-2">
+        <Link href="/" className="text-sm text-amber-700 underline underline-offset-2">
           Volver al catálogo
         </Link>
       </div>
@@ -124,7 +124,7 @@ export default async function ProductoTiendaPage({ params }: { params: Promise<{
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 mb-6 text-sm">
-        <Link href="/tienda" className="text-stone-400 hover:text-stone-700 transition-colors">
+        <Link href="/" className="text-stone-400 hover:text-stone-700 transition-colors">
           ← Volver
         </Link>
         {producto.categoria && (
@@ -193,7 +193,7 @@ export default async function ProductoTiendaPage({ params }: { params: Promise<{
             productoUrl={productoUrl}
           />
 
-          <Link href="/tienda" className="text-center mt-4 text-sm text-stone-400 hover:text-stone-700 transition-colors">
+          <Link href="/" className="text-center mt-4 text-sm text-stone-400 hover:text-stone-700 transition-colors">
             ← Ver más productos
           </Link>
         </div>

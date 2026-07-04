@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
 
-const MAX_SIZE_IMAGEN = 10 * 1024 * 1024 // 10MB
-const MAX_SIZE_VIDEO = 50 * 1024 * 1024 // 50MB
+const MAX_SIZE_IMAGEN = 15 * 1024 * 1024 // 15MB
+const MAX_SIZE_VIDEO = 100 * 1024 * 1024 // 100MB (video Full HD 1920x1080)
 const TIPOS_IMAGEN = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
 const TIPOS_VIDEO = ['video/mp4', 'video/webm', 'video/quicktime']
 
@@ -30,10 +30,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Tipo de archivo no permitido' }, { status: 400 })
   }
   if (esImagen && file.size > MAX_SIZE_IMAGEN) {
-    return NextResponse.json({ error: 'La imagen no puede superar 10MB' }, { status: 400 })
+    return NextResponse.json({ error: 'La imagen no puede superar 15MB' }, { status: 400 })
   }
   if (esVideo && file.size > MAX_SIZE_VIDEO) {
-    return NextResponse.json({ error: 'El video no puede superar 50MB' }, { status: 400 })
+    return NextResponse.json({ error: 'El video no puede superar 100MB' }, { status: 400 })
   }
 
   const buffer = Buffer.from(await file.arrayBuffer())
@@ -76,6 +76,7 @@ export async function POST(request: NextRequest) {
   }
 
   revalidatePath('/tienda', 'layout')
+  revalidatePath('/')
 
   return NextResponse.json(data, { status: 201 })
 }

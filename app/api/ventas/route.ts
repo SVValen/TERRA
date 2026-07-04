@@ -98,6 +98,7 @@ export async function POST(request: NextRequest) {
     .eq('id', producto_id)
 
   revalidatePath('/tienda', 'layout')
+  revalidatePath('/')
 
   return NextResponse.json(venta, { status: 201 })
 }
