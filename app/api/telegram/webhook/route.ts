@@ -20,9 +20,23 @@ function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
+function isMissingColumnError(error: { code?: string; message?: string } | null) {
+  return error?.code === '42703' || /column/i.test(error?.message ?? '')
+}
+
 async function getCategorias(supabase: Supabase): Promise<Categoria[]> {
-  const { data } = await supabase.from('categorias').select('*').order('nombre')
-  return data ?? []
+  const { data, error } = await supabase
+    .from('categorias')
+    .select('*')
+    .eq('activa', true)
+    .order('nombre')
+
+  if (error && isMissingColumnError(error)) {
+    const fallback = await supabase.from('categorias').select('*').order('nombre')
+    return fallback.data ?? []
+  }
+
+  return (data ?? []).filter((item: Categoria) => item.activa !== false)
 }
 
 async function getTalles(supabase: Supabase): Promise<string[]> {

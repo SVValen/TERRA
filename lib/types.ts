@@ -52,6 +52,7 @@ export interface Categoria {
   id: string
   nombre: string
   subcategorias: string[]
+  activa?: boolean
   creado_en: string
 }
 

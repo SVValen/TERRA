@@ -2,9 +2,32 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { PRODUCTO_TIENDA_FIELDS } from '@/lib/tienda'
 
+function isMissingColumnError(error: { code?: string; message?: string } | null) {
+  return error?.code === '42703' || /column/i.test(error?.message ?? '')
+}
+
+async function getCategoriasVisibles(supabase: ReturnType<typeof createServiceClient>) {
+  const { data, error } = await supabase
+    .from('categorias')
+    .select('nombre')
+    .eq('activa', true)
+
+  if (error && isMissingColumnError(error)) {
+    const fallback = await supabase.from('categorias').select('nombre')
+    return (fallback.data ?? []).map((item: { nombre: string }) => item.nombre)
+  }
+
+  return (data ?? []).map((item: { nombre: string }) => item.nombre)
+}
+
 export async function GET(request: NextRequest) {
   const supabase = createServiceClient()
   const { searchParams } = new URL(request.url)
+
+  const categoriasVisibles = await getCategoriasVisibles(supabase)
+  if (categoriasVisibles.length === 0) {
+    return NextResponse.json([])
+  }
 
   const talle = searchParams.get('talle')
   const selectTalles = talle ? 'producto_talles!inner(talle, color, stock)' : 'producto_talles(talle, color, stock)'
@@ -14,6 +37,7 @@ export async function GET(request: NextRequest) {
     .select(`${PRODUCTO_TIENDA_FIELDS}, ${selectTalles}`)
     .eq('estado', 'disponible')
     .eq('activo', true)
+    .in('categoria', categoriasVisibles)
 
   const destacado = searchParams.get('destacado')
   if (destacado === 'true') {

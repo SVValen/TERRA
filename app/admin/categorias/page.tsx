@@ -91,6 +91,16 @@ export default function CategoriasPage() {
     cargar()
   }
 
+  const toggleCategoria = async (cat: Categoria) => {
+    const nuevaActiva = !(cat.activa ?? true)
+    await fetch(`/api/categorias/${cat.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ activa: nuevaActiva }),
+    })
+    cargar()
+  }
+
   const agregarSubcategoria = async (cat: Categoria, nueva: string) => {
     if (!nueva.trim() || cat.subcategorias.includes(nueva.trim())) return
     const actualizadas = [...cat.subcategorias, nueva.trim()]
@@ -166,6 +176,7 @@ export default function CategoriasPage() {
             key={cat.id}
             categoria={cat}
             onEliminar={() => eliminarCategoria(cat.id, cat.nombre)}
+            onToggle={() => toggleCategoria(cat)}
             onAgregarSub={(sub) => agregarSubcategoria(cat, sub)}
             onEliminarSub={(sub) => eliminarSubcategoria(cat, sub)}
           />
@@ -194,9 +205,10 @@ export default function CategoriasPage() {
   )
 }
 
-function CategoriaCard({ categoria, onEliminar, onAgregarSub, onEliminarSub }: {
+function CategoriaCard({ categoria, onEliminar, onToggle, onAgregarSub, onEliminarSub }: {
   categoria: Categoria
   onEliminar: () => void
+  onToggle: () => void
   onAgregarSub: (sub: string) => void
   onEliminarSub: (sub: string) => void
 }) {
@@ -219,13 +231,24 @@ function CategoriaCard({ categoria, onEliminar, onAgregarSub, onEliminarSub }: {
           <span className="text-xs bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400 px-2 py-0.5 rounded-full">
             {categoria.subcategorias.length} sub{categoria.subcategorias.length !== 1 ? 's' : ''}
           </span>
+          <span className={`text-xs px-2 py-0.5 rounded-full ${categoria.activa === false ? 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'}`}>
+            {categoria.activa === false ? 'Deshabilitada' : 'Habilitada'}
+          </span>
         </div>
-        <button
-          onClick={onEliminar}
-          className="text-xs text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 px-2.5 py-1 rounded-lg transition-colors"
-        >
-          Eliminar
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onToggle}
+            className={`text-xs px-2.5 py-1 rounded-lg transition-colors ${categoria.activa === false ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-300' : 'bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-950/30 dark:text-amber-300'}`}
+          >
+            {categoria.activa === false ? 'Habilitar' : 'Deshabilitar'}
+          </button>
+          <button
+            onClick={onEliminar}
+            className="text-xs text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 px-2.5 py-1 rounded-lg transition-colors"
+          >
+            Eliminar
+          </button>
+        </div>
       </div>
 
       <div className="px-5 py-4">

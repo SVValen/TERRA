@@ -2,9 +2,32 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { PRODUCTO_TIENDA_FIELDS } from '@/lib/tienda'
 
+function isMissingColumnError(error: { code?: string; message?: string } | null) {
+  return error?.code === '42703' || /column/i.test(error?.message ?? '')
+}
+
+async function getCategoriasVisibles(supabase: ReturnType<typeof createServiceClient>) {
+  const { data, error } = await supabase
+    .from('categorias')
+    .select('nombre')
+    .eq('activa', true)
+
+  if (error && isMissingColumnError(error)) {
+    const fallback = await supabase.from('categorias').select('nombre')
+    return (fallback.data ?? []).map((item: { nombre: string }) => item.nombre)
+  }
+
+  return (data ?? []).map((item: { nombre: string }) => item.nombre)
+}
+
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = createServiceClient()
+  const categoriasVisibles = await getCategoriasVisibles(supabase)
+
+  if (categoriasVisibles.length === 0) {
+    return NextResponse.json({ error: 'No hay categorías disponibles' }, { status: 404 })
+  }
 
   const { data, error } = await supabase
     .from('productos')
@@ -12,6 +35,7 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
     .eq('id', id)
     .eq('estado', 'disponible')
     .eq('activo', true)
+    .in('categoria', categoriasVisibles)
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 404 })
