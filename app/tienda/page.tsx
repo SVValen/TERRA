@@ -6,6 +6,7 @@ import { type ProductoCardData } from './ProductoCard'
 import type { Anuncio } from '@/lib/types'
 import ProductCarousel from './ProductCarousel'
 import Hero from './Hero'
+import MisionVision from './MisionVision'
 
 export default function TiendaPage() {
   const { negocio, catalogo } = useTienda()
@@ -34,7 +35,7 @@ export default function TiendaPage() {
                   className="px-6 text-2xl sm:text-3xl uppercase tracking-tighter"
                   style={{ fontFamily: 'var(--font-anton)' }}
                 >
-                  {negocio.nombre} • NUEVA COLECCIÓN •
+                  {negocio.nombre} • {negocio.textoDestacado} •
                 </span>
               ))}
             </span>
@@ -56,6 +57,8 @@ export default function TiendaPage() {
           </button>
         </div>
       </div>
+
+      <MisionVision />
     </div>
   )
 }

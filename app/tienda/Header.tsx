@@ -40,19 +40,17 @@ export default function Header() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           {/* Hamburguesa mobile */}
-          {categorias.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setMenuMobileAbierto(true)}
-              aria-label="Abrir menú"
-              className="md:hidden w-9 h-9 flex items-center justify-center hover:text-red-600 transition-colors"
-              style={{ color: 'var(--tienda-header-text)' }}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={() => setMenuMobileAbierto(true)}
+            aria-label="Abrir menú"
+            className="md:hidden w-9 h-9 flex items-center justify-center hover:text-red-600 transition-colors"
+            style={{ color: 'var(--tienda-header-text)' }}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
 
           <Link href="/" className="flex items-center gap-3">
             {negocio.logoUrl ? (
@@ -74,42 +72,67 @@ export default function Header() {
           </Link>
         </div>
 
-        {/* Menú de categorías desktop */}
-        {categorias.length > 0 && (
-          <nav className="hidden md:flex items-center gap-8 flex-1 justify-center">
-            {categorias.map(c => (
-              <div
-                key={c.id}
-                className="relative"
-                onMouseEnter={() => setCategoriaHover(c.id)}
-                onMouseLeave={() => setCategoriaHover(null)}
+        {/* Nav desktop */}
+        <nav className="hidden md:flex items-center gap-8 flex-1 justify-center">
+          <Link
+            href="/"
+            className="font-mono text-xs uppercase tracking-tighter hover:text-red-600 transition-colors"
+            style={{ color: 'var(--tienda-header-text)' }}
+          >
+            Tienda
+          </Link>
+          <button
+            type="button"
+            onClick={() => abrirCatalogo()}
+            className="font-mono text-xs uppercase tracking-tighter hover:text-red-600 transition-colors"
+            style={{ color: 'var(--tienda-header-text)' }}
+          >
+            Catálogo
+          </button>
+
+          {categorias.map(c => (
+            <div
+              key={c.id}
+              className="relative"
+              onMouseEnter={() => setCategoriaHover(c.id)}
+              onMouseLeave={() => setCategoriaHover(null)}
+            >
+              <button
+                type="button"
+                onClick={() => abrirCatalogo(c.nombre)}
+                className="font-mono text-xs uppercase tracking-tighter hover:text-red-600 transition-colors pb-1 border-b-2 border-transparent"
+                style={{ color: 'var(--tienda-header-text)' }}
               >
-                <button
-                  type="button"
-                  onClick={() => abrirCatalogo(c.nombre)}
-                  className="font-mono text-xs uppercase tracking-tighter hover:text-red-600 transition-colors pb-1 border-b-2 border-transparent"
-                  style={{ color: 'var(--tienda-header-text)' }}
-                >
-                  {c.nombre}
-                </button>
-                {categoriaHover === c.id && c.subcategorias.length > 0 && (
-                  <div className="absolute top-full left-0 bg-black border border-white/20 shadow-lg py-2 min-w-[180px] z-40">
-                    {c.subcategorias.map(s => (
-                      <button
-                        key={s}
-                        type="button"
-                        onClick={() => abrirCatalogo(c.nombre, s)}
-                        className="block w-full text-left px-4 py-1.5 font-mono text-xs uppercase text-white/60 hover:bg-white/10 hover:text-white transition-colors"
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </nav>
-        )}
+                {c.nombre}
+              </button>
+              {categoriaHover === c.id && c.subcategorias.length > 0 && (
+                <div className="absolute top-full left-0 bg-black border border-white/20 shadow-lg py-2 min-w-[180px] z-40">
+                  {c.subcategorias.map(s => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => abrirCatalogo(c.nombre, s)}
+                      className="block w-full text-left px-4 py-1.5 font-mono text-xs uppercase text-white/60 hover:bg-white/10 hover:text-white transition-colors"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+
+          <button
+            type="button"
+            onClick={e => e.preventDefault()}
+            aria-disabled="true"
+            title="Próximamente"
+            className="font-mono text-xs uppercase tracking-tighter opacity-40 cursor-not-allowed"
+            style={{ color: 'var(--tienda-header-text)' }}
+          >
+            Personalizá tu diseño
+          </button>
+        </nav>
 
         <div className="flex items-center gap-2">
           {negocio.whatsapp && (
@@ -176,6 +199,20 @@ export default function Header() {
             </button>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-1">
+            <Link
+              href="/"
+              onClick={() => setMenuMobileAbierto(false)}
+              className="block py-3 font-mono text-xs uppercase tracking-tighter text-white border-b border-white/10"
+            >
+              Tienda
+            </Link>
+            <button
+              type="button"
+              onClick={() => abrirCatalogo()}
+              className="block w-full text-left py-3 font-mono text-xs uppercase tracking-tighter text-white border-b border-white/10"
+            >
+              Catálogo
+            </button>
             {categorias.map(c => (
               <div key={c.id} className="border-b border-white/10">
                 <div className="w-full flex items-center justify-between py-3">
@@ -213,6 +250,14 @@ export default function Header() {
                 )}
               </div>
             ))}
+            <button
+              type="button"
+              onClick={e => e.preventDefault()}
+              aria-disabled="true"
+              className="block w-full text-left py-3 font-mono text-xs uppercase tracking-tighter text-white/40"
+            >
+              Personalizá tu diseño
+            </button>
           </div>
         </div>
     )}

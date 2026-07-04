@@ -10,6 +10,7 @@ import {
   BANNER_ENVIOS_DEFAULT,
   ETIQUETA_ENVIO_GRATIS_DEFAULT,
   ETIQUETA_ENVIO_DIA_DEFAULT,
+  TEXTO_DESTACADO_DEFAULT,
 } from '@/lib/contenido'
 import GuiaTallasEditor from './GuiaTallasEditor'
 
@@ -37,6 +38,7 @@ export default function NegocioPage() {
   const [bannerEnvios, setBannerEnvios] = useState(BANNER_ENVIOS_DEFAULT)
   const [etiquetaEnvioGratis, setEtiquetaEnvioGratis] = useState(ETIQUETA_ENVIO_GRATIS_DEFAULT)
   const [etiquetaEnvioDia, setEtiquetaEnvioDia] = useState(ETIQUETA_ENVIO_DIA_DEFAULT)
+  const [textoDestacado, setTextoDestacado] = useState(TEXTO_DESTACADO_DEFAULT)
   const [guiaTallas, setGuiaTallas] = useState<GuiaTallas>(GUIA_TALLES_DEFAULT)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
@@ -69,6 +71,7 @@ export default function NegocioPage() {
       setBannerEnvios(d.banner_envios ?? BANNER_ENVIOS_DEFAULT)
       setEtiquetaEnvioGratis(d.etiqueta_envio_gratis ?? ETIQUETA_ENVIO_GRATIS_DEFAULT)
       setEtiquetaEnvioDia(d.etiqueta_envio_dia ?? ETIQUETA_ENVIO_DIA_DEFAULT)
+      setTextoDestacado(d.texto_destacado ?? TEXTO_DESTACADO_DEFAULT)
       setGuiaTallas(d.guia_talles ?? GUIA_TALLES_DEFAULT)
       setLogoUrl(d.logo_url ?? null)
     })
@@ -108,6 +111,7 @@ export default function NegocioPage() {
     fd.append('banner_envios', bannerEnvios)
     fd.append('etiqueta_envio_gratis', etiquetaEnvioGratis)
     fd.append('etiqueta_envio_dia', etiquetaEnvioDia)
+    fd.append('texto_destacado', textoDestacado)
     fd.append('guia_talles', JSON.stringify(guiaTallas))
     if (archivo) fd.append('logo', archivo)
     const res = await fetch('/api/negocio', { method: 'PATCH', body: fd })
@@ -304,6 +308,21 @@ export default function NegocioPage() {
               Se muestran como cartelito en la ficha de cada producto que actives con el toggle correspondiente en su edición (Stock)
             </p>
           </div>
+        </div>
+
+        {/* Página de inicio */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5 space-y-3">
+          <div>
+            <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-200">Página de inicio</h2>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Texto que corre en la cinta animada debajo del banner principal de /tienda</p>
+          </div>
+          <input
+            type="text"
+            value={textoDestacado}
+            onChange={e => setTextoDestacado(e.target.value)}
+            className="input"
+            placeholder="NUEVA COLECCIÓN"
+          />
         </div>
 
         {/* Guía de talles */}

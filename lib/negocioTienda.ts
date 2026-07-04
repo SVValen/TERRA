@@ -5,6 +5,7 @@ import {
   ENVIOS_DEFAULT,
   ETIQUETA_ENVIO_GRATIS_DEFAULT,
   ETIQUETA_ENVIO_DIA_DEFAULT,
+  TEXTO_DESTACADO_DEFAULT,
 } from './contenido'
 
 const CAMPOS_NEGOCIO_TIENDA = `
@@ -13,7 +14,7 @@ const CAMPOS_NEGOCIO_TIENDA = `
   color_boton_fondo, color_boton_texto,
   razon_social, cuit, direccion, dias_nuevo,
   guia_talles, cambios_devoluciones, envios, banner_envios,
-  etiqueta_envio_gratis, etiqueta_envio_dia
+  etiqueta_envio_gratis, etiqueta_envio_dia, texto_destacado
 `
 
 export async function getNegocioTienda() {
@@ -47,5 +48,6 @@ export async function getNegocioTienda() {
     bannerEnvios: negocio?.banner_envios ?? null,
     etiquetaEnvioGratis: negocio?.etiqueta_envio_gratis ?? ETIQUETA_ENVIO_GRATIS_DEFAULT,
     etiquetaEnvioDia: negocio?.etiqueta_envio_dia ?? ETIQUETA_ENVIO_DIA_DEFAULT,
+    textoDestacado: negocio?.texto_destacado ?? TEXTO_DESTACADO_DEFAULT,
   }
 }

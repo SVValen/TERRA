@@ -99,6 +99,7 @@ export interface Negocio {
   banner_envios: string | null
   etiqueta_envio_gratis: string | null
   etiqueta_envio_dia: string | null
+  texto_destacado: string | null
   actualizado_en: string
 }
 

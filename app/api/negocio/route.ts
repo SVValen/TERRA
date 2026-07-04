@@ -69,6 +69,9 @@ export async function PATCH(request: NextRequest) {
   const bannerEnvios = formData.get('banner_envios')
   if (bannerEnvios !== null) updates.banner_envios = String(bannerEnvios).trim()
 
+  const textoDestacado = formData.get('texto_destacado')
+  if (textoDestacado !== null) updates.texto_destacado = String(textoDestacado).trim()
+
   const etiquetaEnvioGratis = formData.get('etiqueta_envio_gratis')
   if (etiquetaEnvioGratis !== null) updates.etiqueta_envio_gratis = String(etiquetaEnvioGratis).trim()
 

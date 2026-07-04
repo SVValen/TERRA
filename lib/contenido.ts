@@ -22,5 +22,7 @@ export const ENVIOS_DEFAULT =
 
 export const BANNER_ENVIOS_DEFAULT = 'Envíos a todo el país · Envío en el día en CABA'
 
+export const TEXTO_DESTACADO_DEFAULT = 'NUEVA COLECCIÓN'
+
 export const ETIQUETA_ENVIO_GRATIS_DEFAULT = 'Envío gratis'
 export const ETIQUETA_ENVIO_DIA_DEFAULT = 'Envío en el día'

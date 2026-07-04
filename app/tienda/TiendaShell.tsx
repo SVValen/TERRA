@@ -10,6 +10,7 @@ import {
   ENVIOS_DEFAULT,
   ETIQUETA_ENVIO_GRATIS_DEFAULT,
   ETIQUETA_ENVIO_DIA_DEFAULT,
+  TEXTO_DESTACADO_DEFAULT,
 } from '@/lib/contenido'
 import Header from './Header'
 import Footer from './Footer'
@@ -41,6 +42,7 @@ interface NegocioCtx {
   bannerEnvios: string | null
   etiquetaEnvioGratis: string
   etiquetaEnvioDia: string
+  textoDestacado: string
 }
 
 interface InteresCtx {
@@ -80,6 +82,7 @@ const negocioVacio: NegocioCtx = {
   bannerEnvios: null,
   etiquetaEnvioGratis: ETIQUETA_ENVIO_GRATIS_DEFAULT,
   etiquetaEnvioDia: ETIQUETA_ENVIO_DIA_DEFAULT,
+  textoDestacado: TEXTO_DESTACADO_DEFAULT,
 }
 
 const TiendaContext = createContext<TiendaCtx>({
