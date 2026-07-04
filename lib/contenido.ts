@@ -1,4 +1,4 @@
-import type { GuiaTallas } from './types'
+import type { CustomStudio, GuiaTallas } from './types'
 
 export const GUIA_TALLES_DEFAULT: GuiaTallas = {
   columnas: ['Talle', 'Busto', 'Cintura', 'Cadera'],
@@ -31,6 +31,32 @@ export const MISION_DEFAULT =
 export const VISION_DEFAULT =
   'Convertirnos en el epicentro de la disrupción visual. Visualizamos un mundo donde la ropa no ' +
   'sea solo cobertura, sino un sistema de expresión personal que desafíe el status quo.'
+
+export const CUSTOM_STUDIO_DEFAULT: CustomStudio = {
+  heroTitulo: 'CUSTOM STUDIO',
+  heroSubtitulo: 'Architecture for the Individual',
+  disenoTitulo: 'SOLO DISEÑO',
+  disenoTexto:
+    'Ofrecemos servicios de diseño gráfico disruptivo para marcas o proyectos personales que buscan ' +
+    'romper con lo convencional. Minimalismo agresivo y estética urbana pura.',
+  identidadTitulo: 'Identidad Visual',
+  identidadTexto: 'Logotipos, tipografía custom y sistemas visuales para la era digital.',
+  productoTitulo: 'DISEÑO + PRODUCTO',
+  productoTexto: 'Prendas premium. Cortes arquitectónicos. Tu visión ejecutada en nuestros básicos.',
+  productos: [
+    { nombre: 'Terra T-Shirt', subtitulo: 'Essential Collection' },
+    { nombre: 'Terra Hoodie', subtitulo: 'Custom Canvas' },
+    { nombre: 'Terra Cap', subtitulo: 'Accessories' },
+    { nombre: 'Terra Sweatshirt', subtitulo: 'Heavyweight' },
+  ],
+  prendaTitulo: 'TU PRENDA, NUESTRO DISEÑO',
+  prendaTexto:
+    'Traé tu prenda favorita y nosotros aplicamos el ADN de Terra. Transformamos lo ordinario en una ' +
+    'pieza de colección mediante procesos de impresión y bordado premium.',
+  prendaProceso: 'Proceso: Envío -> Diseño -> Ejecución',
+  prendaBoton: 'Consultar proceso',
+  ctaTitulo: 'LISTO PARA DISRUMPIR?',
+}
 
 export const ETIQUETA_ENVIO_GRATIS_DEFAULT = 'Envío gratis'
 export const ETIQUETA_ENVIO_DIA_DEFAULT = 'Envío en el día'

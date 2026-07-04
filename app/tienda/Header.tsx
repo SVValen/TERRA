@@ -122,16 +122,13 @@ export default function Header() {
             </div>
           ))}
 
-          <button
-            type="button"
-            onClick={e => e.preventDefault()}
-            aria-disabled="true"
-            title="Próximamente"
-            className="font-mono text-xs uppercase tracking-tighter opacity-40 cursor-not-allowed"
+          <Link
+            href="/tienda/personaliza"
+            className="font-mono text-xs uppercase tracking-tighter hover:text-red-600 transition-colors"
             style={{ color: 'var(--tienda-header-text)' }}
           >
             Personalizá tu diseño
-          </button>
+          </Link>
         </nav>
 
         <div className="flex items-center gap-2">
@@ -250,14 +247,13 @@ export default function Header() {
                 )}
               </div>
             ))}
-            <button
-              type="button"
-              onClick={e => e.preventDefault()}
-              aria-disabled="true"
-              className="block w-full text-left py-3 font-mono text-xs uppercase tracking-tighter text-white/40"
+            <Link
+              href="/tienda/personaliza"
+              onClick={() => setMenuMobileAbierto(false)}
+              className="block w-full text-left py-3 font-mono text-xs uppercase tracking-tighter text-white"
             >
               Personalizá tu diseño
-            </button>
+            </Link>
           </div>
         </div>
     )}

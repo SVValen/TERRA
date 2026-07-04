@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import type { InteresItem } from '@/lib/whatsapp'
-import type { GuiaTallas } from '@/lib/types'
+import type { CustomStudio, GuiaTallas } from '@/lib/types'
 import { anton, jetbrainsMono } from '@/lib/fonts'
 import {
   GUIA_TALLES_DEFAULT,
@@ -13,6 +13,7 @@ import {
   TEXTO_DESTACADO_DEFAULT,
   MISION_DEFAULT,
   VISION_DEFAULT,
+  CUSTOM_STUDIO_DEFAULT,
 } from '@/lib/contenido'
 import Header from './Header'
 import Footer from './Footer'
@@ -49,6 +50,8 @@ interface NegocioCtx {
   misionImagenUrl: string | null
   visionTexto: string
   visionImagenUrl: string | null
+  customStudio: CustomStudio
+  customDisenoImagenUrl: string | null
 }
 
 interface InteresCtx {
@@ -93,6 +96,8 @@ const negocioVacio: NegocioCtx = {
   misionImagenUrl: null,
   visionTexto: VISION_DEFAULT,
   visionImagenUrl: null,
+  customStudio: CUSTOM_STUDIO_DEFAULT,
+  customDisenoImagenUrl: null,
 }
 
 const TiendaContext = createContext<TiendaCtx>({

@@ -41,6 +41,20 @@ export function buildProductoWaUrl({
   return `https://wa.me/${whatsapp}?text=${encodeURIComponent(lineas.join('\n'))}`
 }
 
+export function buildConsultaWaUrl({
+  whatsapp,
+  nombreTienda,
+  mensaje,
+}: {
+  whatsapp: string | null
+  nombreTienda: string
+  mensaje: string
+}): string | null {
+  if (!whatsapp) return null
+  const texto = `Hola *${nombreTienda}*! 👋\n\n${mensaje}`
+  return `https://wa.me/${whatsapp}?text=${encodeURIComponent(texto)}`
+}
+
 export interface InteresItem {
   productoId: string
   nombre: string

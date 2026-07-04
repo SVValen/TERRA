@@ -73,6 +73,29 @@ export interface GuiaTallas {
   filas: string[][]
 }
 
+export interface CustomStudioProducto {
+  nombre: string
+  subtitulo: string
+  imagenUrl?: string | null
+}
+
+export interface CustomStudio {
+  heroTitulo: string
+  heroSubtitulo: string
+  disenoTitulo: string
+  disenoTexto: string
+  identidadTitulo: string
+  identidadTexto: string
+  productoTitulo: string
+  productoTexto: string
+  productos: CustomStudioProducto[]
+  prendaTitulo: string
+  prendaTexto: string
+  prendaProceso: string
+  prendaBoton: string
+  ctaTitulo: string
+}
+
 export interface Negocio {
   id: number
   nombre: string
@@ -104,6 +127,12 @@ export interface Negocio {
   mision_imagen_url: string | null
   vision_texto: string | null
   vision_imagen_url: string | null
+  custom_studio: CustomStudio | null
+  custom_diseno_imagen_url: string | null
+  custom_producto1_imagen_url: string | null
+  custom_producto2_imagen_url: string | null
+  custom_producto3_imagen_url: string | null
+  custom_producto4_imagen_url: string | null
   actualizado_en: string
 }
 

@@ -93,6 +93,15 @@ export async function PATCH(request: NextRequest) {
     }
   }
 
+  const customStudio = formData.get('custom_studio')
+  if (customStudio !== null && customStudio !== '') {
+    try {
+      updates.custom_studio = JSON.parse(String(customStudio))
+    } catch {
+      return NextResponse.json({ error: 'Datos de Custom Studio inválidos' }, { status: 400 })
+    }
+  }
+
   async function subirImagen(campo: string, slug: string, columnaUrl: string) {
     const archivo = formData.get(campo) as File | null
     if (!archivo || archivo.size === 0) return null
@@ -133,6 +142,14 @@ export async function PATCH(request: NextRequest) {
 
   const errorVision = await subirImagen('vision_imagen', 'vision', 'vision_imagen_url')
   if (errorVision) return errorVision
+
+  const errorDiseno = await subirImagen('custom_diseno_imagen', 'custom-diseno', 'custom_diseno_imagen_url')
+  if (errorDiseno) return errorDiseno
+
+  for (let i = 1; i <= 4; i++) {
+    const errorProducto = await subirImagen(`custom_producto${i}_imagen`, `custom-producto${i}`, `custom_producto${i}_imagen_url`)
+    if (errorProducto) return errorProducto
+  }
 
   const { data, error } = await supabase
     .from('negocio')
