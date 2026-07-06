@@ -57,10 +57,6 @@ export default function NegocioPage() {
   const [disenoPreview, setDisenoPreview] = useState<string | null>(null)
   const [disenoArchivo, setDisenoArchivo] = useState<File | null>(null)
   const disenoInputRef = useRef<HTMLInputElement>(null)
-  const [productoImagenUrls, setProductoImagenUrls] = useState<(string | null)[]>([null, null, null, null])
-  const [productoPreviews, setProductoPreviews] = useState<(string | null)[]>([null, null, null, null])
-  const [productoArchivos, setProductoArchivos] = useState<(File | null)[]>([null, null, null, null])
-  const productoInputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)]
   const [guiaTallas, setGuiaTallas] = useState<GuiaTallas>(GUIA_TALLES_DEFAULT)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
@@ -100,12 +96,6 @@ export default function NegocioPage() {
       setVisionImagenUrl(d.vision_imagen_url ?? null)
       setCustomStudio(d.custom_studio ?? CUSTOM_STUDIO_DEFAULT)
       setDisenoImagenUrl(d.custom_diseno_imagen_url ?? null)
-      setProductoImagenUrls([
-        d.custom_producto1_imagen_url ?? null,
-        d.custom_producto2_imagen_url ?? null,
-        d.custom_producto3_imagen_url ?? null,
-        d.custom_producto4_imagen_url ?? null,
-      ])
       setGuiaTallas(d.guia_talles ?? GUIA_TALLES_DEFAULT)
       setLogoUrl(d.logo_url ?? null)
     })
@@ -137,20 +127,6 @@ export default function NegocioPage() {
     if (!file) return
     setDisenoArchivo(file)
     setDisenoPreview(URL.createObjectURL(file))
-  }
-
-  const onProductoFileChange = (i: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setProductoArchivos(prev => prev.map((f, idx) => (idx === i ? file : f)))
-    setProductoPreviews(prev => prev.map((p, idx) => (idx === i ? URL.createObjectURL(file) : p)))
-  }
-
-  const actualizarProducto = (i: number, campo: 'nombre' | 'subtitulo', valor: string) => {
-    setCustomStudio(prev => ({
-      ...prev,
-      productos: prev.productos.map((p, idx) => (idx === i ? { ...p, [campo]: valor } : p)),
-    }))
   }
 
   const guardar = async (e: React.FormEvent) => {
@@ -185,11 +161,8 @@ export default function NegocioPage() {
     fd.append('vision_texto', visionTexto)
     if (misionArchivo) fd.append('mision_imagen', misionArchivo)
     if (visionArchivo) fd.append('vision_imagen', visionArchivo)
-    fd.append('custom_studio', JSON.stringify({ ...customStudio, productos: customStudio.productos.map(({ nombre, subtitulo }) => ({ nombre, subtitulo })) }))
+    fd.append('custom_studio', JSON.stringify(customStudio))
     if (disenoArchivo) fd.append('custom_diseno_imagen', disenoArchivo)
-    productoArchivos.forEach((archivo, i) => {
-      if (archivo) fd.append(`custom_producto${i + 1}_imagen`, archivo)
-    })
     fd.append('guia_talles', JSON.stringify(guiaTallas))
     if (archivo) fd.append('logo', archivo)
     const res = await fetch('/api/negocio', { method: 'PATCH', body: fd })
@@ -207,14 +180,6 @@ export default function NegocioPage() {
       setDisenoImagenUrl(data.custom_diseno_imagen_url ?? disenoImagenUrl)
       setDisenoPreview(null)
       setDisenoArchivo(null)
-      setProductoImagenUrls([
-        data.custom_producto1_imagen_url ?? productoImagenUrls[0],
-        data.custom_producto2_imagen_url ?? productoImagenUrls[1],
-        data.custom_producto3_imagen_url ?? productoImagenUrls[2],
-        data.custom_producto4_imagen_url ?? productoImagenUrls[3],
-      ])
-      setProductoPreviews([null, null, null, null])
-      setProductoArchivos([null, null, null, null])
       setMsg({ tipo: 'ok', texto: 'Cambios guardados correctamente' })
       router.refresh()
     } else {
@@ -515,33 +480,15 @@ export default function NegocioPage() {
               <textarea value={customStudio.productoTexto} onChange={e => setCustomStudio(p => ({ ...p, productoTexto: e.target.value }))} rows={2} className="input resize-none" />
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4 pt-2">
-              {customStudio.productos.map((prod, i) => (
-                <div key={i} className="border border-gray-100 dark:border-slate-700 rounded-lg p-3 space-y-2">
-                  <p className="text-xs font-semibold text-gray-500 dark:text-slate-400">Ítem {i + 1}</p>
-                  <input
-                    type="text"
-                    value={prod.nombre}
-                    onChange={e => actualizarProducto(i, 'nombre', e.target.value)}
-                    className="input"
-                    placeholder="Nombre"
-                  />
-                  <input
-                    type="text"
-                    value={prod.subtitulo}
-                    onChange={e => actualizarProducto(i, 'subtitulo', e.target.value)}
-                    className="input"
-                    placeholder="Subtítulo"
-                  />
-                  <ImagenField
-                    label={`Imagen ítem ${i + 1}`}
-                    preview={productoPreviews[i] ?? productoImagenUrls[i]}
-                    onClick={() => productoInputRefs[i].current?.click()}
-                  />
-                  <input ref={productoInputRefs[i]} type="file" accept="image/*" className="hidden" onChange={onProductoFileChange(i)} />
-                </div>
-              ))}
-            </div>
+            <a
+              href="/admin/personaliza"
+              className="inline-block px-4 py-2 text-xs font-semibold border border-gray-200 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 transition-colors"
+            >
+              Gestionar ítems de esta sección →
+            </a>
+            <p className="text-xs text-gray-400 dark:text-slate-500">
+              Los ítems (nombre, subtítulo, descripción, precio e imagen) se administran en su propia sección, sin límite de cantidad. Cada uno abre su propia página de detalle.
+            </p>
           </div>
 
           <div className="pt-4 border-t border-gray-100 dark:border-slate-700 space-y-3">

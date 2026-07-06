@@ -73,12 +73,6 @@ export interface GuiaTallas {
   filas: string[][]
 }
 
-export interface CustomStudioProducto {
-  nombre: string
-  subtitulo: string
-  imagenUrl?: string | null
-}
-
 export interface CustomStudio {
   heroTitulo: string
   heroSubtitulo: string
@@ -88,12 +82,23 @@ export interface CustomStudio {
   identidadTexto: string
   productoTitulo: string
   productoTexto: string
-  productos: CustomStudioProducto[]
   prendaTitulo: string
   prendaTexto: string
   prendaProceso: string
   prendaBoton: string
   ctaTitulo: string
+}
+
+export interface EstudioItem {
+  id: string
+  nombre: string
+  subtitulo: string | null
+  descripcion: string | null
+  imagen_url: string | null
+  precio: string | null
+  orden: number
+  activo: boolean
+  creado_en: string
 }
 
 export interface Negocio {
@@ -129,10 +134,6 @@ export interface Negocio {
   vision_imagen_url: string | null
   custom_studio: CustomStudio | null
   custom_diseno_imagen_url: string | null
-  custom_producto1_imagen_url: string | null
-  custom_producto2_imagen_url: string | null
-  custom_producto3_imagen_url: string | null
-  custom_producto4_imagen_url: string | null
   actualizado_en: string
 }
 

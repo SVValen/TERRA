@@ -19,9 +19,7 @@ const CAMPOS_NEGOCIO_TIENDA = `
   guia_talles, cambios_devoluciones, envios, banner_envios,
   etiqueta_envio_gratis, etiqueta_envio_dia, texto_destacado,
   mision_texto, mision_imagen_url, vision_texto, vision_imagen_url,
-  custom_studio, custom_diseno_imagen_url,
-  custom_producto1_imagen_url, custom_producto2_imagen_url,
-  custom_producto3_imagen_url, custom_producto4_imagen_url
+  custom_studio, custom_diseno_imagen_url
 `
 
 export async function getNegocioTienda() {
@@ -60,22 +58,7 @@ export async function getNegocioTienda() {
     misionImagenUrl: negocio?.mision_imagen_url ?? null,
     visionTexto: negocio?.vision_texto ?? VISION_DEFAULT,
     visionImagenUrl: negocio?.vision_imagen_url ?? null,
-    customStudio: mergeCustomStudio(negocio),
+    customStudio: negocio?.custom_studio ?? CUSTOM_STUDIO_DEFAULT,
     customDisenoImagenUrl: negocio?.custom_diseno_imagen_url ?? null,
-  }
-}
-
-function mergeCustomStudio(negocio: Record<string, unknown> | null | undefined) {
-  const base = (negocio?.custom_studio as typeof CUSTOM_STUDIO_DEFAULT | null) ?? CUSTOM_STUDIO_DEFAULT
-  const imagenes = [
-    negocio?.custom_producto1_imagen_url,
-    negocio?.custom_producto2_imagen_url,
-    negocio?.custom_producto3_imagen_url,
-    negocio?.custom_producto4_imagen_url,
-  ] as (string | null | undefined)[]
-
-  return {
-    ...base,
-    productos: base.productos.map((p, i) => ({ ...p, imagenUrl: imagenes[i] ?? null })),
   }
 }

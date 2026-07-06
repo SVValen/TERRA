@@ -43,12 +43,6 @@ export const CUSTOM_STUDIO_DEFAULT: CustomStudio = {
   identidadTexto: 'Logotipos, tipografía custom y sistemas visuales para la era digital.',
   productoTitulo: 'DISEÑO + PRODUCTO',
   productoTexto: 'Prendas premium. Cortes arquitectónicos. Tu visión ejecutada en nuestros básicos.',
-  productos: [
-    { nombre: 'Terra T-Shirt', subtitulo: 'Essential Collection' },
-    { nombre: 'Terra Hoodie', subtitulo: 'Custom Canvas' },
-    { nombre: 'Terra Cap', subtitulo: 'Accessories' },
-    { nombre: 'Terra Sweatshirt', subtitulo: 'Heavyweight' },
-  ],
   prendaTitulo: 'TU PRENDA, NUESTRO DISEÑO',
   prendaTexto:
     'Traé tu prenda favorita y nosotros aplicamos el ADN de Terra. Transformamos lo ordinario en una ' +

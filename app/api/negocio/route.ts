@@ -146,11 +146,6 @@ export async function PATCH(request: NextRequest) {
   const errorDiseno = await subirImagen('custom_diseno_imagen', 'custom-diseno', 'custom_diseno_imagen_url')
   if (errorDiseno) return errorDiseno
 
-  for (let i = 1; i <= 4; i++) {
-    const errorProducto = await subirImagen(`custom_producto${i}_imagen`, `custom-producto${i}`, `custom_producto${i}_imagen_url`)
-    if (errorProducto) return errorProducto
-  }
-
   const { data, error } = await supabase
     .from('negocio')
     .upsert({ id: 1, ...updates })

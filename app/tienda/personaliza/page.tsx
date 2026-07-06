@@ -1,13 +1,21 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import Image from 'next/image'
 import { useTienda } from '../TiendaShell'
 import { buildConsultaWaUrl } from '@/lib/whatsapp'
 import WhatsAppIcon from '../WhatsAppIcon'
+import type { EstudioItem } from '@/lib/types'
 
 export default function PersonalizaPage() {
   const { negocio } = useTienda()
   const cs = negocio.customStudio
+  const [items, setItems] = useState<EstudioItem[]>([])
+
+  useEffect(() => {
+    fetch('/api/tienda/estudio-items').then(r => r.json()).then(setItems)
+  }, [])
 
   const waProceso = buildConsultaWaUrl({
     whatsapp: negocio.whatsapp,
@@ -87,32 +95,36 @@ export default function PersonalizaPage() {
           <p className="font-mono text-xs uppercase max-w-sm md:text-right text-white/50">{cs.productoTexto}</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {cs.productos.map((p, i) => (
-            <div key={i} className="flex flex-col group">
-              <div className="relative aspect-square overflow-hidden bg-white/5 border border-white/20">
-                {p.imagenUrl ? (
-                  <Image
-                    src={p.imagenUrl}
-                    alt={p.nombre}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-110"
-                    sizes="(max-width: 640px) 50vw, 25vw"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-4xl text-white/10">📷</div>
-                )}
-              </div>
-              <div className="mt-4 flex justify-between items-start">
-                <div>
-                  <h3 className="font-body-md uppercase font-bold text-sm text-white">{p.nombre}</h3>
-                  <p className="font-mono text-[10px] uppercase text-white/40">{p.subtitulo}</p>
+        {items.length === 0 ? (
+          <p className="font-mono text-xs uppercase text-white/30 text-center py-12">Próximamente</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {items.map(item => (
+              <Link key={item.id} href={`/tienda/personaliza/${item.id}`} className="flex flex-col group">
+                <div className="relative aspect-square overflow-hidden bg-white/5 border border-white/20">
+                  {item.imagen_url ? (
+                    <Image
+                      src={item.imagen_url}
+                      alt={item.nombre}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-110"
+                      sizes="(max-width: 640px) 50vw, 25vw"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-4xl text-white/10">📷</div>
+                  )}
                 </div>
-                <p className="font-mono text-xs text-white/60">$ - - -</p>
-              </div>
-            </div>
-          ))}
-        </div>
+                <div className="mt-4 flex justify-between items-start">
+                  <div>
+                    <h3 className="font-body-md uppercase font-bold text-sm text-white group-hover:text-red-600 transition-colors">{item.nombre}</h3>
+                    {item.subtitulo && <p className="font-mono text-[10px] uppercase text-white/40">{item.subtitulo}</p>}
+                  </div>
+                  {item.precio && <p className="font-mono text-xs text-white/60">{item.precio}</p>}
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Tu prenda, nuestro diseño */}
