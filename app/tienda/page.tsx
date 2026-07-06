@@ -25,23 +25,25 @@ export default function TiendaPage() {
     <div>
       <Hero anuncios={anuncios} productos={destacados} whatsapp={negocio.whatsapp} nombreTienda={negocio.nombre} />
 
-      <div className="overflow-hidden w-full py-4 border-y border-white/20 bg-white text-black">
-        <div className="marquee-track flex whitespace-nowrap w-max">
-          {[0, 1].map(bloque => (
-            <span key={bloque} className="flex items-center shrink-0">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <span
-                  key={i}
-                  className="px-6 text-2xl sm:text-3xl uppercase tracking-tighter"
-                  style={{ fontFamily: 'var(--font-anton)' }}
-                >
-                  {negocio.nombre} • {negocio.textoDestacado} •
-                </span>
-              ))}
-            </span>
-          ))}
+      {negocio.textoDestacado && (
+        <div className="overflow-hidden w-full py-4 border-y border-white/20 bg-white text-black">
+          <div className="marquee-track flex whitespace-nowrap w-max">
+            {[0, 1].map(bloque => (
+              <span key={bloque} className="flex items-center shrink-0">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <span
+                    key={i}
+                    className="px-6 text-2xl sm:text-3xl uppercase tracking-tighter"
+                    style={{ fontFamily: 'var(--font-anton)' }}
+                  >
+                    {negocio.nombre} • {negocio.textoDestacado} •
+                  </span>
+                ))}
+              </span>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-16">
         <ProductCarousel titulo="Nuevos" productos={nuevos} whatsapp={negocio.whatsapp} nombreTienda={negocio.nombre} />

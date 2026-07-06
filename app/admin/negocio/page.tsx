@@ -409,14 +409,14 @@ export default function NegocioPage() {
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5 space-y-3">
           <div>
             <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-200">Página de inicio</h2>
-            <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Texto que corre en la cinta animada debajo del banner principal de /tienda</p>
+            <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Texto que corre en la cinta animada debajo del banner principal de /tienda. Dejar vacío para ocultarla.</p>
           </div>
           <input
             type="text"
             value={textoDestacado}
             onChange={e => setTextoDestacado(e.target.value)}
             className="input"
-            placeholder="NUEVA COLECCIÓN"
+            placeholder="NUEVA COLECCIÓN (opcional)"
           />
         </div>
 
