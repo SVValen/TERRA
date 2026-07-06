@@ -1,32 +1,19 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useTienda } from './TiendaShell'
 import WhatsAppIcon from './WhatsAppIcon'
 import BannerEnvios from './BannerEnvios'
 
-interface Categoria {
-  id: string
-  nombre: string
-  subcategorias: string[]
-}
-
 export default function Header() {
   const { negocio, interes, catalogo } = useTienda()
-  const [categorias, setCategorias] = useState<Categoria[]>([])
-  const [categoriaHover, setCategoriaHover] = useState<string | null>(null)
   const [menuMobileAbierto, setMenuMobileAbierto] = useState(false)
-  const [categoriaMobileAbierta, setCategoriaMobileAbierta] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetch('/api/tienda/categorias').then(r => r.json()).then(setCategorias)
-  }, [])
-
-  const abrirCatalogo = (categoria = '', subcategoria = '') => {
-    catalogo.setCategoriaActiva(categoria)
-    catalogo.setSubcategoriaActiva(subcategoria)
+  const abrirCatalogo = () => {
+    catalogo.setCategoriaActiva('')
+    catalogo.setSubcategoriaActiva('')
     catalogo.setAbierto(true)
     setMenuMobileAbierto(false)
   }
@@ -83,45 +70,12 @@ export default function Header() {
           </Link>
           <button
             type="button"
-            onClick={() => abrirCatalogo()}
+            onClick={abrirCatalogo}
             className="font-mono text-xs uppercase tracking-tighter hover:text-red-600 transition-colors"
             style={{ color: 'var(--tienda-header-text)' }}
           >
             Catálogo
           </button>
-
-          {categorias.map(c => (
-            <div
-              key={c.id}
-              className="relative"
-              onMouseEnter={() => setCategoriaHover(c.id)}
-              onMouseLeave={() => setCategoriaHover(null)}
-            >
-              <button
-                type="button"
-                onClick={() => abrirCatalogo(c.nombre)}
-                className="font-mono text-xs uppercase tracking-tighter hover:text-red-600 transition-colors pb-1 border-b-2 border-transparent"
-                style={{ color: 'var(--tienda-header-text)' }}
-              >
-                {c.nombre}
-              </button>
-              {categoriaHover === c.id && c.subcategorias.length > 0 && (
-                <div className="absolute top-full left-0 bg-black border border-white/20 shadow-lg py-2 min-w-[180px] z-40">
-                  {c.subcategorias.map(s => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => abrirCatalogo(c.nombre, s)}
-                      className="block w-full text-left px-4 py-1.5 font-mono text-xs uppercase text-white/60 hover:bg-white/10 hover:text-white transition-colors"
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-
           <Link
             href="/tienda/personaliza"
             className="font-mono text-xs uppercase tracking-tighter hover:text-red-600 transition-colors"
@@ -147,7 +101,7 @@ export default function Header() {
 
           <button
             type="button"
-            onClick={() => abrirCatalogo()}
+            onClick={abrirCatalogo}
             aria-label="Ver catálogo completo"
             className="w-9 h-9 flex items-center justify-center hover:text-red-600 transition-colors"
             style={{ color: 'var(--tienda-header-text)' }}
@@ -181,11 +135,11 @@ export default function Header() {
       <BannerEnvios />
     </header>
 
-    {/* Panel mobile de categorías — fuera del <header> (sticky) para que el fixed no quede atrapado en su containing block en Safari/iOS */}
+    {/* Panel mobile — fuera del <header> (sticky) para que el fixed no quede atrapado en su containing block en Safari/iOS */}
     {menuMobileAbierto && (
         <div className="md:hidden fixed inset-0 z-40 bg-black flex flex-col">
           <div className="h-16 flex items-center justify-between px-4 border-b border-white/20 shrink-0">
-            <span className="font-mono text-xs uppercase tracking-tighter text-white">Categorías</span>
+            <span className="font-mono text-xs uppercase tracking-tighter text-white">Menú</span>
             <button
               type="button"
               onClick={() => setMenuMobileAbierto(false)}
@@ -205,48 +159,11 @@ export default function Header() {
             </Link>
             <button
               type="button"
-              onClick={() => abrirCatalogo()}
+              onClick={abrirCatalogo}
               className="block w-full text-left py-3 font-mono text-xs uppercase tracking-tighter text-white border-b border-white/10"
             >
               Catálogo
             </button>
-            {categorias.map(c => (
-              <div key={c.id} className="border-b border-white/10">
-                <div className="w-full flex items-center justify-between py-3">
-                  <button
-                    type="button"
-                    onClick={() => abrirCatalogo(c.nombre)}
-                    className="text-left font-mono text-xs uppercase tracking-tighter text-white"
-                  >
-                    {c.nombre}
-                  </button>
-                  {c.subcategorias.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setCategoriaMobileAbierta(categoriaMobileAbierta === c.id ? null : c.id)}
-                      aria-label="Mostrar subcategorías"
-                      className="text-white/40 w-8 h-8 flex items-center justify-center"
-                    >
-                      {categoriaMobileAbierta === c.id ? '−' : '+'}
-                    </button>
-                  )}
-                </div>
-                {categoriaMobileAbierta === c.id && c.subcategorias.length > 0 && (
-                  <div className="pb-2 pl-3 space-y-1">
-                    {c.subcategorias.map(s => (
-                      <button
-                        key={s}
-                        type="button"
-                        onClick={() => abrirCatalogo(c.nombre, s)}
-                        className="block w-full text-left py-1.5 font-mono text-xs uppercase text-white/50"
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
             <Link
               href="/tienda/personaliza"
               onClick={() => setMenuMobileAbierto(false)}
