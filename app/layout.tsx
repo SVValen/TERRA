@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import { createServiceClient } from '@/lib/supabase/server'
 import { darkenHex } from '@/lib/color'
@@ -33,7 +34,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           })();
         `}} />
       </head>
-      <body className={`${inter.className} h-full antialiased`}>{children}</body>
+      <body className={`${inter.className} h-full antialiased`}>
+        {children}
+        <Analytics />
+      </body>
     </html>
   )
 }
