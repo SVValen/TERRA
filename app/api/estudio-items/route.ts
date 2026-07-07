@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase/server'
+import { personalizaHabilitado } from '@/lib/features'
 
 const MAX_SIZE_IMAGEN = 15 * 1024 * 1024 // 15MB
 const TIPOS_IMAGEN = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
 
 export async function GET() {
+  if (!personalizaHabilitado()) return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
   const supabase = createServiceClient()
   const { data } = await supabase
     .from('estudio_items')
@@ -16,6 +18,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  if (!personalizaHabilitado()) return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
   const supabase = createServiceClient()
   const fd = await request.formData()
 

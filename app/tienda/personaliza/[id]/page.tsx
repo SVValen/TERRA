@@ -1,17 +1,21 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useTienda } from '../../TiendaShell'
 import { buildConsultaWaUrl, sustituirTokens } from '@/lib/whatsapp'
 import WhatsAppIcon from '../../WhatsAppIcon'
 import type { EstudioItem } from '@/lib/types'
+import { personalizaHabilitado } from '@/lib/features'
 
 export default function EstudioItemPage() {
+  const router = useRouter()
+  useEffect(() => { if (!personalizaHabilitado()) router.replace('/') }, [router])
   const { id } = useParams<{ id: string }>()
   const { negocio } = useTienda()
+  if (!personalizaHabilitado()) return null
   const [item, setItem] = useState<EstudioItem | null | undefined>(undefined)
 
   useEffect(() => {

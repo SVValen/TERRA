@@ -1,10 +1,16 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import type { CustomStudio, EstudioItem } from '@/lib/types'
 import { CUSTOM_STUDIO_DEFAULT } from '@/lib/contenido'
+import { personalizaHabilitado } from '@/lib/features'
 
 export default function PersonalizaAdminPage() {
+  const router = useRouter()
+  useEffect(() => { if (!personalizaHabilitado()) router.replace('/admin/stock') }, [router])
+  if (!personalizaHabilitado()) return null
+
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
       <div>

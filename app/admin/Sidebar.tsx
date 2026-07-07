@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import type { ReactNode } from 'react'
+import { personalizaHabilitado } from '@/lib/features'
 
 const nav = [
   { href: '/admin/stock',      label: 'Stock',      icon: '📦' },
@@ -12,7 +13,7 @@ const nav = [
   { href: '/admin/metricas',   label: 'Métricas',   icon: '📊' },
   { href: '/admin/categorias', label: 'Categorías', icon: '🏷️' },
   { href: '/admin/anuncios',   label: 'Anuncios',   icon: '📣' },
-  { href: '/admin/personaliza', label: 'Personalizá', icon: '🎨' },
+  ...(personalizaHabilitado() ? [{ href: '/admin/personaliza', label: 'Personalizá', icon: '🎨' }] : []),
   { href: '/admin/whatsapp',   label: 'WhatsApp',    icon: '💬' },
   { href: '/admin/negocio',    label: 'Mi negocio', icon: '🏪' },
 ]

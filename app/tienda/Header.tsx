@@ -6,9 +6,11 @@ import Image from 'next/image'
 import { useTienda } from './TiendaShell'
 import WhatsAppIcon from './WhatsAppIcon'
 import BannerEnvios from './BannerEnvios'
+import { personalizaHabilitado } from '@/lib/features'
 
 export default function Header() {
   const { negocio, interes, catalogo } = useTienda()
+  const mostrarPersonaliza = personalizaHabilitado()
   const [menuMobileAbierto, setMenuMobileAbierto] = useState(false)
 
   const abrirCatalogo = () => {
@@ -76,13 +78,15 @@ export default function Header() {
           >
             Catálogo
           </button>
-          <Link
-            href="/tienda/personaliza"
-            className="font-mono text-xs uppercase tracking-tighter hover:text-red-600 transition-colors"
-            style={{ color: 'var(--tienda-header-text)' }}
-          >
-            Personalizá tu diseño
-          </Link>
+          {mostrarPersonaliza && (
+            <Link
+              href="/tienda/personaliza"
+              className="font-mono text-xs uppercase tracking-tighter hover:text-red-600 transition-colors"
+              style={{ color: 'var(--tienda-header-text)' }}
+            >
+              Personalizá tu diseño
+            </Link>
+          )}
         </nav>
 
         <div className="flex items-center gap-2">
@@ -164,13 +168,15 @@ export default function Header() {
             >
               Catálogo
             </button>
-            <Link
-              href="/tienda/personaliza"
-              onClick={() => setMenuMobileAbierto(false)}
-              className="block w-full text-left py-3 font-mono text-xs uppercase tracking-tighter text-white"
-            >
-              Personalizá tu diseño
-            </Link>
+            {mostrarPersonaliza && (
+              <Link
+                href="/tienda/personaliza"
+                onClick={() => setMenuMobileAbierto(false)}
+                className="block w-full text-left py-3 font-mono text-xs uppercase tracking-tighter text-white"
+              >
+                Personalizá tu diseño
+              </Link>
+            )}
           </div>
         </div>
     )}

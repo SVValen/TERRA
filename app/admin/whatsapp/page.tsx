@@ -9,6 +9,7 @@ import {
   WHATSAPP_MSG_ESTUDIO_GENERAL_DEFAULT,
   WHATSAPP_MSG_ESTUDIO_ITEM_DEFAULT,
 } from '@/lib/contenido'
+import { personalizaHabilitado } from '@/lib/features'
 
 export default function WhatsappAdminPage() {
   const [saludo, setSaludo] = useState(WHATSAPP_SALUDO_DEFAULT)
@@ -93,36 +94,38 @@ export default function WhatsappAdminPage() {
           <input type="text" value={msgInteresIntro} onChange={e => setMsgInteresIntro(e.target.value)} className="input" />
         </div>
 
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5 space-y-4">
-          <div>
-            <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-200">Personalizá tu diseño (Custom Studio)</h2>
-            <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Mensajes de /tienda/personaliza</p>
-          </div>
+        {personalizaHabilitado() && (
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5 space-y-4">
+            <div>
+              <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-200">Personalizá tu diseño (Custom Studio)</h2>
+              <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Mensajes de /tienda/personaliza</p>
+            </div>
 
-          <div>
-            <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">
-              Botón &quot;Traé tu prenda&quot; (sección &quot;Tu prenda, nuestro diseño&quot;)
-            </label>
-            <textarea value={msgEstudioProceso} onChange={e => setMsgEstudioProceso(e.target.value)} rows={2} className="input resize-none" />
-          </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">
+                Botón &quot;Traé tu prenda&quot; (sección &quot;Tu prenda, nuestro diseño&quot;)
+              </label>
+              <textarea value={msgEstudioProceso} onChange={e => setMsgEstudioProceso(e.target.value)} rows={2} className="input resize-none" />
+            </div>
 
-          <div>
-            <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">
-              Botón de WhatsApp del CTA final de la página
-            </label>
-            <textarea value={msgEstudioGeneral} onChange={e => setMsgEstudioGeneral(e.target.value)} rows={2} className="input resize-none" />
-          </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">
+                Botón de WhatsApp del CTA final de la página
+              </label>
+              <textarea value={msgEstudioGeneral} onChange={e => setMsgEstudioGeneral(e.target.value)} rows={2} className="input resize-none" />
+            </div>
 
-          <div>
-            <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">
-              Consulta por un ítem puntual de &quot;Diseño + Producto&quot;
-            </label>
-            <p className="text-xs text-gray-400 dark:text-slate-500 mb-1.5">
-              Usá <code className="px-1 rounded bg-gray-100 dark:bg-slate-700">{'{item}'}</code> para insertar el nombre del ítem.
-            </p>
-            <textarea value={msgEstudioItem} onChange={e => setMsgEstudioItem(e.target.value)} rows={2} className="input resize-none" />
+            <div>
+              <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">
+                Consulta por un ítem puntual de &quot;Diseño + Producto&quot;
+              </label>
+              <p className="text-xs text-gray-400 dark:text-slate-500 mb-1.5">
+                Usá <code className="px-1 rounded bg-gray-100 dark:bg-slate-700">{'{item}'}</code> para insertar el nombre del ítem.
+              </p>
+              <textarea value={msgEstudioItem} onChange={e => setMsgEstudioItem(e.target.value)} rows={2} className="input resize-none" />
+            </div>
           </div>
-        </div>
+        )}
 
         {msg && (
           <p className={`text-xs px-3 py-2 rounded-lg ${
