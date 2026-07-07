@@ -134,10 +134,12 @@ export interface Negocio {
   texto_destacado: string | null
   banner_destacado_velocidad: number | null
   banner_destacado_direccion: BannerDireccion | null
+  mision_vision_habilitado: boolean
   mision_texto: string | null
   mision_imagen_url: string | null
   vision_texto: string | null
   vision_imagen_url: string | null
+  personaliza_habilitado: boolean
   custom_studio: CustomStudio | null
   custom_diseno_imagen_url: string | null
   whatsapp_saludo: string | null

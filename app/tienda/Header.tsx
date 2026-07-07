@@ -6,11 +6,10 @@ import Image from 'next/image'
 import { useTienda } from './TiendaShell'
 import WhatsAppIcon from './WhatsAppIcon'
 import BannerEnvios from './BannerEnvios'
-import { personalizaHabilitado } from '@/lib/features'
 
 export default function Header() {
   const { negocio, interes, catalogo } = useTienda()
-  const mostrarPersonaliza = personalizaHabilitado()
+  const mostrarPersonaliza = negocio.personalizaHabilitado
   const [menuMobileAbierto, setMenuMobileAbierto] = useState(false)
 
   const abrirCatalogo = () => {

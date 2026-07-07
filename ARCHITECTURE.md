@@ -26,8 +26,8 @@
 - `lib/media.ts` — `getImageDimensions()`/`getVideoDimensions()` (leen el ancho/alto real de un `File` client-side antes de subirlo, vía `Image`/`<video>` temporal) y `esFormatoHero()` (valida 16:9 con tolerancia, mínimo 1280x720, recomendado 1920x1080); usado en `/admin/anuncios` y en el upload de video de producto (`/admin/stock/[id]`) para rechazar archivos que no van a verse bien en `Hero.tsx`
 - `lib/contenido.ts` — valores genéricos por defecto para el contenido editable del negocio cuando la columna todavía es `null` (`GUIA_TALLES_DEFAULT`, `CAMBIOS_DEVOLUCIONES_DEFAULT`, `ENVIOS_DEFAULT`, `BANNER_ENVIOS_DEFAULT`, `BANNER_VELOCIDAD_DEFAULT`, `BANNER_DIRECCION_DEFAULT`, `TEXTO_DESTACADO_DEFAULT`, `MISION_DEFAULT`, `VISION_DEFAULT`, `CUSTOM_STUDIO_DEFAULT` (shape `CustomStudio`: textos de cada sección de `/tienda/personaliza`), `ETIQUETA_ENVIO_GRATIS_DEFAULT`, `ETIQUETA_ENVIO_DIA_DEFAULT`, más los `WHATSAPP_*_DEFAULT` re-exportados desde `lib/whatsapp.ts`); se importan tanto en `app/tienda/layout.tsx` (server) como en `app/admin/negocio/page.tsx` (client) para no duplicar los defaults
 - `lib/negocioTienda.ts` — `getNegocioTienda()`: único query a `negocio` con todos los campos que necesita `TiendaShell` (colores, contacto, datos legales, contenido editable, con los mismos defaults de `lib/contenido.ts` ya aplicados); usado por `app/tienda/layout.tsx` y por `app/page.tsx` para no duplicar el fetch entre las dos rutas que arman el mismo shell
-- `lib/features.ts` — `personalizaHabilitado()`: lee `NEXT_PUBLIC_HABILITAR_PERSONALIZA`, `true` salvo que valga exactamente `'false'`; gatea Custom Studio en todos sus puntos de entrada (ver Patrones → "Feature flags por deployment")
-- `app/tienda/MisionVision.tsx` — sección "Nuestra Misión"/"Nuestra Visión" del home (texto + imagen opcional cada una, con fallback a texto placeholder si no hay imagen); consume `negocio.misionTexto`/`misionImagenUrl`/`visionTexto`/`visionImagenUrl` vía `useTienda()`, sin flag (siempre visible)
+- `lib/features.ts` — `personalizaHabilitado()` (async, server-only): lee `negocio.personaliza_habilitado` (default `true`) directo de Supabase; usado solo por los route handlers públicos de `estudio_items` (los componentes cliente leen el mismo valor vía `TiendaContext`, ver Patrones → "Toggles de sección por deployment")
+- `app/tienda/MisionVision.tsx` — sección "Nuestra Misión"/"Nuestra Visión" del home (texto + imagen opcional cada una, con fallback a texto placeholder si no hay imagen); consume `negocio.misionTexto`/`misionImagenUrl`/`visionTexto`/`visionImagenUrl` vía `useTienda()`; montada condicionalmente en `app/tienda/page.tsx` según `negocio.misionVisionHabilitado`
 - `app/tienda/WhatsAppIcon.tsx` — ícono SVG compartido (antes duplicado inline en 4+ lugares)
 - `app/tienda/InfoModal.tsx` — modal genérico centrado (título + botón cerrar + contenido en `children`), usado por `Footer.tsx` para mostrar la guía de talles / cambios y devoluciones / envíos
 - `app/tienda/BannerEnvios.tsx` — cartel animado (marquee CSS puro, `@keyframes marquee` en `globals.css`, sin librería externa) con el texto de `negocio.bannerEnvios` repetido en loop (6 repeticiones x 2 bloques para loop continuo); no renderiza nada si el campo está vacío; velocidad y dirección configurables vía `negocio.bannerEnviosVelocidad` (segundos de duración de la animación) y `negocio.bannerEnviosDireccion` (`'izquierda' | 'derecha'`, invierte `animationDirection`); se monta en `Header.tsx` (dentro del `<header>` sticky) y en `Footer.tsx`
@@ -106,8 +106,8 @@ const { data } = await supabase.from('tabla').select('...').eq('campo', valor).s
 ### Auth flow
 Middleware valida JWT con `jose` en cada request no-PUBLIC. Las API routes no re-validan la sesión (confían en que el middleware ya lo hizo). El bot de Telegram valida `TELEGRAM_WEBHOOK_SECRET` en el header antes de procesar cualquier update.
 
-### Feature flags por deployment
-`lib/features.ts` expone `personalizaHabilitado()`, gateado por `NEXT_PUBLIC_HABILITAR_PERSONALIZA` (habilitado por defecto salvo valor exacto `'false'`) — existe porque el `origin` del repo pushea a la vez a `SVValen/TERRA` y `SVValen/SHOWROOM` (mismo código, dos deployments Vercel) y SHOWROOM quiere Custom Studio oculto sin mantener una rama aparte. El flag se chequea en cada punto de entrada de la feature por separado (no hay un guard central): nav links (`Header.tsx`, `Sidebar.tsx`, ocultos si `false`), las 3 páginas cliente (`/tienda/personaliza`, `/tienda/personaliza/[id]`, `/admin/personaliza`, que redirigen en un `useEffect` tras montar — no hay guard a nivel de servidor, así que la página puede flashear antes de redirigir), los 4 route handlers de `estudio_items` (devuelven 404 si está deshabilitado) y la sección de mensajes de Custom Studio en `/admin/whatsapp`. Cualquier feature nueva que deba diferir entre TERRA y SHOWROOM sigue este mismo patrón: una función en `lib/features.ts`, nunca una rama de git separada.
+### Toggles de sección por deployment
+Secciones enteras de la tienda (Custom Studio, Misión/Visión) se pueden mostrar u ocultar desde el panel admin sin tocar código, vía booleans en `negocio` (`personaliza_habilitado`, `mision_vision_habilitado`, ambos default `true`) — existen porque el `origin` del repo pushea a la vez a `SVValen/TERRA` y `SVValen/SHOWROOM` (mismo código, dos deployments Vercel con Supabase separado cada uno) y cada instancia quiere decidir independientemente qué secciones mostrar. **El toggle solo afecta la vista pública, nunca el panel admin**: `/admin/personaliza` y `/admin/negocio` siempre están accesibles para poder cargar/editar contenido de antemano aunque la sección esté oculta. Puntos de entrada gateados: nav link "Personalizá tu diseño" (`Header.tsx`, vía `negocio.personalizaHabilitado` del `TiendaContext`), sección Misión/Visión en el home (`app/tienda/page.tsx`, vía `negocio.misionVisionHabilitado`), las 2 páginas públicas de Custom Studio (`/tienda/personaliza`, `/tienda/personaliza/[id]`, redirigen a `/` en un `useEffect` si está apagado) y los 2 route handlers públicos de `estudio_items` (`/api/tienda/estudio-items*`, 404 si está apagado, chequean `lib/features.ts#personalizaHabilitado()` directo contra la DB ya que no tienen `TiendaContext`). Cualquier feature nueva que deba diferir entre TERRA y SHOWROOM sigue este mismo patrón: un boolean en `negocio` con su checkbox en el admin, nunca una rama de git separada ni una env var.
 
 ### Server / Client split
 - Layouts: Server Components → fetchan datos iniciales (negocio)
@@ -251,6 +251,7 @@ Si el paso 1 muestra alguna policy `insert`/`update`/`delete` con rol `anon` o `
   ```
 - Migración de Misión/Visión **pendiente de correr** en TERRA y SHOWROOM:
   ```sql
+  ALTER TABLE negocio ADD COLUMN mision_vision_habilitado boolean NOT NULL DEFAULT true;
   ALTER TABLE negocio ADD COLUMN mision_texto text;
   ALTER TABLE negocio ADD COLUMN mision_imagen_url text;
   ALTER TABLE negocio ADD COLUMN vision_texto text;
@@ -258,6 +259,7 @@ Si el paso 1 muestra alguna policy `insert`/`update`/`delete` con rol `anon` o `
   ```
 - Migración de Custom Studio **pendiente de correr** en TERRA y SHOWROOM:
   ```sql
+  ALTER TABLE negocio ADD COLUMN personaliza_habilitado boolean NOT NULL DEFAULT true;
   ALTER TABLE negocio ADD COLUMN custom_studio jsonb;
   ALTER TABLE negocio ADD COLUMN custom_diseno_imagen_url text;
 

@@ -1,16 +1,10 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import type { CustomStudio, EstudioItem } from '@/lib/types'
 import { CUSTOM_STUDIO_DEFAULT } from '@/lib/contenido'
-import { personalizaHabilitado } from '@/lib/features'
 
 export default function PersonalizaAdminPage() {
-  const router = useRouter()
-  useEffect(() => { if (!personalizaHabilitado()) router.replace('/admin/stock') }, [router])
-  if (!personalizaHabilitado()) return null
-
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
       <div>
@@ -27,6 +21,7 @@ export default function PersonalizaAdminPage() {
 }
 
 function ContenidoForm() {
+  const [habilitado, setHabilitado] = useState(true)
   const [customStudio, setCustomStudio] = useState<CustomStudio>(CUSTOM_STUDIO_DEFAULT)
   const [disenoImagenUrl, setDisenoImagenUrl] = useState<string | null>(null)
   const [disenoPreview, setDisenoPreview] = useState<string | null>(null)
@@ -37,6 +32,7 @@ function ContenidoForm() {
 
   useEffect(() => {
     fetch('/api/negocio').then(r => r.json()).then(d => {
+      setHabilitado(d.personaliza_habilitado ?? true)
       setCustomStudio(d.custom_studio ?? CUSTOM_STUDIO_DEFAULT)
       setDisenoImagenUrl(d.custom_diseno_imagen_url ?? null)
     })
@@ -54,6 +50,7 @@ function ContenidoForm() {
     setMsg(null)
     setGuardando(true)
     const fd = new FormData()
+    fd.append('personaliza_habilitado', String(habilitado))
     fd.append('custom_studio', JSON.stringify(customStudio))
     if (disenoArchivo) fd.append('custom_diseno_imagen', disenoArchivo)
 
@@ -72,7 +69,16 @@ function ContenidoForm() {
 
   return (
     <form onSubmit={guardar} className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5 space-y-5">
-      <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-200">Contenido de la página</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-200">Contenido de la página</h2>
+        <label className="flex items-center gap-2 text-xs font-medium text-gray-600 dark:text-slate-300">
+          <input type="checkbox" checked={habilitado} onChange={e => setHabilitado(e.target.checked)} className="w-4 h-4" />
+          Mostrar en la tienda
+        </label>
+      </div>
+      <p className="text-xs text-gray-400 dark:text-slate-500 -mt-3">
+        Desmarcá para ocultar &quot;Personalizá tu diseño&quot; del header y bloquear /tienda/personaliza sin perder el contenido cargado.
+      </p>
 
       <div className="grid sm:grid-cols-2 gap-4">
         <div>

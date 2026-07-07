@@ -13,6 +13,8 @@ const CAMPOS_COLOR = [
   'color_boton_fondo', 'color_boton_texto',
 ]
 
+const CAMPOS_BOOLEAN = ['personaliza_habilitado', 'mision_vision_habilitado']
+
 export async function GET() {
   const supabase = createServiceClient()
   const { data } = await supabase.from('negocio').select('*').eq('id', 1).single()
@@ -46,6 +48,11 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: `Color inválido en "${campo}", debe ser un hex de 6 dígitos (ej: #C9A574)` }, { status: 400 })
     }
     updates[campo] = String(valor)
+  }
+
+  for (const campo of CAMPOS_BOOLEAN) {
+    const valor = formData.get(campo)
+    if (valor !== null) updates[campo] = valor === 'true'
   }
 
   const instagram = formData.get('instagram')

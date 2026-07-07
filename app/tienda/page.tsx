@@ -66,7 +66,7 @@ export default function TiendaPage() {
         </div>
       </div>
 
-      <MisionVision />
+      {negocio.misionVisionHabilitado && <MisionVision />}
     </div>
   )
 }

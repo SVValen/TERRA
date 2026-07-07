@@ -58,10 +58,12 @@ interface NegocioCtx {
   textoDestacado: string
   bannerDestacadoVelocidad: number
   bannerDestacadoDireccion: BannerDireccion
+  misionVisionHabilitado: boolean
   misionTexto: string
   misionImagenUrl: string | null
   visionTexto: string
   visionImagenUrl: string | null
+  personalizaHabilitado: boolean
   customStudio: CustomStudio
   customDisenoImagenUrl: string | null
   whatsappSaludo: string
@@ -114,10 +116,12 @@ const negocioVacio: NegocioCtx = {
   textoDestacado: TEXTO_DESTACADO_DEFAULT,
   bannerDestacadoVelocidad: BANNER_VELOCIDAD_DEFAULT,
   bannerDestacadoDireccion: BANNER_DIRECCION_DEFAULT,
+  misionVisionHabilitado: true,
   misionTexto: MISION_DEFAULT,
   misionImagenUrl: null,
   visionTexto: VISION_DEFAULT,
   visionImagenUrl: null,
+  personalizaHabilitado: true,
   customStudio: CUSTOM_STUDIO_DEFAULT,
   customDisenoImagenUrl: null,
   whatsappSaludo: WHATSAPP_SALUDO_DEFAULT,

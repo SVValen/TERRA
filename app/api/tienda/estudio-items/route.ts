@@ -4,7 +4,7 @@ import { rateLimitOrNull } from '@/lib/ratelimit'
 import { personalizaHabilitado } from '@/lib/features'
 
 export async function GET(request: NextRequest) {
-  if (!personalizaHabilitado()) return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
+  if (!(await personalizaHabilitado())) return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
   const limitado = await rateLimitOrNull(request, 'tienda-estudio-items', 180, 60 * 1000)
   if (limitado) return limitado
 

@@ -47,6 +47,7 @@ export default function NegocioPage() {
   const [textoDestacado, setTextoDestacado] = useState(TEXTO_DESTACADO_DEFAULT)
   const [bannerDestacadoVelocidad, setBannerDestacadoVelocidad] = useState(String(BANNER_VELOCIDAD_DEFAULT))
   const [bannerDestacadoDireccion, setBannerDestacadoDireccion] = useState<BannerDireccion>(BANNER_DIRECCION_DEFAULT)
+  const [misionVisionHabilitado, setMisionVisionHabilitado] = useState(true)
   const [misionTexto, setMisionTexto] = useState(MISION_DEFAULT)
   const [visionTexto, setVisionTexto] = useState(VISION_DEFAULT)
   const [misionImagenUrl, setMisionImagenUrl] = useState<string | null>(null)
@@ -94,6 +95,7 @@ export default function NegocioPage() {
       setTextoDestacado(d.texto_destacado ?? TEXTO_DESTACADO_DEFAULT)
       setBannerDestacadoVelocidad(String(d.banner_destacado_velocidad ?? BANNER_VELOCIDAD_DEFAULT))
       setBannerDestacadoDireccion(d.banner_destacado_direccion ?? BANNER_DIRECCION_DEFAULT)
+      setMisionVisionHabilitado(d.mision_vision_habilitado ?? true)
       setMisionTexto(d.mision_texto ?? MISION_DEFAULT)
       setVisionTexto(d.vision_texto ?? VISION_DEFAULT)
       setMisionImagenUrl(d.mision_imagen_url ?? null)
@@ -156,6 +158,7 @@ export default function NegocioPage() {
     fd.append('texto_destacado', textoDestacado)
     fd.append('banner_destacado_velocidad', bannerDestacadoVelocidad)
     fd.append('banner_destacado_direccion', bannerDestacadoDireccion)
+    fd.append('mision_vision_habilitado', String(misionVisionHabilitado))
     fd.append('mision_texto', misionTexto)
     fd.append('vision_texto', visionTexto)
     if (misionArchivo) fd.append('mision_imagen', misionArchivo)
@@ -393,9 +396,15 @@ export default function NegocioPage() {
 
         {/* Misión y Visión */}
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5 space-y-5">
-          <div>
-            <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-200">Misión y Visión</h2>
-            <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Sección con texto e imagen que se muestra en el home de la tienda</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-200">Misión y Visión</h2>
+              <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Sección con texto e imagen que se muestra en el home de la tienda</p>
+            </div>
+            <label className="flex items-center gap-2 text-xs font-medium text-gray-600 dark:text-slate-300 shrink-0">
+              <input type="checkbox" checked={misionVisionHabilitado} onChange={e => setMisionVisionHabilitado(e.target.checked)} className="w-4 h-4" />
+              Mostrar en la tienda
+            </label>
           </div>
 
           <div className="grid sm:grid-cols-2 gap-6">

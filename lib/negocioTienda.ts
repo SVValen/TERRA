@@ -28,8 +28,8 @@ const CAMPOS_NEGOCIO_TIENDA = `
   banner_envios_velocidad, banner_envios_direccion,
   banner_destacado_velocidad, banner_destacado_direccion,
   etiqueta_envio_gratis, etiqueta_envio_dia, texto_destacado,
-  mision_texto, mision_imagen_url, vision_texto, vision_imagen_url,
-  custom_studio, custom_diseno_imagen_url,
+  mision_vision_habilitado, mision_texto, mision_imagen_url, vision_texto, vision_imagen_url,
+  personaliza_habilitado, custom_studio, custom_diseno_imagen_url,
   whatsapp_saludo, whatsapp_msg_producto_intro, whatsapp_msg_interes_intro,
   whatsapp_msg_estudio_proceso, whatsapp_msg_estudio_general, whatsapp_msg_estudio_item
 `
@@ -70,10 +70,12 @@ export async function getNegocioTienda() {
     textoDestacado: negocio?.texto_destacado ?? TEXTO_DESTACADO_DEFAULT,
     bannerDestacadoVelocidad: negocio?.banner_destacado_velocidad ?? BANNER_VELOCIDAD_DEFAULT,
     bannerDestacadoDireccion: negocio?.banner_destacado_direccion ?? BANNER_DIRECCION_DEFAULT,
+    misionVisionHabilitado: negocio?.mision_vision_habilitado ?? true,
     misionTexto: negocio?.mision_texto ?? MISION_DEFAULT,
     misionImagenUrl: negocio?.mision_imagen_url ?? null,
     visionTexto: negocio?.vision_texto ?? VISION_DEFAULT,
     visionImagenUrl: negocio?.vision_imagen_url ?? null,
+    personalizaHabilitado: negocio?.personaliza_habilitado ?? true,
     customStudio: negocio?.custom_studio ?? CUSTOM_STUDIO_DEFAULT,
     customDisenoImagenUrl: negocio?.custom_diseno_imagen_url ?? null,
     whatsappSaludo: negocio?.whatsapp_saludo ?? WHATSAPP_SALUDO_DEFAULT,

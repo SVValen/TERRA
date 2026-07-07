@@ -8,21 +8,22 @@ import { useTienda } from '../../TiendaShell'
 import { buildConsultaWaUrl, sustituirTokens } from '@/lib/whatsapp'
 import WhatsAppIcon from '../../WhatsAppIcon'
 import type { EstudioItem } from '@/lib/types'
-import { personalizaHabilitado } from '@/lib/features'
 
 export default function EstudioItemPage() {
   const router = useRouter()
-  useEffect(() => { if (!personalizaHabilitado()) router.replace('/') }, [router])
   const { id } = useParams<{ id: string }>()
   const { negocio } = useTienda()
-  if (!personalizaHabilitado()) return null
   const [item, setItem] = useState<EstudioItem | null | undefined>(undefined)
+
+  useEffect(() => { if (!negocio.personalizaHabilitado) router.replace('/') }, [negocio.personalizaHabilitado, router])
 
   useEffect(() => {
     fetch(`/api/tienda/estudio-items/${id}`)
       .then(r => (r.ok ? r.json() : null))
       .then(setItem)
   }, [id])
+
+  if (!negocio.personalizaHabilitado) return null
 
   if (item === undefined) return null
 
