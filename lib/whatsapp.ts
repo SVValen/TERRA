@@ -1,3 +1,14 @@
+export const SALUDO_DEFAULT = 'Hola *{tienda}*! 👋'
+export const MSG_PRODUCTO_INTRO_DEFAULT = 'Me interesa este producto:'
+export const MSG_INTERES_INTRO_DEFAULT = 'Me interesan estos productos:'
+export const MSG_ESTUDIO_PROCESO_DEFAULT = 'Quiero traer mi propia prenda para personalizarla con el diseño de ustedes. ¿Cómo es el proceso?'
+export const MSG_ESTUDIO_GENERAL_DEFAULT = 'Quiero consultar por el servicio de diseño personalizado / Custom Studio.'
+export const MSG_ESTUDIO_ITEM_DEFAULT = 'Quiero consultar por "{item}" de la sección Personalizá tu diseño.'
+
+export function sustituirTokens(texto: string, tokens: Record<string, string>): string {
+  return Object.entries(tokens).reduce((acc, [clave, valor]) => acc.replaceAll(`{${clave}}`, valor), texto)
+}
+
 interface ProductoWaOpts {
   whatsapp: string | null
   nombreTienda: string
@@ -7,6 +18,8 @@ interface ProductoWaOpts {
   talle?: string | null
   color?: string | null
   tallesDisponibles?: string[]
+  saludo?: string
+  intro?: string
 }
 
 export function buildProductoWaUrl({
@@ -18,6 +31,8 @@ export function buildProductoWaUrl({
   talle,
   color,
   tallesDisponibles,
+  saludo = SALUDO_DEFAULT,
+  intro = MSG_PRODUCTO_INTRO_DEFAULT,
 }: ProductoWaOpts): string | null {
   if (!whatsapp) return null
 
@@ -28,9 +43,9 @@ export function buildProductoWaUrl({
       : ''
 
   const lineas = [
-    `Hola *${nombreTienda}*! 👋`,
+    sustituirTokens(saludo, { tienda: nombreTienda }),
     ``,
-    `Me interesa este producto:`,
+    intro,
     `*${nombre}*`,
     lineaTalle,
     `Precio: $${precioVenta.toLocaleString('es-AR')}`,
@@ -45,13 +60,15 @@ export function buildConsultaWaUrl({
   whatsapp,
   nombreTienda,
   mensaje,
+  saludo = SALUDO_DEFAULT,
 }: {
   whatsapp: string | null
   nombreTienda: string
   mensaje: string
+  saludo?: string
 }): string | null {
   if (!whatsapp) return null
-  const texto = `Hola *${nombreTienda}*! 👋\n\n${mensaje}`
+  const texto = `${sustituirTokens(saludo, { tienda: nombreTienda })}\n\n${mensaje}`
   return `https://wa.me/${whatsapp}?text=${encodeURIComponent(texto)}`
 }
 
@@ -67,10 +84,14 @@ export function buildInteresWaUrl({
   whatsapp,
   nombreTienda,
   items,
+  saludo = SALUDO_DEFAULT,
+  intro = MSG_INTERES_INTRO_DEFAULT,
 }: {
   whatsapp: string | null
   nombreTienda: string
   items: InteresItem[]
+  saludo?: string
+  intro?: string
 }): string | null {
   if (!whatsapp || items.length === 0) return null
 
@@ -80,9 +101,9 @@ export function buildInteresWaUrl({
   })
 
   const lineas = [
-    `Hola *${nombreTienda}*! 👋`,
+    sustituirTokens(saludo, { tienda: nombreTienda }),
     ``,
-    `Me interesan estos productos:`,
+    intro,
     ...detalle,
   ]
 

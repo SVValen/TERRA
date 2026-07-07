@@ -42,6 +42,8 @@ export default function ProductoCard({
     precioVenta: p.precio_venta,
     productoUrl,
     tallesDisponibles: [...new Set(tallesConStock)],
+    saludo: negocio.whatsappSaludo,
+    intro: negocio.whatsappMsgProductoIntro,
   })
 
   const segundaFoto = p.fotos_urls?.[1]

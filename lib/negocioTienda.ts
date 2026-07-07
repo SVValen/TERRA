@@ -6,9 +6,17 @@ import {
   ETIQUETA_ENVIO_GRATIS_DEFAULT,
   ETIQUETA_ENVIO_DIA_DEFAULT,
   TEXTO_DESTACADO_DEFAULT,
+  BANNER_VELOCIDAD_DEFAULT,
+  BANNER_DIRECCION_DEFAULT,
   MISION_DEFAULT,
   VISION_DEFAULT,
   CUSTOM_STUDIO_DEFAULT,
+  WHATSAPP_SALUDO_DEFAULT,
+  WHATSAPP_MSG_PRODUCTO_INTRO_DEFAULT,
+  WHATSAPP_MSG_INTERES_INTRO_DEFAULT,
+  WHATSAPP_MSG_ESTUDIO_PROCESO_DEFAULT,
+  WHATSAPP_MSG_ESTUDIO_GENERAL_DEFAULT,
+  WHATSAPP_MSG_ESTUDIO_ITEM_DEFAULT,
 } from './contenido'
 
 const CAMPOS_NEGOCIO_TIENDA = `
@@ -17,9 +25,13 @@ const CAMPOS_NEGOCIO_TIENDA = `
   color_boton_fondo, color_boton_texto,
   razon_social, cuit, direccion, dias_nuevo,
   guia_talles, cambios_devoluciones, envios, banner_envios,
+  banner_envios_velocidad, banner_envios_direccion,
+  banner_destacado_velocidad, banner_destacado_direccion,
   etiqueta_envio_gratis, etiqueta_envio_dia, texto_destacado,
   mision_texto, mision_imagen_url, vision_texto, vision_imagen_url,
-  custom_studio, custom_diseno_imagen_url
+  custom_studio, custom_diseno_imagen_url,
+  whatsapp_saludo, whatsapp_msg_producto_intro, whatsapp_msg_interes_intro,
+  whatsapp_msg_estudio_proceso, whatsapp_msg_estudio_general, whatsapp_msg_estudio_item
 `
 
 export async function getNegocioTienda() {
@@ -51,14 +63,24 @@ export async function getNegocioTienda() {
     cambiosDevoluciones: negocio?.cambios_devoluciones ?? CAMBIOS_DEVOLUCIONES_DEFAULT,
     envios: negocio?.envios ?? ENVIOS_DEFAULT,
     bannerEnvios: negocio?.banner_envios ?? null,
+    bannerEnviosVelocidad: negocio?.banner_envios_velocidad ?? BANNER_VELOCIDAD_DEFAULT,
+    bannerEnviosDireccion: negocio?.banner_envios_direccion ?? BANNER_DIRECCION_DEFAULT,
     etiquetaEnvioGratis: negocio?.etiqueta_envio_gratis ?? ETIQUETA_ENVIO_GRATIS_DEFAULT,
     etiquetaEnvioDia: negocio?.etiqueta_envio_dia ?? ETIQUETA_ENVIO_DIA_DEFAULT,
     textoDestacado: negocio?.texto_destacado ?? TEXTO_DESTACADO_DEFAULT,
+    bannerDestacadoVelocidad: negocio?.banner_destacado_velocidad ?? BANNER_VELOCIDAD_DEFAULT,
+    bannerDestacadoDireccion: negocio?.banner_destacado_direccion ?? BANNER_DIRECCION_DEFAULT,
     misionTexto: negocio?.mision_texto ?? MISION_DEFAULT,
     misionImagenUrl: negocio?.mision_imagen_url ?? null,
     visionTexto: negocio?.vision_texto ?? VISION_DEFAULT,
     visionImagenUrl: negocio?.vision_imagen_url ?? null,
     customStudio: negocio?.custom_studio ?? CUSTOM_STUDIO_DEFAULT,
     customDisenoImagenUrl: negocio?.custom_diseno_imagen_url ?? null,
+    whatsappSaludo: negocio?.whatsapp_saludo ?? WHATSAPP_SALUDO_DEFAULT,
+    whatsappMsgProductoIntro: negocio?.whatsapp_msg_producto_intro ?? WHATSAPP_MSG_PRODUCTO_INTRO_DEFAULT,
+    whatsappMsgInteresIntro: negocio?.whatsapp_msg_interes_intro ?? WHATSAPP_MSG_INTERES_INTRO_DEFAULT,
+    whatsappMsgEstudioProceso: negocio?.whatsapp_msg_estudio_proceso ?? WHATSAPP_MSG_ESTUDIO_PROCESO_DEFAULT,
+    whatsappMsgEstudioGeneral: negocio?.whatsapp_msg_estudio_general ?? WHATSAPP_MSG_ESTUDIO_GENERAL_DEFAULT,
+    whatsappMsgEstudioItem: negocio?.whatsapp_msg_estudio_item ?? WHATSAPP_MSG_ESTUDIO_ITEM_DEFAULT,
   }
 }

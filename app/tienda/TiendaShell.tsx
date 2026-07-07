@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import type { InteresItem } from '@/lib/whatsapp'
-import type { CustomStudio, GuiaTallas } from '@/lib/types'
+import type { BannerDireccion, CustomStudio, GuiaTallas } from '@/lib/types'
 import { anton, jetbrainsMono } from '@/lib/fonts'
 import {
   GUIA_TALLES_DEFAULT,
@@ -11,9 +11,17 @@ import {
   ETIQUETA_ENVIO_GRATIS_DEFAULT,
   ETIQUETA_ENVIO_DIA_DEFAULT,
   TEXTO_DESTACADO_DEFAULT,
+  BANNER_VELOCIDAD_DEFAULT,
+  BANNER_DIRECCION_DEFAULT,
   MISION_DEFAULT,
   VISION_DEFAULT,
   CUSTOM_STUDIO_DEFAULT,
+  WHATSAPP_SALUDO_DEFAULT,
+  WHATSAPP_MSG_PRODUCTO_INTRO_DEFAULT,
+  WHATSAPP_MSG_INTERES_INTRO_DEFAULT,
+  WHATSAPP_MSG_ESTUDIO_PROCESO_DEFAULT,
+  WHATSAPP_MSG_ESTUDIO_GENERAL_DEFAULT,
+  WHATSAPP_MSG_ESTUDIO_ITEM_DEFAULT,
 } from '@/lib/contenido'
 import Header from './Header'
 import Footer from './Footer'
@@ -43,15 +51,25 @@ interface NegocioCtx {
   cambiosDevoluciones: string
   envios: string
   bannerEnvios: string | null
+  bannerEnviosVelocidad: number
+  bannerEnviosDireccion: BannerDireccion
   etiquetaEnvioGratis: string
   etiquetaEnvioDia: string
   textoDestacado: string
+  bannerDestacadoVelocidad: number
+  bannerDestacadoDireccion: BannerDireccion
   misionTexto: string
   misionImagenUrl: string | null
   visionTexto: string
   visionImagenUrl: string | null
   customStudio: CustomStudio
   customDisenoImagenUrl: string | null
+  whatsappSaludo: string
+  whatsappMsgProductoIntro: string
+  whatsappMsgInteresIntro: string
+  whatsappMsgEstudioProceso: string
+  whatsappMsgEstudioGeneral: string
+  whatsappMsgEstudioItem: string
 }
 
 interface InteresCtx {
@@ -89,15 +107,25 @@ const negocioVacio: NegocioCtx = {
   cambiosDevoluciones: CAMBIOS_DEVOLUCIONES_DEFAULT,
   envios: ENVIOS_DEFAULT,
   bannerEnvios: null,
+  bannerEnviosVelocidad: BANNER_VELOCIDAD_DEFAULT,
+  bannerEnviosDireccion: BANNER_DIRECCION_DEFAULT,
   etiquetaEnvioGratis: ETIQUETA_ENVIO_GRATIS_DEFAULT,
   etiquetaEnvioDia: ETIQUETA_ENVIO_DIA_DEFAULT,
   textoDestacado: TEXTO_DESTACADO_DEFAULT,
+  bannerDestacadoVelocidad: BANNER_VELOCIDAD_DEFAULT,
+  bannerDestacadoDireccion: BANNER_DIRECCION_DEFAULT,
   misionTexto: MISION_DEFAULT,
   misionImagenUrl: null,
   visionTexto: VISION_DEFAULT,
   visionImagenUrl: null,
   customStudio: CUSTOM_STUDIO_DEFAULT,
   customDisenoImagenUrl: null,
+  whatsappSaludo: WHATSAPP_SALUDO_DEFAULT,
+  whatsappMsgProductoIntro: WHATSAPP_MSG_PRODUCTO_INTRO_DEFAULT,
+  whatsappMsgInteresIntro: WHATSAPP_MSG_INTERES_INTRO_DEFAULT,
+  whatsappMsgEstudioProceso: WHATSAPP_MSG_ESTUDIO_PROCESO_DEFAULT,
+  whatsappMsgEstudioGeneral: WHATSAPP_MSG_ESTUDIO_GENERAL_DEFAULT,
+  whatsappMsgEstudioItem: WHATSAPP_MSG_ESTUDIO_ITEM_DEFAULT,
 }
 
 const TiendaContext = createContext<TiendaCtx>({

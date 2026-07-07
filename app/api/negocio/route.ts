@@ -69,8 +69,28 @@ export async function PATCH(request: NextRequest) {
   const bannerEnvios = formData.get('banner_envios')
   if (bannerEnvios !== null) updates.banner_envios = String(bannerEnvios).trim()
 
+  const bannerEnviosVelocidad = formData.get('banner_envios_velocidad')
+  if (bannerEnviosVelocidad !== null && bannerEnviosVelocidad !== '') {
+    updates.banner_envios_velocidad = Math.max(5, parseInt(String(bannerEnviosVelocidad), 10) || 20)
+  }
+
+  const bannerEnviosDireccion = formData.get('banner_envios_direccion')
+  if (bannerEnviosDireccion === 'izquierda' || bannerEnviosDireccion === 'derecha') {
+    updates.banner_envios_direccion = bannerEnviosDireccion
+  }
+
   const textoDestacado = formData.get('texto_destacado')
   if (textoDestacado !== null) updates.texto_destacado = String(textoDestacado).trim()
+
+  const bannerDestacadoVelocidad = formData.get('banner_destacado_velocidad')
+  if (bannerDestacadoVelocidad !== null && bannerDestacadoVelocidad !== '') {
+    updates.banner_destacado_velocidad = Math.max(5, parseInt(String(bannerDestacadoVelocidad), 10) || 20)
+  }
+
+  const bannerDestacadoDireccion = formData.get('banner_destacado_direccion')
+  if (bannerDestacadoDireccion === 'izquierda' || bannerDestacadoDireccion === 'derecha') {
+    updates.banner_destacado_direccion = bannerDestacadoDireccion
+  }
 
   const misionTexto = formData.get('mision_texto')
   if (misionTexto !== null) updates.mision_texto = String(misionTexto).trim()
@@ -91,6 +111,19 @@ export async function PATCH(request: NextRequest) {
     } catch {
       return NextResponse.json({ error: 'Guía de talles inválida' }, { status: 400 })
     }
+  }
+
+  const CAMPOS_WHATSAPP_TEXTO = [
+    'whatsapp_saludo',
+    'whatsapp_msg_producto_intro',
+    'whatsapp_msg_interes_intro',
+    'whatsapp_msg_estudio_proceso',
+    'whatsapp_msg_estudio_general',
+    'whatsapp_msg_estudio_item',
+  ]
+  for (const campo of CAMPOS_WHATSAPP_TEXTO) {
+    const valor = formData.get(campo)
+    if (valor !== null) updates[campo] = String(valor).trim()
   }
 
   const customStudio = formData.get('custom_studio')

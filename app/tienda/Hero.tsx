@@ -7,6 +7,7 @@ import type { Anuncio } from '@/lib/types'
 import type { ProductoCardData } from './ProductoCard'
 import { buildProductoWaUrl } from '@/lib/whatsapp'
 import { getBaseUrl } from '@/lib/tienda'
+import { useTienda } from './TiendaShell'
 import WhatsAppIcon from './WhatsAppIcon'
 
 type Slide =
@@ -30,6 +31,7 @@ export default function Hero({
   ]
 
   const [activo, setActivo] = useState(0)
+  const { negocio } = useTienda()
 
   if (slides.length === 0) return null
 
@@ -49,7 +51,10 @@ export default function Hero({
   const tieneDescuento = !!producto?.precio_anterior && producto.precio_anterior > producto.precio_venta
   const productoUrl = producto ? `${typeof window !== 'undefined' ? window.location.origin : getBaseUrl()}/tienda/${producto.id}` : ''
   const waUrl = producto
-    ? buildProductoWaUrl({ whatsapp, nombreTienda, nombre: producto.nombre, precioVenta: producto.precio_venta, productoUrl })
+    ? buildProductoWaUrl({
+        whatsapp, nombreTienda, nombre: producto.nombre, precioVenta: producto.precio_venta, productoUrl,
+        saludo: negocio.whatsappSaludo, intro: negocio.whatsappMsgProductoIntro,
+      })
     : null
 
   const contenido = (

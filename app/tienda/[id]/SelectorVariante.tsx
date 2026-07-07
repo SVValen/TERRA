@@ -26,7 +26,7 @@ export default function SelectorVariante({
   nombreTienda: string
   productoUrl: string
 }) {
-  const { interes } = useTienda()
+  const { interes, negocio } = useTienda()
   const [agregado, setAgregado] = useState(false)
 
   const talles = useMemo(() => [...new Set(variantes.map(v => v.talle))], [variantes])
@@ -63,6 +63,8 @@ export default function SelectorVariante({
     productoUrl,
     talle: talleSel,
     color: colorSel,
+    saludo: negocio.whatsappSaludo,
+    intro: negocio.whatsappMsgProductoIntro,
   })
 
   const agregarAInteres = () => {

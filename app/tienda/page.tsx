@@ -27,7 +27,13 @@ export default function TiendaPage() {
 
       {negocio.textoDestacado && (
         <div className="overflow-hidden w-full py-4 border-y border-white/20 bg-white text-black">
-          <div className="marquee-track flex whitespace-nowrap w-max">
+          <div
+            className="marquee-track flex whitespace-nowrap w-max"
+            style={{
+              animationDuration: `${negocio.bannerDestacadoVelocidad}s`,
+              animationDirection: negocio.bannerDestacadoDireccion === 'derecha' ? 'reverse' : 'normal',
+            }}
+          >
             {[0, 1].map(bloque => (
               <span key={bloque} className="flex items-center shrink-0">
                 {Array.from({ length: 6 }).map((_, i) => (

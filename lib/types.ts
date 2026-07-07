@@ -73,6 +73,8 @@ export interface GuiaTallas {
   filas: string[][]
 }
 
+export type BannerDireccion = 'izquierda' | 'derecha'
+
 export interface CustomStudio {
   heroTitulo: string
   heroSubtitulo: string
@@ -125,15 +127,25 @@ export interface Negocio {
   cambios_devoluciones: string | null
   envios: string | null
   banner_envios: string | null
+  banner_envios_velocidad: number | null
+  banner_envios_direccion: BannerDireccion | null
   etiqueta_envio_gratis: string | null
   etiqueta_envio_dia: string | null
   texto_destacado: string | null
+  banner_destacado_velocidad: number | null
+  banner_destacado_direccion: BannerDireccion | null
   mision_texto: string | null
   mision_imagen_url: string | null
   vision_texto: string | null
   vision_imagen_url: string | null
   custom_studio: CustomStudio | null
   custom_diseno_imagen_url: string | null
+  whatsapp_saludo: string | null
+  whatsapp_msg_producto_intro: string | null
+  whatsapp_msg_interes_intro: string | null
+  whatsapp_msg_estudio_proceso: string | null
+  whatsapp_msg_estudio_general: string | null
+  whatsapp_msg_estudio_item: string | null
   actualizado_en: string
 }
 

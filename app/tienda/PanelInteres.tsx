@@ -10,7 +10,13 @@ export default function PanelInteres() {
 
   if (!interes.abierto) return null
 
-  const waUrl = buildInteresWaUrl({ whatsapp: negocio.whatsapp, nombreTienda: negocio.nombre, items: interes.items })
+  const waUrl = buildInteresWaUrl({
+    whatsapp: negocio.whatsapp,
+    nombreTienda: negocio.nombre,
+    items: interes.items,
+    saludo: negocio.whatsappSaludo,
+    intro: negocio.whatsappMsgInteresIntro,
+  })
 
   const confirmar = () => {
     if (!waUrl) return

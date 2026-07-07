@@ -20,12 +20,14 @@ export default function PersonalizaPage() {
   const waProceso = buildConsultaWaUrl({
     whatsapp: negocio.whatsapp,
     nombreTienda: negocio.nombre,
-    mensaje: 'Quiero traer mi propia prenda para personalizarla con el diseño de ustedes. ¿Cómo es el proceso?',
+    mensaje: negocio.whatsappMsgEstudioProceso,
+    saludo: negocio.whatsappSaludo,
   })
   const waCta = buildConsultaWaUrl({
     whatsapp: negocio.whatsapp,
     nombreTienda: negocio.nombre,
-    mensaje: 'Quiero consultar por el servicio de diseño personalizado / Custom Studio.',
+    mensaje: negocio.whatsappMsgEstudioGeneral,
+    saludo: negocio.whatsappSaludo,
   })
 
   return (

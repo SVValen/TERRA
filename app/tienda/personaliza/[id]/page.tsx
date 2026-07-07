@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useTienda } from '../../TiendaShell'
-import { buildConsultaWaUrl } from '@/lib/whatsapp'
+import { buildConsultaWaUrl, sustituirTokens } from '@/lib/whatsapp'
 import WhatsAppIcon from '../../WhatsAppIcon'
 import type { EstudioItem } from '@/lib/types'
 
@@ -36,7 +36,8 @@ export default function EstudioItemPage() {
   const wa = buildConsultaWaUrl({
     whatsapp: negocio.whatsapp,
     nombreTienda: negocio.nombre,
-    mensaje: `Quiero consultar por "${item.nombre}" de la sección Personalizá tu diseño.`,
+    mensaje: sustituirTokens(negocio.whatsappMsgEstudioItem, { item: item.nombre }),
+    saludo: negocio.whatsappSaludo,
   })
 
   return (

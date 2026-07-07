@@ -13,6 +13,7 @@ const nav = [
   { href: '/admin/categorias', label: 'Categorías', icon: '🏷️' },
   { href: '/admin/anuncios',   label: 'Anuncios',   icon: '📣' },
   { href: '/admin/personaliza', label: 'Personalizá', icon: '🎨' },
+  { href: '/admin/whatsapp',   label: 'WhatsApp',    icon: '💬' },
   { href: '/admin/negocio',    label: 'Mi negocio', icon: '🏪' },
 ]
 

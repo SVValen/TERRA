@@ -1,9 +1,207 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import type { EstudioItem } from '@/lib/types'
+import type { CustomStudio, EstudioItem } from '@/lib/types'
+import { CUSTOM_STUDIO_DEFAULT } from '@/lib/contenido'
 
 export default function PersonalizaAdminPage() {
+  return (
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <div>
+        <h1 className="text-xl font-bold text-gray-800 dark:text-white">Personalizá tu diseño</h1>
+        <p className="text-sm text-gray-400 dark:text-slate-500 mt-1">
+          Todo el contenido de /tienda/personaliza: textos, imagen y los ítems de la grilla &quot;Diseño + Producto&quot;.
+        </p>
+      </div>
+
+      <ContenidoForm />
+      <ItemsManager />
+    </div>
+  )
+}
+
+function ContenidoForm() {
+  const [customStudio, setCustomStudio] = useState<CustomStudio>(CUSTOM_STUDIO_DEFAULT)
+  const [disenoImagenUrl, setDisenoImagenUrl] = useState<string | null>(null)
+  const [disenoPreview, setDisenoPreview] = useState<string | null>(null)
+  const [disenoArchivo, setDisenoArchivo] = useState<File | null>(null)
+  const disenoInputRef = useRef<HTMLInputElement>(null)
+  const [guardando, setGuardando] = useState(false)
+  const [msg, setMsg] = useState<{ tipo: 'ok' | 'error'; texto: string } | null>(null)
+
+  useEffect(() => {
+    fetch('/api/negocio').then(r => r.json()).then(d => {
+      setCustomStudio(d.custom_studio ?? CUSTOM_STUDIO_DEFAULT)
+      setDisenoImagenUrl(d.custom_diseno_imagen_url ?? null)
+    })
+  }, [])
+
+  const onDisenoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setDisenoArchivo(file)
+    setDisenoPreview(URL.createObjectURL(file))
+  }
+
+  const guardar = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setMsg(null)
+    setGuardando(true)
+    const fd = new FormData()
+    fd.append('custom_studio', JSON.stringify(customStudio))
+    if (disenoArchivo) fd.append('custom_diseno_imagen', disenoArchivo)
+
+    const res = await fetch('/api/negocio', { method: 'PATCH', body: fd })
+    const data = await res.json()
+    if (res.ok) {
+      setDisenoImagenUrl(data.custom_diseno_imagen_url ?? disenoImagenUrl)
+      setDisenoPreview(null)
+      setDisenoArchivo(null)
+      setMsg({ tipo: 'ok', texto: 'Cambios guardados correctamente' })
+    } else {
+      setMsg({ tipo: 'error', texto: data.error ?? 'Error al guardar' })
+    }
+    setGuardando(false)
+  }
+
+  return (
+    <form onSubmit={guardar} className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5 space-y-5">
+      <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-200">Contenido de la página</h2>
+
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Título principal</label>
+          <input type="text" value={customStudio.heroTitulo} onChange={e => setCustomStudio(p => ({ ...p, heroTitulo: e.target.value }))} className="input" />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Subtítulo</label>
+          <input type="text" value={customStudio.heroSubtitulo} onChange={e => setCustomStudio(p => ({ ...p, heroSubtitulo: e.target.value }))} className="input" />
+        </div>
+      </div>
+
+      <div className="pt-4 border-t border-gray-100 dark:border-slate-700 space-y-3">
+        <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">Sección &quot;Solo diseño&quot;</p>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Título</label>
+            <input type="text" value={customStudio.disenoTitulo} onChange={e => setCustomStudio(p => ({ ...p, disenoTitulo: e.target.value }))} className="input" />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Título del recuadro</label>
+            <input type="text" value={customStudio.identidadTitulo} onChange={e => setCustomStudio(p => ({ ...p, identidadTitulo: e.target.value }))} className="input" />
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Texto</label>
+          <textarea value={customStudio.disenoTexto} onChange={e => setCustomStudio(p => ({ ...p, disenoTexto: e.target.value }))} rows={3} className="input resize-none" />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Texto del recuadro</label>
+          <textarea value={customStudio.identidadTexto} onChange={e => setCustomStudio(p => ({ ...p, identidadTexto: e.target.value }))} rows={2} className="input resize-none" />
+        </div>
+        <ImagenField label="Imagen" preview={disenoPreview ?? disenoImagenUrl} onClick={() => disenoInputRef.current?.click()} />
+        <input ref={disenoInputRef} type="file" accept="image/*" className="hidden" onChange={onDisenoFileChange} />
+      </div>
+
+      <div className="pt-4 border-t border-gray-100 dark:border-slate-700 space-y-3">
+        <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">Sección &quot;Diseño + producto&quot;</p>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Título</label>
+          <input type="text" value={customStudio.productoTitulo} onChange={e => setCustomStudio(p => ({ ...p, productoTitulo: e.target.value }))} className="input" />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Texto</label>
+          <textarea value={customStudio.productoTexto} onChange={e => setCustomStudio(p => ({ ...p, productoTexto: e.target.value }))} rows={2} className="input resize-none" />
+        </div>
+        <p className="text-xs text-gray-400 dark:text-slate-500">
+          Los ítems de esta grilla (nombre, subtítulo, descripción, precio e imagen) se administran más abajo, sin límite de cantidad.
+        </p>
+      </div>
+
+      <div className="pt-4 border-t border-gray-100 dark:border-slate-700 space-y-3">
+        <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">Sección &quot;Tu prenda, nuestro diseño&quot;</p>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Título</label>
+          <input type="text" value={customStudio.prendaTitulo} onChange={e => setCustomStudio(p => ({ ...p, prendaTitulo: e.target.value }))} className="input" />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Texto</label>
+          <textarea value={customStudio.prendaTexto} onChange={e => setCustomStudio(p => ({ ...p, prendaTexto: e.target.value }))} rows={3} className="input resize-none" />
+        </div>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Texto del proceso</label>
+            <input type="text" value={customStudio.prendaProceso} onChange={e => setCustomStudio(p => ({ ...p, prendaProceso: e.target.value }))} className="input" />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Texto del botón</label>
+            <input type="text" value={customStudio.prendaBoton} onChange={e => setCustomStudio(p => ({ ...p, prendaBoton: e.target.value }))} className="input" />
+          </div>
+        </div>
+        <p className="text-xs text-gray-400 dark:text-slate-500">
+          El botón abre WhatsApp con el mensaje configurado en la pestaña &quot;WhatsApp&quot;.
+        </p>
+      </div>
+
+      <div className="pt-4 border-t border-gray-100 dark:border-slate-700">
+        <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Título final (CTA)</label>
+        <input type="text" value={customStudio.ctaTitulo} onChange={e => setCustomStudio(p => ({ ...p, ctaTitulo: e.target.value }))} className="input" />
+      </div>
+
+      {msg && (
+        <p className={`text-xs px-3 py-2 rounded-lg ${
+          msg.tipo === 'ok' ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400' : 'bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400'
+        }`}>
+          {msg.texto}
+        </p>
+      )}
+
+      <button
+        type="submit"
+        disabled={guardando}
+        className="w-full py-2.5 rounded-xl text-sm font-semibold text-slate-900 transition-opacity disabled:opacity-50"
+        style={{ background: 'var(--accent)' }}
+      >
+        {guardando ? 'Guardando...' : 'Guardar cambios'}
+      </button>
+    </form>
+  )
+}
+
+function ImagenField({
+  label,
+  preview,
+  onClick,
+}: {
+  label: string
+  preview: string | null
+  onClick: () => void
+}) {
+  return (
+    <div>
+      <div className="flex items-center gap-3">
+        <div
+          className="w-16 h-16 rounded-lg border-2 border-dashed border-gray-200 dark:border-slate-600 overflow-hidden flex items-center justify-center bg-gray-50 dark:bg-slate-700 shrink-0 cursor-pointer hover:border-amber-400 transition-colors"
+          onClick={onClick}
+        >
+          {preview
+            ? <img src={preview} alt={label} className="w-full h-full object-cover" />
+            : <span className="text-2xl text-gray-300 dark:text-slate-500">🖼️</span>
+          }
+        </div>
+        <button
+          type="button"
+          onClick={onClick}
+          className="px-3 py-1.5 text-xs font-medium border border-gray-200 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 transition-colors"
+        >
+          {preview ? 'Cambiar imagen' : 'Subir imagen'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function ItemsManager() {
   const [items, setItems] = useState<EstudioItem[]>([])
   const [cargando, setCargando] = useState(true)
   const [subiendo, setSubiendo] = useState(false)
@@ -78,16 +276,14 @@ export default function PersonalizaAdminPage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+    <div className="space-y-4">
       <div>
-        <h1 className="text-xl font-bold text-gray-800 dark:text-white">Personalizá tu diseño</h1>
-        <p className="text-sm text-gray-400 dark:text-slate-500 mt-1">
-          Ítems de la sección &quot;Diseño + Producto&quot; en /tienda/personaliza. Cada uno abre su propia página de detalle. Podés cargar los que quieras.
-        </p>
+        <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-200">Ítems de &quot;Diseño + Producto&quot;</h2>
+        <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Cada uno abre su propia página de detalle. Podés cargar los que quieras.</p>
       </div>
 
       <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5 space-y-3">
-        <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-200">Nuevo ítem</h2>
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-slate-200">Nuevo ítem</h3>
 
         <div>
           {archivo ? (

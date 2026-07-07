@@ -2,18 +2,19 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { CustomStudio, GuiaTallas } from '@/lib/types'
+import type { BannerDireccion, GuiaTallas } from '@/lib/types'
 import {
   GUIA_TALLES_DEFAULT,
   CAMBIOS_DEVOLUCIONES_DEFAULT,
   ENVIOS_DEFAULT,
   BANNER_ENVIOS_DEFAULT,
+  BANNER_VELOCIDAD_DEFAULT,
+  BANNER_DIRECCION_DEFAULT,
   ETIQUETA_ENVIO_GRATIS_DEFAULT,
   ETIQUETA_ENVIO_DIA_DEFAULT,
   TEXTO_DESTACADO_DEFAULT,
   MISION_DEFAULT,
   VISION_DEFAULT,
-  CUSTOM_STUDIO_DEFAULT,
 } from '@/lib/contenido'
 import GuiaTallasEditor from './GuiaTallasEditor'
 
@@ -39,9 +40,13 @@ export default function NegocioPage() {
   const [cambiosDevoluciones, setCambiosDevoluciones] = useState(CAMBIOS_DEVOLUCIONES_DEFAULT)
   const [envios, setEnvios] = useState(ENVIOS_DEFAULT)
   const [bannerEnvios, setBannerEnvios] = useState(BANNER_ENVIOS_DEFAULT)
+  const [bannerEnviosVelocidad, setBannerEnviosVelocidad] = useState(String(BANNER_VELOCIDAD_DEFAULT))
+  const [bannerEnviosDireccion, setBannerEnviosDireccion] = useState<BannerDireccion>(BANNER_DIRECCION_DEFAULT)
   const [etiquetaEnvioGratis, setEtiquetaEnvioGratis] = useState(ETIQUETA_ENVIO_GRATIS_DEFAULT)
   const [etiquetaEnvioDia, setEtiquetaEnvioDia] = useState(ETIQUETA_ENVIO_DIA_DEFAULT)
   const [textoDestacado, setTextoDestacado] = useState(TEXTO_DESTACADO_DEFAULT)
+  const [bannerDestacadoVelocidad, setBannerDestacadoVelocidad] = useState(String(BANNER_VELOCIDAD_DEFAULT))
+  const [bannerDestacadoDireccion, setBannerDestacadoDireccion] = useState<BannerDireccion>(BANNER_DIRECCION_DEFAULT)
   const [misionTexto, setMisionTexto] = useState(MISION_DEFAULT)
   const [visionTexto, setVisionTexto] = useState(VISION_DEFAULT)
   const [misionImagenUrl, setMisionImagenUrl] = useState<string | null>(null)
@@ -52,11 +57,6 @@ export default function NegocioPage() {
   const [visionArchivo, setVisionArchivo] = useState<File | null>(null)
   const misionInputRef = useRef<HTMLInputElement>(null)
   const visionInputRef = useRef<HTMLInputElement>(null)
-  const [customStudio, setCustomStudio] = useState<CustomStudio>(CUSTOM_STUDIO_DEFAULT)
-  const [disenoImagenUrl, setDisenoImagenUrl] = useState<string | null>(null)
-  const [disenoPreview, setDisenoPreview] = useState<string | null>(null)
-  const [disenoArchivo, setDisenoArchivo] = useState<File | null>(null)
-  const disenoInputRef = useRef<HTMLInputElement>(null)
   const [guiaTallas, setGuiaTallas] = useState<GuiaTallas>(GUIA_TALLES_DEFAULT)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [preview, setPreview] = useState<string | null>(null)
@@ -87,15 +87,17 @@ export default function NegocioPage() {
       setCambiosDevoluciones(d.cambios_devoluciones ?? CAMBIOS_DEVOLUCIONES_DEFAULT)
       setEnvios(d.envios ?? ENVIOS_DEFAULT)
       setBannerEnvios(d.banner_envios ?? BANNER_ENVIOS_DEFAULT)
+      setBannerEnviosVelocidad(String(d.banner_envios_velocidad ?? BANNER_VELOCIDAD_DEFAULT))
+      setBannerEnviosDireccion(d.banner_envios_direccion ?? BANNER_DIRECCION_DEFAULT)
       setEtiquetaEnvioGratis(d.etiqueta_envio_gratis ?? ETIQUETA_ENVIO_GRATIS_DEFAULT)
       setEtiquetaEnvioDia(d.etiqueta_envio_dia ?? ETIQUETA_ENVIO_DIA_DEFAULT)
       setTextoDestacado(d.texto_destacado ?? TEXTO_DESTACADO_DEFAULT)
+      setBannerDestacadoVelocidad(String(d.banner_destacado_velocidad ?? BANNER_VELOCIDAD_DEFAULT))
+      setBannerDestacadoDireccion(d.banner_destacado_direccion ?? BANNER_DIRECCION_DEFAULT)
       setMisionTexto(d.mision_texto ?? MISION_DEFAULT)
       setVisionTexto(d.vision_texto ?? VISION_DEFAULT)
       setMisionImagenUrl(d.mision_imagen_url ?? null)
       setVisionImagenUrl(d.vision_imagen_url ?? null)
-      setCustomStudio(d.custom_studio ?? CUSTOM_STUDIO_DEFAULT)
-      setDisenoImagenUrl(d.custom_diseno_imagen_url ?? null)
       setGuiaTallas(d.guia_talles ?? GUIA_TALLES_DEFAULT)
       setLogoUrl(d.logo_url ?? null)
     })
@@ -120,13 +122,6 @@ export default function NegocioPage() {
     if (!file) return
     setVisionArchivo(file)
     setVisionPreview(URL.createObjectURL(file))
-  }
-
-  const onDisenoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setDisenoArchivo(file)
-    setDisenoPreview(URL.createObjectURL(file))
   }
 
   const guardar = async (e: React.FormEvent) => {
@@ -154,15 +149,17 @@ export default function NegocioPage() {
     fd.append('cambios_devoluciones', cambiosDevoluciones)
     fd.append('envios', envios)
     fd.append('banner_envios', bannerEnvios)
+    fd.append('banner_envios_velocidad', bannerEnviosVelocidad)
+    fd.append('banner_envios_direccion', bannerEnviosDireccion)
     fd.append('etiqueta_envio_gratis', etiquetaEnvioGratis)
     fd.append('etiqueta_envio_dia', etiquetaEnvioDia)
     fd.append('texto_destacado', textoDestacado)
+    fd.append('banner_destacado_velocidad', bannerDestacadoVelocidad)
+    fd.append('banner_destacado_direccion', bannerDestacadoDireccion)
     fd.append('mision_texto', misionTexto)
     fd.append('vision_texto', visionTexto)
     if (misionArchivo) fd.append('mision_imagen', misionArchivo)
     if (visionArchivo) fd.append('vision_imagen', visionArchivo)
-    fd.append('custom_studio', JSON.stringify(customStudio))
-    if (disenoArchivo) fd.append('custom_diseno_imagen', disenoArchivo)
     fd.append('guia_talles', JSON.stringify(guiaTallas))
     if (archivo) fd.append('logo', archivo)
     const res = await fetch('/api/negocio', { method: 'PATCH', body: fd })
@@ -177,9 +174,6 @@ export default function NegocioPage() {
       setVisionPreview(null)
       setMisionArchivo(null)
       setVisionArchivo(null)
-      setDisenoImagenUrl(data.custom_diseno_imagen_url ?? disenoImagenUrl)
-      setDisenoPreview(null)
-      setDisenoArchivo(null)
       setMsg({ tipo: 'ok', texto: 'Cambios guardados correctamente' })
       router.refresh()
     } else {
@@ -343,6 +337,12 @@ export default function NegocioPage() {
               className="input"
               placeholder="Envíos a todo el país · Envío en el día en CABA"
             />
+            <BannerVelocidadDireccion
+              velocidad={bannerEnviosVelocidad}
+              onVelocidad={setBannerEnviosVelocidad}
+              direccion={bannerEnviosDireccion}
+              onDireccion={setBannerEnviosDireccion}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-100 dark:border-slate-700">
@@ -382,6 +382,12 @@ export default function NegocioPage() {
             onChange={e => setTextoDestacado(e.target.value)}
             className="input"
             placeholder="NUEVA COLECCIÓN (opcional)"
+          />
+          <BannerVelocidadDireccion
+            velocidad={bannerDestacadoVelocidad}
+            onVelocidad={setBannerDestacadoVelocidad}
+            direccion={bannerDestacadoDireccion}
+            onDireccion={setBannerDestacadoDireccion}
           />
         </div>
 
@@ -424,99 +430,6 @@ export default function NegocioPage() {
               />
               <input ref={visionInputRef} type="file" accept="image/*" className="hidden" onChange={onVisionFileChange} />
             </div>
-          </div>
-        </div>
-
-        {/* Personalizá tu diseño (Custom Studio) */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm p-5 space-y-5">
-          <div>
-            <h2 className="text-sm font-semibold text-gray-700 dark:text-slate-200">Personalizá tu diseño</h2>
-            <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">Contenido de la página /tienda/personaliza (nav del header)</p>
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-4 pt-2">
-            <div>
-              <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Título principal</label>
-              <input type="text" value={customStudio.heroTitulo} onChange={e => setCustomStudio(p => ({ ...p, heroTitulo: e.target.value }))} className="input" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Subtítulo</label>
-              <input type="text" value={customStudio.heroSubtitulo} onChange={e => setCustomStudio(p => ({ ...p, heroSubtitulo: e.target.value }))} className="input" />
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-gray-100 dark:border-slate-700 space-y-3">
-            <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">Sección &quot;Solo diseño&quot;</p>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Título</label>
-                <input type="text" value={customStudio.disenoTitulo} onChange={e => setCustomStudio(p => ({ ...p, disenoTitulo: e.target.value }))} className="input" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Título del recuadro</label>
-                <input type="text" value={customStudio.identidadTitulo} onChange={e => setCustomStudio(p => ({ ...p, identidadTitulo: e.target.value }))} className="input" />
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Texto</label>
-              <textarea value={customStudio.disenoTexto} onChange={e => setCustomStudio(p => ({ ...p, disenoTexto: e.target.value }))} rows={3} className="input resize-none" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Texto del recuadro</label>
-              <textarea value={customStudio.identidadTexto} onChange={e => setCustomStudio(p => ({ ...p, identidadTexto: e.target.value }))} rows={2} className="input resize-none" />
-            </div>
-            <ImagenField label="Imagen" preview={disenoPreview ?? disenoImagenUrl} onClick={() => disenoInputRef.current?.click()} />
-            <input ref={disenoInputRef} type="file" accept="image/*" className="hidden" onChange={onDisenoFileChange} />
-          </div>
-
-          <div className="pt-4 border-t border-gray-100 dark:border-slate-700 space-y-3">
-            <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">Sección &quot;Diseño + producto&quot;</p>
-            <div>
-              <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Título</label>
-              <input type="text" value={customStudio.productoTitulo} onChange={e => setCustomStudio(p => ({ ...p, productoTitulo: e.target.value }))} className="input" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Texto</label>
-              <textarea value={customStudio.productoTexto} onChange={e => setCustomStudio(p => ({ ...p, productoTexto: e.target.value }))} rows={2} className="input resize-none" />
-            </div>
-
-            <a
-              href="/admin/personaliza"
-              className="inline-block px-4 py-2 text-xs font-semibold border border-gray-200 dark:border-slate-600 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-slate-300 transition-colors"
-            >
-              Gestionar ítems de esta sección →
-            </a>
-            <p className="text-xs text-gray-400 dark:text-slate-500">
-              Los ítems (nombre, subtítulo, descripción, precio e imagen) se administran en su propia sección, sin límite de cantidad. Cada uno abre su propia página de detalle.
-            </p>
-          </div>
-
-          <div className="pt-4 border-t border-gray-100 dark:border-slate-700 space-y-3">
-            <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">Sección &quot;Tu prenda, nuestro diseño&quot;</p>
-            <div>
-              <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Título</label>
-              <input type="text" value={customStudio.prendaTitulo} onChange={e => setCustomStudio(p => ({ ...p, prendaTitulo: e.target.value }))} className="input" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Texto</label>
-              <textarea value={customStudio.prendaTexto} onChange={e => setCustomStudio(p => ({ ...p, prendaTexto: e.target.value }))} rows={3} className="input resize-none" />
-            </div>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Texto del proceso</label>
-                <input type="text" value={customStudio.prendaProceso} onChange={e => setCustomStudio(p => ({ ...p, prendaProceso: e.target.value }))} className="input" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Texto del botón</label>
-                <input type="text" value={customStudio.prendaBoton} onChange={e => setCustomStudio(p => ({ ...p, prendaBoton: e.target.value }))} className="input" />
-              </div>
-            </div>
-            <p className="text-xs text-gray-400 dark:text-slate-500">El botón abre WhatsApp con un mensaje predefinido consultando por el proceso.</p>
-          </div>
-
-          <div className="pt-4 border-t border-gray-100 dark:border-slate-700">
-            <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Título final (CTA)</label>
-            <input type="text" value={customStudio.ctaTitulo} onChange={e => setCustomStudio(p => ({ ...p, ctaTitulo: e.target.value }))} className="input" />
           </div>
         </div>
 
@@ -678,6 +591,48 @@ function ImagenField({
         >
           {preview ? 'Cambiar imagen' : 'Subir imagen'}
         </button>
+      </div>
+    </div>
+  )
+}
+
+function BannerVelocidadDireccion({
+  velocidad,
+  onVelocidad,
+  direccion,
+  onDireccion,
+}: {
+  velocidad: string
+  onVelocidad: (v: string) => void
+  direccion: BannerDireccion
+  onDireccion: (v: BannerDireccion) => void
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-3 mt-2">
+      <div>
+        <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Velocidad</label>
+        <div className="relative">
+          <input
+            type="number"
+            value={velocidad}
+            onChange={e => onVelocidad(e.target.value)}
+            min="5"
+            max="120"
+            className="input pr-12 text-right"
+          />
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 text-sm">seg</span>
+        </div>
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-1.5">Dirección</label>
+        <select
+          value={direccion}
+          onChange={e => onDireccion(e.target.value as BannerDireccion)}
+          className="input"
+        >
+          <option value="izquierda">Izquierda</option>
+          <option value="derecha">Derecha</option>
+        </select>
       </div>
     </div>
   )
