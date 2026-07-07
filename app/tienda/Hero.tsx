@@ -58,7 +58,7 @@ export default function Hero({
     : null
 
   const contenido = (
-    <section className="relative w-full h-[70vh] sm:h-[90vh] bg-[var(--tienda-fondo)] overflow-hidden">
+    <section className="relative w-full aspect-video sm:h-[90vh] sm:aspect-auto bg-[var(--tienda-fondo)] overflow-hidden">
       {mediaTipo === 'video' && videoUrl ? (
         <video
           key={slide.data.id}
