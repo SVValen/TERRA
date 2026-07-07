@@ -28,14 +28,14 @@ export default function PanelInteres() {
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-black/70" onClick={() => interes.setAbierto(false)} />
-      <div className="relative w-full sm:w-96 h-full bg-black border-l border-white/20 flex flex-col">
-        <div className="h-16 flex items-center justify-between px-4 border-b border-white/20 shrink-0">
-          <span className="font-mono text-xs uppercase tracking-widest text-white">Mi interés ({interes.items.length})</span>
+      <div className="relative w-full sm:w-96 h-full bg-[var(--tienda-fondo)] border-l border-[var(--tienda-text)]/20 flex flex-col">
+        <div className="h-16 flex items-center justify-between px-4 border-b border-[var(--tienda-text)]/20 shrink-0">
+          <span className="font-mono text-xs uppercase tracking-widest text-[var(--tienda-text)]">Mi interés ({interes.items.length})</span>
           <button
             type="button"
             onClick={() => interes.setAbierto(false)}
             aria-label="Cerrar"
-            className="w-9 h-9 flex items-center justify-center text-white/60 hover:text-red-600"
+            className="w-9 h-9 flex items-center justify-center text-[var(--tienda-text)]/60 hover:text-red-600"
           >
             ✕
           </button>
@@ -43,28 +43,28 @@ export default function PanelInteres() {
 
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {interes.items.length === 0 ? (
-            <p className="font-mono text-xs uppercase text-white/40 text-center mt-12">Todavía no agregaste productos.</p>
+            <p className="font-mono text-xs uppercase text-[var(--tienda-text)]/40 text-center mt-12">Todavía no agregaste productos.</p>
           ) : (
             interes.items.map((item, i) => (
-              <div key={`${item.productoId}-${item.talle}-${item.color}-${i}`} className="flex items-center gap-3 border border-white/15 p-2.5">
-                <div className="w-14 h-14 bg-white/5 overflow-hidden relative shrink-0">
+              <div key={`${item.productoId}-${item.talle}-${item.color}-${i}`} className="flex items-center gap-3 border border-[var(--tienda-text)]/15 p-2.5">
+                <div className="w-14 h-14 bg-[var(--tienda-text)]/5 overflow-hidden relative shrink-0">
                   {item.foto ? (
                     <Image src={item.foto} alt={item.nombre} fill className="object-cover grayscale" sizes="56px" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-xl text-white/20">📷</div>
+                    <div className="w-full h-full flex items-center justify-center text-xl text-[var(--tienda-text)]/20">📷</div>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm uppercase text-white line-clamp-1">{item.nombre}</p>
+                  <p className="text-sm uppercase text-[var(--tienda-text)] line-clamp-1">{item.nombre}</p>
                   {(item.talle || item.color) && (
-                    <p className="font-mono text-[10px] uppercase text-white/40">{[item.talle, item.color].filter(Boolean).join(' - ')}</p>
+                    <p className="font-mono text-[10px] uppercase text-[var(--tienda-text)]/40">{[item.talle, item.color].filter(Boolean).join(' - ')}</p>
                   )}
                 </div>
                 <button
                   type="button"
                   onClick={() => interes.quitar(item.productoId, item.talle, item.color)}
                   aria-label="Quitar"
-                  className="w-7 h-7 flex items-center justify-center text-white/40 hover:text-red-600 transition-colors shrink-0"
+                  className="w-7 h-7 flex items-center justify-center text-[var(--tienda-text)]/40 hover:text-red-600 transition-colors shrink-0"
                 >
                   ×
                 </button>
@@ -74,7 +74,7 @@ export default function PanelInteres() {
         </div>
 
         {interes.items.length > 0 && (
-          <div className="p-4 border-t border-white/20 shrink-0">
+          <div className="p-4 border-t border-[var(--tienda-text)]/20 shrink-0">
             {waUrl ? (
               <button
                 type="button"
@@ -86,7 +86,7 @@ export default function PanelInteres() {
                 Consultar por WhatsApp
               </button>
             ) : (
-              <div className="w-full py-4 text-center font-mono text-xs uppercase text-white/40 bg-white/5">
+              <div className="w-full py-4 text-center font-mono text-xs uppercase text-[var(--tienda-text)]/40 bg-[var(--tienda-text)]/5">
                 Contactate con {negocio.nombre} para consultar disponibilidad
               </div>
             )}

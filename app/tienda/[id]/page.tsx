@@ -107,7 +107,7 @@ export default async function ProductoTiendaPage({ params }: { params: Promise<{
     return (
       <div className="max-w-lg mx-auto px-4 py-24 text-center">
         <p className="text-4xl mb-4">🔍</p>
-        <p className="font-mono text-xs uppercase text-white/60 mb-4">Producto no disponible</p>
+        <p className="font-mono text-xs uppercase text-[var(--tienda-text)]/60 mb-4">Producto no disponible</p>
         <Link href="/" className="font-mono text-xs uppercase text-red-600 underline underline-offset-4">
           Volver al catálogo
         </Link>
@@ -124,13 +124,13 @@ export default async function ProductoTiendaPage({ params }: { params: Promise<{
     <div className="max-w-[1440px] mx-auto px-4 sm:px-6 py-12 md:py-20">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 mb-10 font-mono text-xs uppercase">
-        <Link href="/" className="text-white/40 hover:text-red-600 transition-colors">
+        <Link href="/" className="text-[var(--tienda-text)]/40 hover:text-red-600 transition-colors">
           ← Volver
         </Link>
         {producto.categoria && (
           <>
-            <span className="text-white/20">/</span>
-            <span className="text-white/40">{producto.categoria}</span>
+            <span className="text-[var(--tienda-text)]/20">/</span>
+            <span className="text-[var(--tienda-text)]/40">{producto.categoria}</span>
           </>
         )}
       </div>
@@ -144,7 +144,7 @@ export default async function ProductoTiendaPage({ params }: { params: Promise<{
         {/* Info */}
         <aside className="lg:col-span-5 lg:sticky lg:top-28 flex flex-col">
           {(producto.categoria || producto.subcategoria) && (
-            <p className="font-mono text-xs text-white/40 uppercase tracking-widest mb-3">
+            <p className="font-mono text-xs text-[var(--tienda-text)]/40 uppercase tracking-widest mb-3">
               {[producto.categoria, producto.subcategoria].filter(Boolean).join(' · ')}
             </p>
           )}
@@ -156,23 +156,23 @@ export default async function ProductoTiendaPage({ params }: { params: Promise<{
             {producto.nombre}
           </h1>
 
-          <div className="border-t border-white/20 pt-6 mb-6 flex items-baseline gap-3">
+          <div className="border-t border-[var(--tienda-text)]/20 pt-6 mb-6 flex items-baseline gap-3">
             <p className="font-mono text-2xl font-bold" style={{ color: 'var(--tienda-text)' }}>
               ${producto.precio_venta.toLocaleString('es-AR')}
             </p>
             {producto.precio_anterior && producto.precio_anterior > producto.precio_venta && (
-              <p className="font-mono text-base text-white/40 line-through">
+              <p className="font-mono text-base text-[var(--tienda-text)]/40 line-through">
                 ${producto.precio_anterior.toLocaleString('es-AR')}
               </p>
             )}
           </div>
 
           {producto.descripcion && (
-            <p className="text-sm text-white/60 mb-6 whitespace-pre-line leading-relaxed">{producto.descripcion}</p>
+            <p className="text-sm text-[var(--tienda-text)]/60 mb-6 whitespace-pre-line leading-relaxed">{producto.descripcion}</p>
           )}
 
           {producto.stock > 1 && (
-            <p className="font-mono text-[10px] uppercase text-white/50 mb-4">
+            <p className="font-mono text-[10px] uppercase text-[var(--tienda-text)]/50 mb-4">
               ✓ {producto.stock} unidades disponibles
             </p>
           )}
@@ -182,7 +182,7 @@ export default async function ProductoTiendaPage({ params }: { params: Promise<{
             </p>
           )}
           {producto.stock === 0 && (
-            <p className="font-mono text-[10px] uppercase text-white/30 mb-4">
+            <p className="font-mono text-[10px] uppercase text-[var(--tienda-text)]/30 mb-4">
               Sin stock disponible
             </p>
           )}
@@ -198,7 +198,7 @@ export default async function ProductoTiendaPage({ params }: { params: Promise<{
             productoUrl={productoUrl}
           />
 
-          <Link href="/" className="text-center mt-6 font-mono text-xs uppercase text-white/40 hover:text-red-600 transition-colors">
+          <Link href="/" className="text-center mt-6 font-mono text-xs uppercase text-[var(--tienda-text)]/40 hover:text-red-600 transition-colors">
             ← Ver más productos
           </Link>
         </aside>

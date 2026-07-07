@@ -58,7 +58,7 @@ export default function Hero({
     : null
 
   const contenido = (
-    <section className="relative w-full h-[70vh] sm:h-[90vh] bg-black overflow-hidden">
+    <section className="relative w-full h-[70vh] sm:h-[90vh] bg-[var(--tienda-fondo)] overflow-hidden">
       {mediaTipo === 'video' && videoUrl ? (
         <video
           key={slide.data.id}
@@ -81,7 +81,7 @@ export default function Hero({
           sizes="100vw"
         />
       ) : (
-        <div className="w-full h-full flex items-center justify-center text-7xl text-white/20">📷</div>
+        <div className="w-full h-full flex items-center justify-center text-7xl text-[var(--tienda-text)]/20">📷</div>
       )}
 
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
@@ -90,11 +90,11 @@ export default function Hero({
         {slide.tipo === 'anuncio' ? (
           <>
             {slide.data.subtitulo && (
-              <p className="font-mono text-xs font-bold text-white/70 uppercase tracking-widest mb-3">{slide.data.subtitulo}</p>
+              <p className="font-mono text-xs font-bold text-[var(--tienda-text)]/70 uppercase tracking-widest mb-3">{slide.data.subtitulo}</p>
             )}
             {slide.data.titulo && (
               <h1
-                className="text-4xl sm:text-7xl uppercase tracking-tighter text-white leading-[0.95] max-w-3xl"
+                className="text-4xl sm:text-7xl uppercase tracking-tighter text-[var(--tienda-text)] leading-[0.95] max-w-3xl"
                 style={{ fontFamily: 'var(--font-anton)' }}
               >
                 {slide.data.titulo}
@@ -103,19 +103,19 @@ export default function Hero({
           </>
         ) : producto && (
           <>
-            <p className="font-mono text-xs font-bold text-white/70 uppercase tracking-widest mb-3">Destacado</p>
+            <p className="font-mono text-xs font-bold text-[var(--tienda-text)]/70 uppercase tracking-widest mb-3">Destacado</p>
             <h1
-              className="text-4xl sm:text-7xl uppercase tracking-tighter text-white leading-[0.95] mb-4 max-w-3xl"
+              className="text-4xl sm:text-7xl uppercase tracking-tighter text-[var(--tienda-text)] leading-[0.95] mb-4 max-w-3xl"
               style={{ fontFamily: 'var(--font-anton)' }}
             >
               {producto.nombre}
             </h1>
             <div className="flex items-baseline gap-3 mb-6">
-              <p className="font-mono text-2xl sm:text-3xl font-bold text-white">
+              <p className="font-mono text-2xl sm:text-3xl font-bold text-[var(--tienda-text)]">
                 ${producto.precio_venta.toLocaleString('es-AR')}
               </p>
               {tieneDescuento && (
-                <p className="font-mono text-base text-white/50 line-through">
+                <p className="font-mono text-base text-[var(--tienda-text)]/50 line-through">
                   ${producto.precio_anterior!.toLocaleString('es-AR')}
                 </p>
               )}
@@ -170,7 +170,7 @@ export default function Hero({
                 type="button"
                 onClick={e => { e.preventDefault(); e.stopPropagation(); setActivo(i) }}
                 aria-label={`Ir al slide ${i + 1}`}
-                className={`h-1 transition-all ${i === activo ? 'bg-white w-8' : 'bg-white/40 w-3'}`}
+                className={`h-1 transition-all ${i === activo ? 'bg-white w-8' : 'bg-[var(--tienda-text)]/40 w-3'}`}
               />
             ))}
           </div>

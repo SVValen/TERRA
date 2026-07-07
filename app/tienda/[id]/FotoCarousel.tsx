@@ -27,7 +27,7 @@ export default function FotoCarousel({ fotos, nombre, videoUrl }: { fotos: strin
 
   return (
     <div className="space-y-2">
-      <div className="aspect-square bg-white/5 overflow-hidden relative group">
+      <div className="aspect-square bg-[var(--tienda-text)]/5 overflow-hidden relative group">
         {slide ? (
           slide.tipo === 'video' ? (
             <video src={slide.url} controls playsInline className="absolute inset-0 w-full h-full object-cover bg-black" />
@@ -42,7 +42,7 @@ export default function FotoCarousel({ fotos, nombre, videoUrl }: { fotos: strin
             </button>
           )
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-7xl text-white/10">📷</div>
+          <div className="w-full h-full flex items-center justify-center text-7xl text-[var(--tienda-text)]/10">📷</div>
         )}
 
         {slides.length > 1 && (

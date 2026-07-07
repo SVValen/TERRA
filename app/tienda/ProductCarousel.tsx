@@ -32,7 +32,7 @@ export default function ProductCarousel({
       <div className="flex items-end justify-between mb-8">
         <h2 className="text-2xl sm:text-3xl uppercase tracking-tighter" style={{ color: 'var(--tienda-text)', fontFamily: 'var(--font-anton)' }}>{titulo}</h2>
         {verTodoHref && (
-          <Link href={verTodoHref} className="font-mono text-xs uppercase underline underline-offset-4 text-white/50 hover:text-red-600 transition-colors">
+          <Link href={verTodoHref} className="font-mono text-xs uppercase underline underline-offset-4 text-[var(--tienda-text)]/50 hover:text-red-600 transition-colors">
             Ver todo
           </Link>
         )}
@@ -59,7 +59,7 @@ export default function ProductCarousel({
           type="button"
           onClick={() => desplazar(-1)}
           aria-label="Anterior"
-          className="hidden sm:flex absolute left-0 top-[35%] -translate-y-1/2 -translate-x-3 w-10 h-10 items-center justify-center bg-black text-white border border-white/30 opacity-0 group-hover/carousel:opacity-100 hover:bg-red-600 hover:border-red-600 transition-all"
+          className="hidden sm:flex absolute left-0 top-[35%] -translate-y-1/2 -translate-x-3 w-10 h-10 items-center justify-center bg-[var(--tienda-fondo)] text-[var(--tienda-text)] border border-[var(--tienda-text)]/30 opacity-0 group-hover/carousel:opacity-100 hover:bg-red-600 hover:border-red-600 hover:text-white transition-all"
         >
           ←
         </button>
@@ -67,7 +67,7 @@ export default function ProductCarousel({
           type="button"
           onClick={() => desplazar(1)}
           aria-label="Siguiente"
-          className="hidden sm:flex absolute right-0 top-[35%] -translate-y-1/2 translate-x-3 w-10 h-10 items-center justify-center bg-black text-white border border-white/30 opacity-0 group-hover/carousel:opacity-100 hover:bg-red-600 hover:border-red-600 transition-all"
+          className="hidden sm:flex absolute right-0 top-[35%] -translate-y-1/2 translate-x-3 w-10 h-10 items-center justify-center bg-[var(--tienda-fondo)] text-[var(--tienda-text)] border border-[var(--tienda-text)]/30 opacity-0 group-hover/carousel:opacity-100 hover:bg-red-600 hover:border-red-600 hover:text-white transition-all"
         >
           →
         </button>

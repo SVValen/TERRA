@@ -108,7 +108,7 @@ export default function Footer() {
               <thead>
                 <tr>
                   {negocio.guiaTallas.columnas.map((c, i) => (
-                    <th key={i} className="text-left uppercase text-white/70 pb-2 pr-4 border-b border-white/20">{c}</th>
+                    <th key={i} className="text-left uppercase text-[var(--tienda-text)]/70 pb-2 pr-4 border-b border-[var(--tienda-text)]/20">{c}</th>
                   ))}
                 </tr>
               </thead>
@@ -116,7 +116,7 @@ export default function Footer() {
                 {negocio.guiaTallas.filas.map((fila, fi) => (
                   <tr key={fi}>
                     {fila.map((celda, ci) => (
-                      <td key={ci} className="py-2 pr-4 text-white/60 border-b border-white/10">{celda}</td>
+                      <td key={ci} className="py-2 pr-4 text-[var(--tienda-text)]/60 border-b border-[var(--tienda-text)]/10">{celda}</td>
                     ))}
                   </tr>
                 ))}
@@ -128,13 +128,13 @@ export default function Footer() {
 
       {modalAyuda === 'cambios' && (
         <InfoModal titulo="Cambios y devoluciones" onClose={() => setModalAyuda(null)}>
-          <p className="text-sm text-white/70 whitespace-pre-line">{negocio.cambiosDevoluciones}</p>
+          <p className="text-sm text-[var(--tienda-text)]/70 whitespace-pre-line">{negocio.cambiosDevoluciones}</p>
         </InfoModal>
       )}
 
       {modalAyuda === 'envios' && (
         <InfoModal titulo="Envíos" onClose={() => setModalAyuda(null)}>
-          <p className="text-sm text-white/70 whitespace-pre-line">{negocio.envios}</p>
+          <p className="text-sm text-[var(--tienda-text)]/70 whitespace-pre-line">{negocio.envios}</p>
         </InfoModal>
       )}
     </footer>

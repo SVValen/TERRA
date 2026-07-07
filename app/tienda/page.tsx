@@ -26,7 +26,7 @@ export default function TiendaPage() {
       <Hero anuncios={anuncios} productos={destacados} whatsapp={negocio.whatsapp} nombreTienda={negocio.nombre} />
 
       {negocio.textoDestacado && (
-        <div className="overflow-hidden w-full py-4 border-y border-white/20 bg-white text-black">
+        <div className="overflow-hidden w-full py-4 border-y border-[var(--tienda-text)]/20 bg-[var(--tienda-text)] text-[var(--tienda-fondo)]">
           <div
             className="marquee-track flex whitespace-nowrap w-max"
             style={{

@@ -55,17 +55,17 @@ export default function ProductoCard({
       onMouseLeave={() => setHover(false)}
     >
       <Link href={`/tienda/${p.id}`} className="block">
-        <div className="aspect-square bg-white/5 relative overflow-hidden">
+        <div className="aspect-square bg-[var(--tienda-text)]/5 relative overflow-hidden">
           {p.foto_url ? (
             <Image
               src={hover && segundaFoto ? segundaFoto : p.foto_url}
               alt={p.nombre}
               fill
-              className={`object-cover grayscale group-hover:grayscale-0 transition-all duration-500 ${sinStock ? 'grayscale' : ''}`}
+              className="object-cover transition-all duration-500"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-5xl text-white/10">📷</div>
+            <div className="w-full h-full flex items-center justify-center text-5xl text-[var(--tienda-text)]/10">📷</div>
           )}
           {p.fotos_urls?.length > 1 && (
             <div className="absolute bottom-2 right-2 bg-black/60 text-white font-mono text-[10px] px-1.5 py-0.5">
@@ -74,12 +74,12 @@ export default function ProductoCard({
           )}
           <div className="absolute top-2 left-2 flex flex-col gap-1 items-start">
             {sinStock && (
-              <span className="bg-white/90 text-black font-mono text-[10px] px-2 py-0.5 uppercase font-bold">
+              <span className="bg-[var(--tienda-text)]/90 text-[var(--tienda-fondo)] font-mono text-[10px] px-2 py-0.5 uppercase font-bold">
                 Sin stock
               </span>
             )}
             {!sinStock && esNuevo && (
-              <span className="bg-white text-black font-mono text-[10px] px-2 py-0.5 uppercase font-bold">
+              <span className="bg-[var(--tienda-text)] text-[var(--tienda-fondo)] font-mono text-[10px] px-2 py-0.5 uppercase font-bold">
                 Nuevo
               </span>
             )}
@@ -100,7 +100,7 @@ export default function ProductoCard({
         </Link>
 
         {(p.categoria || p.subcategoria) && (
-          <p className="font-mono text-[10px] uppercase text-white/40 mb-1.5 line-clamp-1">
+          <p className="font-mono text-[10px] uppercase text-[var(--tienda-text)]/40 mb-1.5 line-clamp-1">
             {[p.categoria, p.subcategoria].filter(Boolean).join(' · ')}
           </p>
         )}
@@ -113,7 +113,7 @@ export default function ProductoCard({
                 <span
                   key={t.talle}
                   className={`inline-block font-mono text-[10px] px-1.5 py-0.5 border ${
-                    stockTalle > 0 ? 'text-white/70 border-white/20' : 'text-white/20 border-white/10 line-through'
+                    stockTalle > 0 ? 'text-[var(--tienda-text)]/70 border-[var(--tienda-text)]/20' : 'text-[var(--tienda-text)]/20 border-[var(--tienda-text)]/10 line-through'
                   }`}
                 >
                   {t.talle}
@@ -144,7 +144,7 @@ export default function ProductoCard({
               ${p.precio_venta.toLocaleString('es-AR')}
             </p>
             {tieneDescuento && (
-              <p className="font-mono text-xs text-white/40 line-through whitespace-nowrap">
+              <p className="font-mono text-xs text-[var(--tienda-text)]/40 line-through whitespace-nowrap">
                 ${p.precio_anterior!.toLocaleString('es-AR')}
               </p>
             )}

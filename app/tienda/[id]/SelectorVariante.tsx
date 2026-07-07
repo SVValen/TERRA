@@ -76,7 +76,7 @@ export default function SelectorVariante({
     <div>
       {talles.length > 0 && (
         <div className="mb-6">
-          <p className="font-mono text-xs uppercase text-white/50 mb-2">Talle</p>
+          <p className="font-mono text-xs uppercase text-[var(--tienda-text)]/50 mb-2">Talle</p>
           <div className="grid grid-cols-4 gap-2">
             {talles.map(t => {
               const sinStock = stockPorTalle(t) === 0
@@ -87,10 +87,10 @@ export default function SelectorVariante({
                   onClick={() => seleccionarTalle(t)}
                   className={`py-3 font-mono text-sm border transition-colors ${
                     sinStock
-                      ? 'border-white/10 text-white/20 line-through cursor-not-allowed'
+                      ? 'border-[var(--tienda-text)]/10 text-[var(--tienda-text)]/20 line-through cursor-not-allowed'
                       : talleSel === t
-                        ? 'bg-white text-black border-white'
-                        : 'border-white/30 text-white hover:bg-white hover:text-black'
+                        ? 'bg-[var(--tienda-text)] text-[var(--tienda-fondo)] border-[var(--tienda-text)]'
+                        : 'border-[var(--tienda-text)]/30 text-[var(--tienda-text)] hover:bg-[var(--tienda-text)] hover:text-[var(--tienda-fondo)]'
                   }`}
                 >
                   {t}
@@ -103,7 +103,7 @@ export default function SelectorVariante({
 
       {talleSel && coloresDelTalle.length > 0 && (
         <div className="mb-6">
-          <p className="font-mono text-xs uppercase text-white/50 mb-2">Color</p>
+          <p className="font-mono text-xs uppercase text-[var(--tienda-text)]/50 mb-2">Color</p>
           <div className="flex flex-wrap gap-2">
             {coloresDelTalle.map(v => (
               <button
@@ -112,10 +112,10 @@ export default function SelectorVariante({
                 onClick={() => { setColorSel(v.color); setAgregado(false) }}
                 className={`px-4 py-2 font-mono text-xs uppercase border transition-colors ${
                   v.stock === 0
-                    ? 'border-white/10 text-white/20 line-through'
+                    ? 'border-[var(--tienda-text)]/10 text-[var(--tienda-text)]/20 line-through'
                     : colorSel === v.color
-                      ? 'bg-white text-black border-white'
-                      : 'border-white/30 text-white hover:bg-white hover:text-black'
+                      ? 'bg-[var(--tienda-text)] text-[var(--tienda-fondo)] border-[var(--tienda-text)]'
+                      : 'border-[var(--tienda-text)]/30 text-[var(--tienda-text)] hover:bg-[var(--tienda-text)] hover:text-[var(--tienda-fondo)]'
                 }`}
               >
                 {v.color}
@@ -126,7 +126,7 @@ export default function SelectorVariante({
       )}
 
       {varianteElegida && (
-        <p className="font-mono text-[10px] uppercase text-white/40 mb-2">
+        <p className="font-mono text-[10px] uppercase text-[var(--tienda-text)]/40 mb-2">
           {varianteElegida.stock > 0
             ? `Stock de esta variante: ${varianteElegida.stock}`
             : 'Esta variante está sin stock'}
@@ -146,7 +146,7 @@ export default function SelectorVariante({
             Consultar por WhatsApp
           </a>
         ) : (
-          <div className="w-full py-5 text-center font-mono text-xs uppercase text-white/40 bg-white/5">
+          <div className="w-full py-5 text-center font-mono text-xs uppercase text-[var(--tienda-text)]/40 bg-[var(--tienda-text)]/5">
             Contactate con {nombreTienda} para consultar disponibilidad
           </div>
         )}
@@ -155,7 +155,7 @@ export default function SelectorVariante({
           type="button"
           onClick={agregarAInteres}
           disabled={agregado}
-          className="w-full py-4 border border-white/30 font-mono text-xs font-bold uppercase tracking-tighter text-white hover:bg-white hover:text-black transition-colors disabled:opacity-40"
+          className="w-full py-4 border border-[var(--tienda-text)]/30 font-mono text-xs font-bold uppercase tracking-tighter text-[var(--tienda-text)] hover:bg-[var(--tienda-text)] hover:text-[var(--tienda-fondo)] transition-colors disabled:opacity-40"
         >
           {agregado ? '✓ Agregado a mi interés' : 'Agregar a mi interés'}
         </button>

@@ -126,7 +126,7 @@ export default function Header() {
             </svg>
             {interes.items.length > 0 && (
               <span
-                className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 text-white text-[10px] font-bold flex items-center justify-center"
+                className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 text-[var(--tienda-text)] text-[10px] font-bold flex items-center justify-center"
                 style={{ background: 'var(--tienda-accent, #FF0000)' }}
               >
                 {interes.items.length}
@@ -140,14 +140,14 @@ export default function Header() {
 
     {/* Panel mobile — fuera del <header> (sticky) para que el fixed no quede atrapado en su containing block en Safari/iOS */}
     {menuMobileAbierto && (
-        <div className="md:hidden fixed inset-0 z-40 bg-black flex flex-col">
-          <div className="h-16 flex items-center justify-between px-4 border-b border-white/20 shrink-0">
-            <span className="font-mono text-xs uppercase tracking-tighter text-white">Menú</span>
+        <div className="md:hidden fixed inset-0 z-40 bg-[var(--tienda-fondo)] flex flex-col">
+          <div className="h-16 flex items-center justify-between px-4 border-b border-[var(--tienda-text)]/20 shrink-0">
+            <span className="font-mono text-xs uppercase tracking-tighter text-[var(--tienda-text)]">Menú</span>
             <button
               type="button"
               onClick={() => setMenuMobileAbierto(false)}
               aria-label="Cerrar menú"
-              className="w-9 h-9 flex items-center justify-center text-white"
+              className="w-9 h-9 flex items-center justify-center text-[var(--tienda-text)]"
             >
               ✕
             </button>
@@ -156,14 +156,14 @@ export default function Header() {
             <Link
               href="/"
               onClick={() => setMenuMobileAbierto(false)}
-              className="block py-3 font-mono text-xs uppercase tracking-tighter text-white border-b border-white/10"
+              className="block py-3 font-mono text-xs uppercase tracking-tighter text-[var(--tienda-text)] border-b border-[var(--tienda-text)]/10"
             >
               Tienda
             </Link>
             <button
               type="button"
               onClick={abrirCatalogo}
-              className="block w-full text-left py-3 font-mono text-xs uppercase tracking-tighter text-white border-b border-white/10"
+              className="block w-full text-left py-3 font-mono text-xs uppercase tracking-tighter text-[var(--tienda-text)] border-b border-[var(--tienda-text)]/10"
             >
               Catálogo
             </button>
@@ -171,7 +171,7 @@ export default function Header() {
               <Link
                 href="/tienda/personaliza"
                 onClick={() => setMenuMobileAbierto(false)}
-                className="block w-full text-left py-3 font-mono text-xs uppercase tracking-tighter text-white"
+                className="block w-full text-left py-3 font-mono text-xs uppercase tracking-tighter text-[var(--tienda-text)]"
               >
                 Personalizá tu diseño
               </Link>
